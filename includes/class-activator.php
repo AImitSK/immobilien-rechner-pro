@@ -77,9 +77,62 @@ class IRP_Activator {
                 'enable_pdf_export' => false,
                 'require_consent' => true,
                 'privacy_policy_url' => get_privacy_policy_url(),
+            ],
+            'irp_price_matrix' => [
+                'base_prices' => [
+                    '0' => 10.50,  // Leipzig/Dresden
+                    '1' => 18.50,  // Berlin
+                    '2' => 16.00,  // Hamburg
+                    '3' => 11.50,  // Hannover
+                    '4' => 11.00,  // Düsseldorf
+                    '5' => 11.50,  // Köln/Bonn
+                    '6' => 13.50,  // Frankfurt
+                    '7' => 13.00,  // Stuttgart
+                    '8' => 19.00,  // München
+                    '9' => 10.00,  // Nürnberg
+                ],
+                'condition_multipliers' => [
+                    'new' => 1.25,
+                    'renovated' => 1.10,
+                    'good' => 1.00,
+                    'needs_renovation' => 0.80,
+                ],
+                'type_multipliers' => [
+                    'apartment' => 1.00,
+                    'house' => 1.15,
+                    'commercial' => 0.85,
+                ],
+                'feature_premiums' => [
+                    'balcony' => 0.50,
+                    'terrace' => 0.75,
+                    'garden' => 1.00,
+                    'elevator' => 0.30,
+                    'parking' => 0.40,
+                    'garage' => 0.60,
+                    'cellar' => 0.20,
+                    'fitted_kitchen' => 0.50,
+                    'floor_heating' => 0.40,
+                    'guest_toilet' => 0.25,
+                    'barrier_free' => 0.30,
+                ],
+                'sale_factors' => [
+                    '0' => 21,  // Leipzig/Dresden
+                    '1' => 30,  // Berlin
+                    '2' => 28,  // Hamburg
+                    '3' => 22,  // Hannover
+                    '4' => 23,  // Düsseldorf
+                    '5' => 24,  // Köln/Bonn
+                    '6' => 27,  // Frankfurt
+                    '7' => 26,  // Stuttgart
+                    '8' => 35,  // München
+                    '9' => 20,  // Nürnberg
+                ],
+                'interest_rate' => 3.0,
+                'appreciation_rate' => 2.0,
+                'rent_increase_rate' => 2.0,
             ]
         ];
-        
+
         foreach ($defaults as $option => $value) {
             if (get_option($option) === false) {
                 add_option($option, $value);

@@ -47,6 +47,15 @@ class IRP_Admin {
         
         add_submenu_page(
             'immobilien-rechner',
+            __('Matrix & Daten', 'immobilien-rechner-pro'),
+            __('Matrix & Daten', 'immobilien-rechner-pro'),
+            'manage_options',
+            'irp-matrix',
+            [$this, 'render_matrix']
+        );
+
+        add_submenu_page(
+            'immobilien-rechner',
             __('Settings', 'immobilien-rechner-pro'),
             __('Settings', 'immobilien-rechner-pro'),
             'manage_options',
@@ -60,6 +69,57 @@ class IRP_Admin {
             'type' => 'array',
             'sanitize_callback' => [$this, 'sanitize_settings'],
         ]);
+
+        register_setting('irp_matrix_group', 'irp_price_matrix', [
+            'type' => 'array',
+            'sanitize_callback' => [$this, 'sanitize_price_matrix'],
+        ]);
+    }
+
+    public function sanitize_price_matrix(array $input): array {
+        $sanitized = [];
+
+        // Regional base prices
+        if (isset($input['base_prices']) && is_array($input['base_prices'])) {
+            foreach ($input['base_prices'] as $region => $price) {
+                $sanitized['base_prices'][sanitize_text_field($region)] = (float) $price;
+            }
+        }
+
+        // Condition multipliers
+        if (isset($input['condition_multipliers']) && is_array($input['condition_multipliers'])) {
+            foreach ($input['condition_multipliers'] as $condition => $multiplier) {
+                $sanitized['condition_multipliers'][sanitize_text_field($condition)] = (float) $multiplier;
+            }
+        }
+
+        // Property type multipliers
+        if (isset($input['type_multipliers']) && is_array($input['type_multipliers'])) {
+            foreach ($input['type_multipliers'] as $type => $multiplier) {
+                $sanitized['type_multipliers'][sanitize_text_field($type)] = (float) $multiplier;
+            }
+        }
+
+        // Feature premiums
+        if (isset($input['feature_premiums']) && is_array($input['feature_premiums'])) {
+            foreach ($input['feature_premiums'] as $feature => $premium) {
+                $sanitized['feature_premiums'][sanitize_text_field($feature)] = (float) $premium;
+            }
+        }
+
+        // Sale factors (Vervielfältiger)
+        if (isset($input['sale_factors']) && is_array($input['sale_factors'])) {
+            foreach ($input['sale_factors'] as $region => $factor) {
+                $sanitized['sale_factors'][sanitize_text_field($region)] = (float) $factor;
+            }
+        }
+
+        // Global calculation parameters
+        $sanitized['interest_rate'] = (float) ($input['interest_rate'] ?? 3.0);
+        $sanitized['appreciation_rate'] = (float) ($input['appreciation_rate'] ?? 2.0);
+        $sanitized['rent_increase_rate'] = (float) ($input['rent_increase_rate'] ?? 2.0);
+
+        return $sanitized;
     }
     
     public function sanitize_settings(array $input): array {
@@ -158,6 +218,67 @@ class IRP_Admin {
         include IRP_PLUGIN_DIR . 'admin/views/leads-list.php';
     }
     
+    public function render_matrix(): void {
+        $matrix = get_option('irp_price_matrix', $this->get_default_matrix());
+        include IRP_PLUGIN_DIR . 'admin/views/matrix.php';
+    }
+
+    public function get_default_matrix(): array {
+        return [
+            'base_prices' => [
+                '1' => 18.50,  // Berlin
+                '2' => 16.00,  // Hamburg
+                '3' => 11.50,  // Hannover
+                '4' => 11.00,  // Düsseldorf
+                '5' => 11.50,  // Köln/Bonn
+                '6' => 13.50,  // Frankfurt
+                '7' => 13.00,  // Stuttgart
+                '8' => 19.00,  // München
+                '9' => 10.00,  // Nürnberg
+                '0' => 10.50,  // Leipzig/Dresden
+            ],
+            'condition_multipliers' => [
+                'new' => 1.25,
+                'renovated' => 1.10,
+                'good' => 1.00,
+                'needs_renovation' => 0.80,
+            ],
+            'type_multipliers' => [
+                'apartment' => 1.00,
+                'house' => 1.15,
+                'commercial' => 0.85,
+            ],
+            'feature_premiums' => [
+                'balcony' => 0.50,
+                'terrace' => 0.75,
+                'garden' => 1.00,
+                'elevator' => 0.30,
+                'parking' => 0.40,
+                'garage' => 0.60,
+                'cellar' => 0.20,
+                'fitted_kitchen' => 0.50,
+                'floor_heating' => 0.40,
+                'guest_toilet' => 0.25,
+                'barrier_free' => 0.30,
+            ],
+            'sale_factors' => [
+                '1' => 30,  // Berlin
+                '2' => 28,  // Hamburg
+                '3' => 22,  // Hannover
+                '4' => 23,  // Düsseldorf
+                '5' => 24,  // Köln/Bonn
+                '6' => 27,  // Frankfurt
+                '7' => 26,  // Stuttgart
+                '8' => 35,  // München
+                '9' => 20,  // Nürnberg
+                '0' => 21,  // Leipzig/Dresden
+            ],
+            'interest_rate' => 3.0,
+            'appreciation_rate' => 2.0,
+            'rent_increase_rate' => 2.0,
+        ];
+    }
+
     public function render_settings(): void {
         $settings = get_option('irp_settings', []);
         include IRP_PLUGIN_DIR . 'admin/views/settings.php';

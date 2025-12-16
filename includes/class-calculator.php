@@ -8,9 +8,11 @@ if (!defined('ABSPATH')) {
 }
 
 class IRP_Calculator {
-    
-    // Base prices per sqm by region (simplified - in production use real data)
-    private array $base_prices = [
+
+    private array $matrix;
+
+    // Default values (fallback if no matrix configured)
+    private array $default_base_prices = [
         '1' => 18.50,  // Berlin (starts with 1)
         '2' => 16.00,  // Hamburg (starts with 2)
         '3' => 11.50,  // Hannover region
@@ -22,24 +24,21 @@ class IRP_Calculator {
         '9' => 10.00,  // Nürnberg region
         '0' => 10.50,  // Leipzig/Dresden region
     ];
-    
-    // Condition multipliers
-    private array $condition_multipliers = [
+
+    private array $default_condition_multipliers = [
         'new' => 1.25,
         'renovated' => 1.10,
         'good' => 1.00,
         'needs_renovation' => 0.80,
     ];
-    
-    // Property type multipliers
-    private array $type_multipliers = [
+
+    private array $default_type_multipliers = [
         'apartment' => 1.00,
         'house' => 1.15,
         'commercial' => 0.85,
     ];
-    
-    // Feature premiums (€ per sqm)
-    private array $feature_premiums = [
+
+    private array $default_feature_premiums = [
         'balcony' => 0.50,
         'terrace' => 0.75,
         'garden' => 1.00,
@@ -52,6 +51,86 @@ class IRP_Calculator {
         'guest_toilet' => 0.25,
         'barrier_free' => 0.30,
     ];
+
+    private array $default_sale_factors = [
+        '1' => 30,  // Berlin
+        '2' => 28,  // Hamburg
+        '3' => 22,  // Hannover
+        '4' => 23,  // Düsseldorf
+        '5' => 24,  // Köln/Bonn
+        '6' => 27,  // Frankfurt
+        '7' => 26,  // Stuttgart
+        '8' => 35,  // München
+        '9' => 20,  // Nürnberg
+        '0' => 21,  // Leipzig/Dresden
+    ];
+
+    public function __construct() {
+        $this->load_matrix();
+    }
+
+    /**
+     * Load price matrix from database or use defaults
+     */
+    private function load_matrix(): void {
+        $saved_matrix = get_option('irp_price_matrix', []);
+
+        $this->matrix = [
+            'base_prices' => !empty($saved_matrix['base_prices'])
+                ? $saved_matrix['base_prices']
+                : $this->default_base_prices,
+            'condition_multipliers' => !empty($saved_matrix['condition_multipliers'])
+                ? $saved_matrix['condition_multipliers']
+                : $this->default_condition_multipliers,
+            'type_multipliers' => !empty($saved_matrix['type_multipliers'])
+                ? $saved_matrix['type_multipliers']
+                : $this->default_type_multipliers,
+            'feature_premiums' => !empty($saved_matrix['feature_premiums'])
+                ? $saved_matrix['feature_premiums']
+                : $this->default_feature_premiums,
+            'sale_factors' => !empty($saved_matrix['sale_factors'])
+                ? $saved_matrix['sale_factors']
+                : $this->default_sale_factors,
+            'interest_rate' => (float) ($saved_matrix['interest_rate'] ?? 3.0),
+            'appreciation_rate' => (float) ($saved_matrix['appreciation_rate'] ?? 2.0),
+            'rent_increase_rate' => (float) ($saved_matrix['rent_increase_rate'] ?? 2.0),
+        ];
+    }
+
+    /**
+     * Get base prices
+     */
+    private function get_base_prices(): array {
+        return $this->matrix['base_prices'];
+    }
+
+    /**
+     * Get condition multipliers
+     */
+    private function get_condition_multipliers(): array {
+        return $this->matrix['condition_multipliers'];
+    }
+
+    /**
+     * Get type multipliers
+     */
+    private function get_type_multipliers(): array {
+        return $this->matrix['type_multipliers'];
+    }
+
+    /**
+     * Get feature premiums
+     */
+    private function get_feature_premiums(): array {
+        return $this->matrix['feature_premiums'];
+    }
+
+    /**
+     * Get sale factors (Vervielfältiger)
+     */
+    private function get_sale_factors(): array {
+        return $this->matrix['sale_factors'];
+    }
     
     /**
      * Calculate rental value estimate
@@ -64,20 +143,26 @@ class IRP_Calculator {
         $features = $params['features'] ?? [];
         $year_built = $params['year_built'] ?? null;
         $rooms = $params['rooms'] ?? null;
-        
+
+        // Get matrix data
+        $base_prices = $this->get_base_prices();
+        $condition_multipliers = $this->get_condition_multipliers();
+        $type_multipliers = $this->get_type_multipliers();
+        $feature_premiums = $this->get_feature_premiums();
+
         // Get base price for region
         $region_code = substr($zip_code, 0, 1);
-        $base_price = $this->base_prices[$region_code] ?? 11.00;
-        
+        $base_price = $base_prices[$region_code] ?? 11.00;
+
         // Apply multipliers
         $price_per_sqm = $base_price;
-        $price_per_sqm *= $this->condition_multipliers[$condition] ?? 1.00;
-        $price_per_sqm *= $this->type_multipliers[$property_type] ?? 1.00;
-        
+        $price_per_sqm *= $condition_multipliers[$condition] ?? 1.00;
+        $price_per_sqm *= $type_multipliers[$property_type] ?? 1.00;
+
         // Apply feature premiums
         foreach ($features as $feature) {
-            if (isset($this->feature_premiums[$feature])) {
-                $price_per_sqm += $this->feature_premiums[$feature];
+            if (isset($feature_premiums[$feature])) {
+                $price_per_sqm += $feature_premiums[$feature];
             }
         }
         
@@ -134,8 +219,8 @@ class IRP_Calculator {
             'market_position' => $market_position,
             'factors' => [
                 'base_price' => $base_price,
-                'condition_impact' => $this->condition_multipliers[$condition] ?? 1.00,
-                'type_impact' => $this->type_multipliers[$property_type] ?? 1.00,
+                'condition_impact' => $condition_multipliers[$condition] ?? 1.00,
+                'type_impact' => $type_multipliers[$property_type] ?? 1.00,
                 'features_count' => count($features),
             ],
             'calculation_date' => current_time('mysql'),
@@ -148,13 +233,26 @@ class IRP_Calculator {
     public function calculate_comparison(array $params): array {
         // First, get the rental calculation
         $rental = $this->calculate_rental_value($params);
-        
+
         $property_value = (float) $params['property_value'];
         $remaining_mortgage = (float) ($params['remaining_mortgage'] ?? 0);
         $mortgage_rate = (float) ($params['mortgage_rate'] ?? 3.5) / 100;
         $holding_period = (int) ($params['holding_period_years'] ?? 0);
-        $appreciation_rate = (float) ($params['expected_appreciation'] ?? 2) / 100;
-        
+
+        // Use matrix values for appreciation rate (can be overridden by user)
+        $appreciation_rate = isset($params['expected_appreciation'])
+            ? (float) $params['expected_appreciation'] / 100
+            : $this->matrix['appreciation_rate'] / 100;
+
+        // Get rent increase rate from matrix
+        $rent_increase_rate = $this->matrix['rent_increase_rate'] / 100;
+
+        // Get sale factor (Vervielfältiger) for region
+        $zip_code = $params['zip_code'];
+        $region_code = substr($zip_code, 0, 1);
+        $sale_factors = $this->get_sale_factors();
+        $vervielfaeltiger = $sale_factors[$region_code] ?? 25;
+
         $settings = get_option('irp_settings', []);
         $maintenance_rate = (float) ($settings['default_maintenance_rate'] ?? 1.5) / 100;
         $vacancy_rate = (float) ($settings['default_vacancy_rate'] ?? 3) / 100;
@@ -193,8 +291,8 @@ class IRP_Calculator {
             // Property appreciates
             $future_value = $property_value * pow(1 + $appreciation_rate, $year);
             
-            // Rental income (assuming 2% annual increase)
-            $year_rental = $net_annual_income * pow(1.02, $year - 1);
+            // Rental income with configured annual increase
+            $year_rental = $net_annual_income * pow(1 + $rent_increase_rate, $year - 1);
             $cumulative_rental += $year_rental;
             
             // Future sale scenario
@@ -227,6 +325,9 @@ class IRP_Calculator {
             $net_sale_proceeds
         );
         
+        // Calculate estimated sale price based on Vervielfältiger (if not provided by user)
+        $estimated_sale_price = $gross_annual_rent * $vervielfaeltiger;
+
         return [
             'rental' => $rental,
             'sale' => [
@@ -246,6 +347,11 @@ class IRP_Calculator {
                 'gross' => round($gross_yield, 2),
                 'net' => round($net_yield, 2),
             ],
+            'vervielfaeltiger' => [
+                'factor' => $vervielfaeltiger,
+                'estimated_sale_price' => round($estimated_sale_price, 2),
+                'years_to_recover' => round($property_value / $gross_annual_rent, 1),
+            ],
             'break_even_year' => $break_even_year,
             'speculation_tax_note' => $speculation_tax_note,
             'projection' => array_slice($years_projection, 0, 15), // First 15 years for chart
@@ -258,7 +364,8 @@ class IRP_Calculator {
      * Calculate where the rental price falls in the market
      */
     private function calculate_market_position(float $price_per_sqm, string $region_code): array {
-        $base = $this->base_prices[$region_code] ?? 11.00;
+        $base_prices = $this->get_base_prices();
+        $base = $base_prices[$region_code] ?? 11.00;
         
         // Simplified percentile calculation
         $ratio = $price_per_sqm / $base;

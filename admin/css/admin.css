@@ -317,3 +317,129 @@
     padding: 40px;
     color: #646970;
 }
+
+/* Matrix & Data Page */
+.irp-matrix-wrap .nav-tab-wrapper {
+    margin-bottom: 0;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.irp-matrix-wrap .irp-tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.irp-matrix-wrap .irp-tab-content.active {
+    display: block;
+}
+
+.irp-data-table {
+    background: #fff;
+    margin-top: 15px;
+}
+
+.irp-data-table th {
+    background: #f6f7f7;
+    font-weight: 600;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.irp-data-table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+.irp-data-table tbody tr:hover {
+    background: #f6f7f7;
+}
+
+.irp-data-table input[type="number"] {
+    width: 80px;
+    text-align: right;
+}
+
+.irp-data-table .irp-example {
+    color: #646970;
+    font-size: 13px;
+}
+
+.irp-data-table .irp-example strong {
+    color: #1d2327;
+}
+
+/* Positive/Negative Indicators */
+.irp-positive {
+    color: #00a32a;
+    font-weight: 500;
+}
+
+.irp-negative {
+    color: #d63638;
+    font-weight: 500;
+}
+
+/* Info Box */
+.irp-info-box {
+    background: #f0f6fc;
+    border-color: #72aee6;
+}
+
+.irp-info-box h3 {
+    color: #135e96;
+    margin-bottom: 10px;
+}
+
+.irp-info-box ul {
+    margin: 10px 0 0 20px;
+}
+
+.irp-info-box li {
+    margin-bottom: 8px;
+}
+
+/* Matrix Form */
+.irp-matrix-form .form-table th {
+    width: 220px;
+    padding: 20px 10px 20px 0;
+}
+
+.irp-matrix-form .form-table td {
+    padding: 15px 10px;
+}
+
+.irp-matrix-form .description {
+    margin-top: 8px;
+    color: #646970;
+}
+
+/* Matrix Tabs Responsive */
+@media (max-width: 782px) {
+    .irp-matrix-wrap .nav-tab-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .irp-matrix-wrap .nav-tab {
+        flex: 1 1 auto;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .irp-data-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .irp-matrix-form .form-table th {
+        width: auto;
+        display: block;
+        padding-bottom: 5px;
+    }
+
+    .irp-matrix-form .form-table td {
+        display: block;
+        padding-left: 0;
+    }
+}
