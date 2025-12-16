@@ -9,78 +9,78 @@ if (!defined('ABSPATH')) {
 ?>
 <div class="wrap irp-admin-wrap">
     <h1><?php esc_html_e('Immobilien Rechner Pro', 'immobilien-rechner-pro'); ?></h1>
-    
+
     <div class="irp-dashboard-cards">
         <div class="irp-card">
             <div class="irp-card-icon dashicons dashicons-groups"></div>
             <div class="irp-card-content">
                 <span class="irp-card-value"><?php echo esc_html($total_leads); ?></span>
-                <span class="irp-card-label"><?php esc_html_e('Total Leads', 'immobilien-rechner-pro'); ?></span>
+                <span class="irp-card-label"><?php esc_html_e('Leads gesamt', 'immobilien-rechner-pro'); ?></span>
             </div>
         </div>
-        
+
         <div class="irp-card">
             <div class="irp-card-icon dashicons dashicons-calendar-alt"></div>
             <div class="irp-card-content">
                 <span class="irp-card-value"><?php echo esc_html($leads_this_month); ?></span>
-                <span class="irp-card-label"><?php esc_html_e('Leads This Month', 'immobilien-rechner-pro'); ?></span>
+                <span class="irp-card-label"><?php esc_html_e('Leads diesen Monat', 'immobilien-rechner-pro'); ?></span>
             </div>
         </div>
-        
+
         <div class="irp-card">
             <div class="irp-card-icon dashicons dashicons-calculator"></div>
             <div class="irp-card-content">
                 <span class="irp-card-value"><?php echo esc_html($total_calculations); ?></span>
-                <span class="irp-card-label"><?php esc_html_e('Total Calculations', 'immobilien-rechner-pro'); ?></span>
+                <span class="irp-card-label"><?php esc_html_e('Berechnungen gesamt', 'immobilien-rechner-pro'); ?></span>
             </div>
         </div>
-        
+
         <div class="irp-card">
             <div class="irp-card-icon dashicons dashicons-building"></div>
             <div class="irp-card-content">
                 <span class="irp-card-value"><?php echo esc_html($rental_calculations); ?></span>
-                <span class="irp-card-label"><?php esc_html_e('Rental Valuations', 'immobilien-rechner-pro'); ?></span>
+                <span class="irp-card-label"><?php esc_html_e('Mietwert-Berechnungen', 'immobilien-rechner-pro'); ?></span>
             </div>
         </div>
     </div>
-    
+
     <div class="irp-dashboard-row">
         <div class="irp-dashboard-col">
             <div class="irp-panel">
-                <h2><?php esc_html_e('Quick Start', 'immobilien-rechner-pro'); ?></h2>
-                <p><?php esc_html_e('Add the calculator to any page or post using the shortcode:', 'immobilien-rechner-pro'); ?></p>
+                <h2><?php esc_html_e('Schnellstart', 'immobilien-rechner-pro'); ?></h2>
+                <p><?php esc_html_e('Fügen Sie den Rechner mit folgendem Shortcode zu einer Seite oder einem Beitrag hinzu:', 'immobilien-rechner-pro'); ?></p>
                 <code class="irp-shortcode">[immobilien_rechner]</code>
-                
-                <h3><?php esc_html_e('Shortcode Options', 'immobilien-rechner-pro'); ?></h3>
+
+                <h3><?php esc_html_e('Shortcode-Optionen', 'immobilien-rechner-pro'); ?></h3>
                 <table class="irp-shortcode-options">
                     <tr>
                         <td><code>mode=""</code></td>
-                        <td><?php esc_html_e('Leave empty for mode selection, or set to "rental" or "comparison"', 'immobilien-rechner-pro'); ?></td>
+                        <td><?php esc_html_e('Leer lassen für Modusauswahl, oder "rental" oder "comparison" setzen', 'immobilien-rechner-pro'); ?></td>
                     </tr>
                     <tr>
                         <td><code>theme="light"</code></td>
-                        <td><?php esc_html_e('Set to "light" or "dark"', 'immobilien-rechner-pro'); ?></td>
+                        <td><?php esc_html_e('Auf "light" oder "dark" setzen', 'immobilien-rechner-pro'); ?></td>
                     </tr>
                     <tr>
                         <td><code>show_branding="true"</code></td>
-                        <td><?php esc_html_e('Show or hide your company branding', 'immobilien-rechner-pro'); ?></td>
+                        <td><?php esc_html_e('Firmenbranding anzeigen oder ausblenden', 'immobilien-rechner-pro'); ?></td>
                     </tr>
                 </table>
             </div>
         </div>
-        
+
         <div class="irp-dashboard-col">
             <div class="irp-panel">
-                <h2><?php esc_html_e('Recent Leads', 'immobilien-rechner-pro'); ?></h2>
+                <h2><?php esc_html_e('Neueste Leads', 'immobilien-rechner-pro'); ?></h2>
                 <?php if (empty($recent_leads)) : ?>
-                    <p class="irp-no-data"><?php esc_html_e('No leads yet. Add the calculator to a page to start collecting leads.', 'immobilien-rechner-pro'); ?></p>
+                    <p class="irp-no-data"><?php esc_html_e('Noch keine Leads. Fügen Sie den Rechner zu einer Seite hinzu, um Leads zu sammeln.', 'immobilien-rechner-pro'); ?></p>
                 <?php else : ?>
                     <table class="irp-leads-table">
                         <thead>
                             <tr>
-                                <th><?php esc_html_e('Contact', 'immobilien-rechner-pro'); ?></th>
-                                <th><?php esc_html_e('Mode', 'immobilien-rechner-pro'); ?></th>
-                                <th><?php esc_html_e('Date', 'immobilien-rechner-pro'); ?></th>
+                                <th><?php esc_html_e('Kontakt', 'immobilien-rechner-pro'); ?></th>
+                                <th><?php esc_html_e('Modus', 'immobilien-rechner-pro'); ?></th>
+                                <th><?php esc_html_e('Datum', 'immobilien-rechner-pro'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -93,7 +93,7 @@ if (!defined('ABSPATH')) {
                                     </td>
                                     <td>
                                         <span class="irp-badge irp-badge-<?php echo esc_attr($lead->mode); ?>">
-                                            <?php echo $lead->mode === 'rental' ? esc_html__('Rental', 'immobilien-rechner-pro') : esc_html__('Comparison', 'immobilien-rechner-pro'); ?>
+                                            <?php echo $lead->mode === 'rental' ? esc_html__('Mietwert', 'immobilien-rechner-pro') : esc_html__('Vergleich', 'immobilien-rechner-pro'); ?>
                                         </span>
                                     </td>
                                     <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($lead->created_at))); ?></td>
@@ -103,7 +103,7 @@ if (!defined('ABSPATH')) {
                     </table>
                     <p>
                         <a href="<?php echo esc_url(admin_url('admin.php?page=irp-leads')); ?>" class="button">
-                            <?php esc_html_e('View All Leads', 'immobilien-rechner-pro'); ?>
+                            <?php esc_html_e('Alle Leads anzeigen', 'immobilien-rechner-pro'); ?>
                         </a>
                     </p>
                 <?php endif; ?>

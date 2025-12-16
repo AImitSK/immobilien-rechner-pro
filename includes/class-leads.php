@@ -24,7 +24,7 @@ class IRP_Leads {
         
         // Validate email
         if (!is_email($data['email'])) {
-            return new \WP_Error('invalid_email', __('Please provide a valid email address.', 'immobilien-rechner-pro'));
+            return new \WP_Error('invalid_email', __('Bitte geben Sie eine gültige E-Mail-Adresse an.', 'immobilien-rechner-pro'));
         }
         
         $insert_data = [
@@ -48,7 +48,7 @@ class IRP_Leads {
         );
         
         if ($result === false) {
-            return new \WP_Error('db_error', __('Could not save lead data.', 'immobilien-rechner-pro'));
+            return new \WP_Error('db_error', __('Lead-Daten konnten nicht gespeichert werden.', 'immobilien-rechner-pro'));
         }
         
         return $wpdb->insert_id;
@@ -176,32 +176,40 @@ class IRP_Leads {
         $settings = get_option('irp_settings', []);
         $to = $settings['company_email'] ?? get_option('admin_email');
         
-        $mode_label = $lead->mode === 'rental' 
-            ? __('Rental Value Estimation', 'immobilien-rechner-pro')
-            : __('Sell vs. Rent Comparison', 'immobilien-rechner-pro');
-        
+        $type_labels = [
+            'apartment' => __('Wohnung', 'immobilien-rechner-pro'),
+            'house' => __('Haus', 'immobilien-rechner-pro'),
+            'commercial' => __('Gewerbe', 'immobilien-rechner-pro'),
+        ];
+
+        $mode_label = $lead->mode === 'rental'
+            ? __('Mietwert-Berechnung', 'immobilien-rechner-pro')
+            : __('Verkauf vs. Vermietung', 'immobilien-rechner-pro');
+
         $subject = sprintf(
-            __('[New Lead] %s - %s', 'immobilien-rechner-pro'),
+            __('[Neuer Lead] %s - %s', 'immobilien-rechner-pro'),
             $mode_label,
             $lead->property_location ?: $lead->zip_code
         );
-        
+
+        $property_type_label = $type_labels[$lead->property_type] ?? ucfirst($lead->property_type ?: '-');
+
         $message = sprintf(
-            __("New lead from Immobilien Rechner Pro:\n\n" .
+            __("Neuer Lead vom Immobilien Rechner Pro:\n\n" .
                "Name: %s\n" .
-               "Email: %s\n" .
-               "Phone: %s\n\n" .
-               "Mode: %s\n" .
-               "Property Type: %s\n" .
-               "Size: %s m²\n" .
-               "Location: %s %s\n\n" .
-               "View in admin: %s", 
+               "E-Mail: %s\n" .
+               "Telefon: %s\n\n" .
+               "Modus: %s\n" .
+               "Objekttyp: %s\n" .
+               "Größe: %s m²\n" .
+               "Standort: %s %s\n\n" .
+               "Im Admin ansehen: %s",
             'immobilien-rechner-pro'),
             $lead->name ?: '-',
             $lead->email,
             $lead->phone ?: '-',
             $mode_label,
-            ucfirst($lead->property_type ?: '-'),
+            $property_type_label,
             $lead->property_size ?: '-',
             $lead->zip_code,
             $lead->property_location,

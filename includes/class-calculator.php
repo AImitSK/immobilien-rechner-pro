@@ -278,8 +278,8 @@ class IRP_Calculator {
         
         // Speculation tax consideration (simplified)
         $speculation_tax_applies = $holding_period < 10;
-        $speculation_tax_note = $speculation_tax_applies 
-            ? __('Note: Speculation tax may apply for properties held less than 10 years.', 'immobilien-rechner-pro')
+        $speculation_tax_note = $speculation_tax_applies
+            ? __('Hinweis: Bei Immobilien, die weniger als 10 Jahre gehalten werden, kann Spekulationssteuer anfallen.', 'immobilien-rechner-pro')
             : null;
         
         // Break-even calculation (years until rental income exceeds sale proceeds)
@@ -372,22 +372,22 @@ class IRP_Calculator {
         
         if ($ratio < 0.85) {
             $percentile = 20;
-            $label = __('Below average', 'immobilien-rechner-pro');
+            $label = __('Unterdurchschnittlich', 'immobilien-rechner-pro');
         } elseif ($ratio < 0.95) {
             $percentile = 35;
-            $label = __('Slightly below average', 'immobilien-rechner-pro');
+            $label = __('Leicht unterdurchschnittlich', 'immobilien-rechner-pro');
         } elseif ($ratio < 1.05) {
             $percentile = 50;
-            $label = __('Average', 'immobilien-rechner-pro');
+            $label = __('Durchschnittlich', 'immobilien-rechner-pro');
         } elseif ($ratio < 1.15) {
             $percentile = 65;
-            $label = __('Above average', 'immobilien-rechner-pro');
+            $label = __('Überdurchschnittlich', 'immobilien-rechner-pro');
         } elseif ($ratio < 1.25) {
             $percentile = 80;
-            $label = __('Well above average', 'immobilien-rechner-pro');
+            $label = __('Deutlich überdurchschnittlich', 'immobilien-rechner-pro');
         } else {
             $percentile = 90;
-            $label = __('Premium segment', 'immobilien-rechner-pro');
+            $label = __('Premium-Segment', 'immobilien-rechner-pro');
         }
         
         return [
@@ -410,54 +410,54 @@ class IRP_Calculator {
         
         // Yield analysis
         if ($net_yield >= 5) {
-            $factors[] = __('Strong rental yield suggests renting could be profitable.', 'immobilien-rechner-pro');
+            $factors[] = __('Die hohe Mietrendite spricht für eine Vermietung.', 'immobilien-rechner-pro');
             $score += 2;
         } elseif ($net_yield >= 3) {
-            $factors[] = __('Moderate rental yield - consider your long-term goals.', 'immobilien-rechner-pro');
+            $factors[] = __('Moderate Mietrendite – berücksichtigen Sie Ihre langfristigen Ziele.', 'immobilien-rechner-pro');
             $score += 1;
         } else {
-            $factors[] = __('Low rental yield may make selling more attractive.', 'immobilien-rechner-pro');
+            $factors[] = __('Die niedrige Mietrendite könnte einen Verkauf attraktiver machen.', 'immobilien-rechner-pro');
             $score -= 1;
         }
-        
+
         // Break-even analysis
         if ($break_even_year !== null) {
             if ($break_even_year <= 5) {
                 $factors[] = sprintf(
-                    __('Quick break-even in %d years supports rental strategy.', 'immobilien-rechner-pro'),
+                    __('Schneller Break-Even nach %d Jahren spricht für Vermietung.', 'immobilien-rechner-pro'),
                     $break_even_year
                 );
                 $score += 2;
             } elseif ($break_even_year <= 10) {
                 $factors[] = sprintf(
-                    __('Moderate break-even period of %d years.', 'immobilien-rechner-pro'),
+                    __('Moderater Break-Even-Zeitraum von %d Jahren.', 'immobilien-rechner-pro'),
                     $break_even_year
                 );
                 $score += 1;
             } else {
                 $factors[] = sprintf(
-                    __('Long break-even period of %d years may favor selling.', 'immobilien-rechner-pro'),
+                    __('Langer Break-Even-Zeitraum von %d Jahren könnte für Verkauf sprechen.', 'immobilien-rechner-pro'),
                     $break_even_year
                 );
                 $score -= 1;
             }
         }
-        
+
         // Tax consideration
         if ($speculation_tax) {
-            $factors[] = __('Selling now may incur speculation tax - consider waiting or renting.', 'immobilien-rechner-pro');
+            $factors[] = __('Ein Verkauf jetzt könnte Spekulationssteuer auslösen – erwägen Sie zu warten oder zu vermieten.', 'immobilien-rechner-pro');
             $score += 1;
         }
-        
+
         // Generate summary
         if ($score >= 2) {
-            $summary = __('Based on our analysis, renting appears to be the more favorable option.', 'immobilien-rechner-pro');
+            $summary = __('Basierend auf unserer Analyse erscheint Vermieten als die günstigere Option.', 'immobilien-rechner-pro');
             $direction = 'rent';
         } elseif ($score <= -1) {
-            $summary = __('Based on our analysis, selling may be the better choice for your situation.', 'immobilien-rechner-pro');
+            $summary = __('Basierend auf unserer Analyse könnte ein Verkauf für Ihre Situation besser sein.', 'immobilien-rechner-pro');
             $direction = 'sell';
         } else {
-            $summary = __('Both options have merit. A consultation can help clarify the best path.', 'immobilien-rechner-pro');
+            $summary = __('Beide Optionen haben ihre Vorteile. Eine Beratung kann den besten Weg aufzeigen.', 'immobilien-rechner-pro');
             $direction = 'neutral';
         }
         

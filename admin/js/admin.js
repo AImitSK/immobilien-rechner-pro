@@ -18,9 +18,9 @@
             }
 
             mediaUploader = wp.media({
-                title: 'Choose Logo',
+                title: irpAdmin.i18n.mediaTitle || 'Logo auswählen',
                 button: {
-                    text: 'Use this image'
+                    text: irpAdmin.i18n.mediaButton || 'Dieses Bild verwenden'
                 },
                 multiple: false,
                 library: {

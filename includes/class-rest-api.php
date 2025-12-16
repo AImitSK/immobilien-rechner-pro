@@ -205,7 +205,7 @@ class IRP_Rest_API {
         if (!$request->get_param('consent')) {
             return new \WP_REST_Response([
                 'success' => false,
-                'message' => __('Consent is required to submit your data.', 'immobilien-rechner-pro'),
+                'message' => __('Die Einwilligung ist erforderlich, um Ihre Daten zu übermitteln.', 'immobilien-rechner-pro'),
             ], 400);
         }
         
@@ -224,7 +224,7 @@ class IRP_Rest_API {
         
         return new \WP_REST_Response([
             'success' => true,
-            'message' => __('Thank you! We will contact you shortly.', 'immobilien-rechner-pro'),
+            'message' => __('Vielen Dank! Wir werden uns in Kürze bei Ihnen melden.', 'immobilien-rechner-pro'),
             'lead_id' => $lead_id,
         ]);
     }

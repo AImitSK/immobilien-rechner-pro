@@ -159,7 +159,15 @@ class IRP_Admin {
             IRP_VERSION,
             true
         );
-        
+
+        // Localize script for translations
+        wp_localize_script('irp-admin', 'irpAdmin', [
+            'i18n' => [
+                'mediaTitle' => __('Logo auswählen', 'immobilien-rechner-pro'),
+                'mediaButton' => __('Dieses Bild verwenden', 'immobilien-rechner-pro'),
+            ],
+        ]);
+
         // Media uploader for logo
         if (strpos($hook, 'irp-settings') !== false) {
             wp_enqueue_media();
