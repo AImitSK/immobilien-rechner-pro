@@ -1,0 +1,282 @@
+<?php
+/**
+ * REST API endpoints for the calculator
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class IRP_Rest_API {
+    
+    private string $namespace = 'irp/v1';
+    
+    public function __construct() {
+        add_action('rest_api_init', [$this, 'register_routes']);
+    }
+    
+    public function register_routes(): void {
+        // Calculate rental value
+        register_rest_route($this->namespace, '/calculate/rental', [
+            'methods' => 'POST',
+            'callback' => [$this, 'calculate_rental'],
+            'permission_callback' => '__return_true',
+            'args' => $this->get_rental_args(),
+        ]);
+        
+        // Calculate sell vs rent comparison
+        register_rest_route($this->namespace, '/calculate/comparison', [
+            'methods' => 'POST',
+            'callback' => [$this, 'calculate_comparison'],
+            'permission_callback' => '__return_true',
+            'args' => $this->get_comparison_args(),
+        ]);
+        
+        // Submit lead
+        register_rest_route($this->namespace, '/leads', [
+            'methods' => 'POST',
+            'callback' => [$this, 'submit_lead'],
+            'permission_callback' => '__return_true',
+            'args' => $this->get_lead_args(),
+        ]);
+        
+        // Get location suggestions (for autocomplete)
+        register_rest_route($this->namespace, '/locations', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_locations'],
+            'permission_callback' => '__return_true',
+            'args' => [
+                'search' => [
+                    'required' => true,
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
+            ],
+        ]);
+    }
+    
+    private function get_rental_args(): array {
+        return [
+            'property_type' => [
+                'required' => true,
+                'type' => 'string',
+                'enum' => ['apartment', 'house', 'commercial'],
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'size' => [
+                'required' => true,
+                'type' => 'number',
+                'minimum' => 10,
+                'maximum' => 10000,
+            ],
+            'rooms' => [
+                'required' => false,
+                'type' => 'number',
+                'minimum' => 1,
+                'maximum' => 20,
+            ],
+            'zip_code' => [
+                'required' => true,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'location' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'condition' => [
+                'required' => true,
+                'type' => 'string',
+                'enum' => ['new', 'renovated', 'good', 'needs_renovation'],
+            ],
+            'features' => [
+                'required' => false,
+                'type' => 'array',
+                'items' => ['type' => 'string'],
+                'default' => [],
+            ],
+            'year_built' => [
+                'required' => false,
+                'type' => 'integer',
+                'minimum' => 1800,
+                'maximum' => 2030,
+            ],
+        ];
+    }
+    
+    private function get_comparison_args(): array {
+        return array_merge($this->get_rental_args(), [
+            'property_value' => [
+                'required' => true,
+                'type' => 'number',
+                'minimum' => 10000,
+            ],
+            'remaining_mortgage' => [
+                'required' => false,
+                'type' => 'number',
+                'minimum' => 0,
+                'default' => 0,
+            ],
+            'mortgage_rate' => [
+                'required' => false,
+                'type' => 'number',
+                'minimum' => 0,
+                'maximum' => 15,
+                'default' => 3.5,
+            ],
+            'holding_period_years' => [
+                'required' => false,
+                'type' => 'integer',
+                'minimum' => 0,
+                'maximum' => 50,
+            ],
+            'expected_appreciation' => [
+                'required' => false,
+                'type' => 'number',
+                'minimum' => -10,
+                'maximum' => 20,
+                'default' => 2,
+            ],
+        ]);
+    }
+    
+    private function get_lead_args(): array {
+        return [
+            'name' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'email' => [
+                'required' => true,
+                'type' => 'string',
+                'format' => 'email',
+                'sanitize_callback' => 'sanitize_email',
+            ],
+            'phone' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'mode' => [
+                'required' => true,
+                'type' => 'string',
+                'enum' => ['rental', 'comparison'],
+            ],
+            'calculation_data' => [
+                'required' => false,
+                'type' => 'object',
+            ],
+            'consent' => [
+                'required' => true,
+                'type' => 'boolean',
+            ],
+        ];
+    }
+    
+    public function calculate_rental(\WP_REST_Request $request): \WP_REST_Response {
+        $calculator = new IRP_Calculator();
+        $result = $calculator->calculate_rental_value($request->get_params());
+        
+        // Store calculation (anonymous)
+        $this->store_calculation('rental', $request->get_params(), $result);
+        
+        return new \WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+        ]);
+    }
+    
+    public function calculate_comparison(\WP_REST_Request $request): \WP_REST_Response {
+        $calculator = new IRP_Calculator();
+        $result = $calculator->calculate_comparison($request->get_params());
+        
+        // Store calculation (anonymous)
+        $this->store_calculation('comparison', $request->get_params(), $result);
+        
+        return new \WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+        ]);
+    }
+    
+    public function submit_lead(\WP_REST_Request $request): \WP_REST_Response {
+        if (!$request->get_param('consent')) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => __('Consent is required to submit your data.', 'immobilien-rechner-pro'),
+            ], 400);
+        }
+        
+        $leads = new IRP_Leads();
+        $lead_id = $leads->create($request->get_params());
+        
+        if (is_wp_error($lead_id)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => $lead_id->get_error_message(),
+            ], 400);
+        }
+        
+        // Send notification email to admin
+        $leads->send_notification($lead_id);
+        
+        return new \WP_REST_Response([
+            'success' => true,
+            'message' => __('Thank you! We will contact you shortly.', 'immobilien-rechner-pro'),
+            'lead_id' => $lead_id,
+        ]);
+    }
+    
+    public function get_locations(\WP_REST_Request $request): \WP_REST_Response {
+        $search = $request->get_param('search');
+        
+        // This is a placeholder - in production, you'd integrate with a
+        // geocoding API or use a local database of German cities/zip codes
+        $locations = $this->search_locations($search);
+        
+        return new \WP_REST_Response([
+            'success' => true,
+            'data' => $locations,
+        ]);
+    }
+    
+    private function store_calculation(string $mode, array $input, array $result): void {
+        global $wpdb;
+        
+        $session_id = $_COOKIE['irp_session'] ?? wp_generate_uuid4();
+        
+        $wpdb->insert(
+            $wpdb->prefix . 'irp_calculations',
+            [
+                'session_id' => $session_id,
+                'mode' => $mode,
+                'input_data' => wp_json_encode($input),
+                'result_data' => wp_json_encode($result),
+            ],
+            ['%s', '%s', '%s', '%s']
+        );
+    }
+    
+    private function search_locations(string $search): array {
+        // Placeholder implementation - returns some German cities
+        // In production, integrate with a proper geocoding service
+        $cities = [
+            ['zip' => '10115', 'city' => 'Berlin', 'state' => 'Berlin'],
+            ['zip' => '80331', 'city' => 'München', 'state' => 'Bayern'],
+            ['zip' => '20095', 'city' => 'Hamburg', 'state' => 'Hamburg'],
+            ['zip' => '50667', 'city' => 'Köln', 'state' => 'Nordrhein-Westfalen'],
+            ['zip' => '60311', 'city' => 'Frankfurt am Main', 'state' => 'Hessen'],
+            ['zip' => '70173', 'city' => 'Stuttgart', 'state' => 'Baden-Württemberg'],
+            ['zip' => '40213', 'city' => 'Düsseldorf', 'state' => 'Nordrhein-Westfalen'],
+        ];
+        
+        $search_lower = strtolower($search);
+        
+        return array_filter($cities, function($city) use ($search_lower) {
+            return str_contains(strtolower($city['city']), $search_lower) ||
+                   str_starts_with($city['zip'], $search);
+        });
+    }
+}

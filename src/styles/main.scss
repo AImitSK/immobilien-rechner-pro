@@ -1,0 +1,1166 @@
+/**
+ * Immobilien Rechner Pro - Main Styles
+ */
+
+// CSS Custom Properties (set dynamically via JS)
+.irp-calculator {
+    --irp-primary: #2563eb;
+    --irp-secondary: #1e40af;
+    --irp-success: #16a34a;
+    --irp-warning: #ea580c;
+    --irp-danger: #dc2626;
+    --irp-info: #0891b2;
+    
+    --irp-text: #1f2937;
+    --irp-text-light: #6b7280;
+    --irp-bg: #ffffff;
+    --irp-bg-secondary: #f9fafb;
+    --irp-border: #e5e7eb;
+    
+    --irp-radius: 8px;
+    --irp-radius-lg: 12px;
+    --irp-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --irp-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+    
+    --irp-transition: 0.2s ease;
+}
+
+// Dark theme
+.irp-calculator.irp-theme-dark {
+    --irp-text: #f9fafb;
+    --irp-text-light: #9ca3af;
+    --irp-bg: #1f2937;
+    --irp-bg-secondary: #374151;
+    --irp-border: #4b5563;
+}
+
+// Base
+.irp-calculator {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--irp-text);
+    background: var(--irp-bg);
+    border-radius: var(--irp-radius-lg);
+    box-shadow: var(--irp-shadow-lg);
+    overflow: hidden;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.irp-calculator-content {
+    padding: 24px;
+}
+
+// Loading state
+.irp-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--irp-text-light);
+}
+
+.irp-loading-spinner,
+.irp-loading-spinner-small {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--irp-border);
+    border-top-color: var(--irp-primary);
+    border-radius: 50%;
+    animation: irp-spin 0.8s linear infinite;
+}
+
+.irp-loading-spinner-small {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+    margin-right: 8px;
+}
+
+@keyframes irp-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Branding
+.irp-branding {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--irp-border);
+    text-align: center;
+}
+
+.irp-logo {
+    max-height: 50px;
+    max-width: 200px;
+}
+
+.irp-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--irp-border);
+    text-align: center;
+    font-size: 14px;
+    color: var(--irp-text-light);
+}
+
+// Mode Selector
+.irp-mode-selector {
+    text-align: center;
+}
+
+.irp-mode-header {
+    margin-bottom: 32px;
+    
+    h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    p {
+        margin: 0;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-mode-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.irp-mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px;
+    background: var(--irp-bg);
+    border: 2px solid var(--irp-border);
+    border-radius: var(--irp-radius-lg);
+    cursor: pointer;
+    transition: all var(--irp-transition);
+    text-align: center;
+    
+    &:hover {
+        border-color: var(--irp-primary);
+        box-shadow: var(--irp-shadow);
+    }
+}
+
+.irp-mode-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--irp-bg-secondary);
+    border-radius: 50%;
+    margin-bottom: 16px;
+    
+    svg {
+        width: 28px;
+        height: 28px;
+        color: var(--irp-primary);
+    }
+}
+
+.irp-mode-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.irp-mode-description {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--irp-text-light);
+}
+
+.irp-mode-tagline {
+    font-size: 13px;
+    color: var(--irp-primary);
+    font-weight: 500;
+}
+
+// Progress Bar
+.irp-progress {
+    margin-bottom: 24px;
+}
+
+.irp-progress-bar {
+    height: 4px;
+    background: var(--irp-border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.irp-progress-fill {
+    height: 100%;
+    background: var(--irp-primary);
+    border-radius: 2px;
+}
+
+.irp-progress-steps {
+    display: none; // Hidden on mobile
+    
+    @media (min-width: 600px) {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+.irp-progress-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--irp-text-light);
+    
+    &.is-active {
+        color: var(--irp-primary);
+        font-weight: 500;
+        
+        .irp-step-number {
+            background: var(--irp-primary);
+            color: white;
+        }
+    }
+    
+    &.is-complete {
+        color: var(--irp-success);
+        
+        .irp-step-number {
+            background: var(--irp-success);
+            color: white;
+        }
+    }
+}
+
+.irp-step-number {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--irp-border);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.irp-step-title {
+    display: none;
+    
+    @media (min-width: 768px) {
+        display: inline;
+    }
+}
+
+.irp-progress-info {
+    text-align: center;
+    font-size: 13px;
+    color: var(--irp-text-light);
+    
+    @media (min-width: 600px) {
+        display: none;
+    }
+}
+
+// Step Container
+.irp-step-container {
+    min-height: 300px;
+}
+
+.irp-step {
+    h3 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        font-weight: 600;
+    }
+    
+    .irp-step-description {
+        margin: 0 0 24px;
+        color: var(--irp-text-light);
+    }
+}
+
+// Form Elements
+.irp-form-group {
+    margin-bottom: 20px;
+    
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+}
+
+.irp-required {
+    color: var(--irp-danger);
+    margin-left: 2px;
+}
+
+.irp-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 1px solid var(--irp-border);
+    border-radius: var(--irp-radius);
+    background: var(--irp-bg);
+    color: var(--irp-text);
+    transition: border-color var(--irp-transition), box-shadow var(--irp-transition);
+    
+    &:focus {
+        outline: none;
+        border-color: var(--irp-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    &.has-error {
+        border-color: var(--irp-danger);
+    }
+    
+    &::placeholder {
+        color: var(--irp-text-light);
+        opacity: 0.7;
+    }
+}
+
+.irp-input-with-unit {
+    display: flex;
+    align-items: stretch;
+    
+    input {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
+    }
+    
+    .irp-unit {
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        background: var(--irp-bg-secondary);
+        border: 1px solid var(--irp-border);
+        border-left: none;
+        border-radius: 0 var(--irp-radius) var(--irp-radius) 0;
+        font-size: 14px;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-help-text {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--irp-text-light);
+}
+
+.irp-error-message {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--irp-danger);
+}
+
+// Property Type Grid
+.irp-type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.irp-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    background: var(--irp-bg);
+    border: 2px solid var(--irp-border);
+    border-radius: var(--irp-radius);
+    cursor: pointer;
+    transition: all var(--irp-transition);
+    text-align: center;
+    
+    &:hover {
+        border-color: var(--irp-primary);
+        background: var(--irp-bg-secondary);
+    }
+    
+    &.is-selected {
+        border-color: var(--irp-primary);
+        background: rgba(37, 99, 235, 0.05);
+        
+        .irp-type-icon {
+            background: var(--irp-primary);
+            
+            svg {
+                color: white;
+            }
+        }
+    }
+}
+
+.irp-type-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--irp-bg-secondary);
+    border-radius: 50%;
+    margin-bottom: 12px;
+    transition: all var(--irp-transition);
+    
+    svg {
+        width: 24px;
+        height: 24px;
+        color: var(--irp-primary);
+    }
+}
+
+.irp-type-label {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.irp-type-description {
+    font-size: 12px;
+    color: var(--irp-text-light);
+}
+
+// Condition Grid
+.irp-condition-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.irp-condition-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background: var(--irp-bg);
+    border: 2px solid var(--irp-border);
+    border-radius: var(--irp-radius);
+    cursor: pointer;
+    transition: all var(--irp-transition);
+    text-align: center;
+    
+    &:hover {
+        border-color: var(--irp-primary);
+    }
+    
+    &.is-selected {
+        border-color: var(--irp-primary);
+        background: rgba(37, 99, 235, 0.05);
+    }
+}
+
+.irp-condition-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.irp-condition-label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.irp-condition-description {
+    font-size: 12px;
+    color: var(--irp-text-light);
+}
+
+// Features Grid
+.irp-features-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.irp-feature-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--irp-bg);
+    border: 1px solid var(--irp-border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all var(--irp-transition);
+    font-size: 14px;
+    
+    &:hover {
+        border-color: var(--irp-primary);
+        background: var(--irp-bg-secondary);
+    }
+    
+    &.is-selected {
+        border-color: var(--irp-primary);
+        background: var(--irp-primary);
+        color: white;
+        
+        .irp-feature-icon {
+            filter: grayscale(1) brightness(10);
+        }
+    }
+}
+
+.irp-feature-icon {
+    font-size: 16px;
+}
+
+.irp-feature-check {
+    margin-left: 2px;
+}
+
+.irp-features-summary {
+    margin-top: 16px;
+    font-size: 14px;
+    color: var(--irp-text-light);
+}
+
+// Autocomplete
+.irp-autocomplete-wrapper {
+    position: relative;
+}
+
+.irp-autocomplete-loading {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.irp-autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--irp-bg);
+    border: 1px solid var(--irp-border);
+    border-radius: var(--irp-radius);
+    box-shadow: var(--irp-shadow-lg);
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+    
+    li {
+        margin: 0;
+        padding: 0;
+    }
+    
+    button {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 14px;
+        background: none;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition: background var(--irp-transition);
+        
+        &:hover {
+            background: var(--irp-bg-secondary);
+        }
+    }
+}
+
+.irp-suggestion-zip {
+    font-weight: 600;
+    color: var(--irp-primary);
+}
+
+.irp-suggestion-city {
+    flex: 1;
+}
+
+.irp-suggestion-state {
+    font-size: 12px;
+    color: var(--irp-text-light);
+}
+
+// Info boxes
+.irp-info-text,
+.irp-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(8, 145, 178, 0.08);
+    border-radius: var(--irp-radius);
+    font-size: 13px;
+    color: var(--irp-info);
+    
+    svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    
+    strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    p {
+        margin: 0;
+    }
+}
+
+// Advanced options
+.irp-advanced-options {
+    margin-top: 20px;
+    
+    summary {
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--irp-primary);
+        font-weight: 500;
+        
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+    
+    .irp-advanced-content {
+        padding-top: 16px;
+    }
+}
+
+// Navigation
+.irp-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--irp-border);
+}
+
+// Buttons
+.irp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: var(--irp-radius);
+    cursor: pointer;
+    transition: all var(--irp-transition);
+    border: none;
+    
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.irp-btn-primary {
+    background: var(--irp-primary);
+    color: white;
+    
+    &:hover:not(:disabled) {
+        background: var(--irp-secondary);
+    }
+}
+
+.irp-btn-secondary {
+    background: var(--irp-bg-secondary);
+    color: var(--irp-text);
+    border: 1px solid var(--irp-border);
+    
+    &:hover:not(:disabled) {
+        background: var(--irp-border);
+    }
+}
+
+.irp-btn-text {
+    background: none;
+    color: var(--irp-text-light);
+    padding: 8px 16px;
+    
+    &:hover:not(:disabled) {
+        color: var(--irp-text);
+    }
+}
+
+.irp-btn-large {
+    padding: 16px 32px;
+    font-size: 16px;
+}
+
+// Error
+.irp-error,
+.irp-error-box {
+    padding: 12px 16px;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: var(--irp-radius);
+    color: var(--irp-danger);
+    font-size: 14px;
+    margin-bottom: 16px;
+    
+    p {
+        margin: 0;
+    }
+}
+
+// Results
+.irp-results {
+    text-align: center;
+}
+
+.irp-results-header {
+    margin-bottom: 32px;
+    
+    h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+    }
+    
+    p {
+        margin: 0;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-results-main {
+    margin-bottom: 32px;
+}
+
+.irp-result-card {
+    padding: 24px;
+    background: var(--irp-bg-secondary);
+    border-radius: var(--irp-radius-lg);
+    margin-bottom: 16px;
+}
+
+.irp-result-primary {
+    background: linear-gradient(135deg, var(--irp-primary), var(--irp-secondary));
+    color: white;
+    
+    .irp-result-label {
+        opacity: 0.9;
+    }
+}
+
+.irp-result-label {
+    display: block;
+    font-size: 14px;
+    color: var(--irp-text-light);
+    margin-bottom: 8px;
+}
+
+.irp-result-value {
+    display: block;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.irp-result-value-small {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.irp-result-range {
+    display: block;
+    font-size: 14px;
+    margin-top: 8px;
+    opacity: 0.85;
+}
+
+.irp-result-secondary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+// Gauge
+.irp-gauge {
+    position: relative;
+    width: 200px;
+    margin: 0 auto 16px;
+}
+
+.irp-gauge-svg {
+    width: 100%;
+    height: auto;
+}
+
+.irp-gauge-label {
+    font-size: 11px;
+    fill: var(--irp-text-light);
+}
+
+.irp-gauge-value {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.irp-gauge-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--irp-primary);
+}
+
+.irp-gauge-percent {
+    font-size: 16px;
+    color: var(--irp-text-light);
+}
+
+.irp-market-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--irp-text);
+}
+
+// Comparison Cards
+.irp-comparison-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+    
+    @media (max-width: 560px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.irp-comparison-card {
+    padding: 24px;
+    border-radius: var(--irp-radius-lg);
+    text-align: left;
+    
+    h3 {
+        margin: 0 0 16px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+.irp-card-sell {
+    background: rgba(234, 88, 12, 0.08);
+    border: 1px solid rgba(234, 88, 12, 0.2);
+}
+
+.irp-card-rent {
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.irp-comparison-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--irp-text);
+    margin-bottom: 4px;
+}
+
+.irp-per-year {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--irp-text-light);
+}
+
+.irp-comparison-label {
+    font-size: 13px;
+    color: var(--irp-text-light);
+}
+
+.irp-comparison-details {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+    
+    li {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 13px;
+        border-bottom: 1px solid var(--irp-border);
+        
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+}
+
+.irp-yield-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.irp-yield-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--irp-bg);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+// Chart
+.irp-chart-section {
+    margin-bottom: 32px;
+    
+    h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+    }
+}
+
+.irp-chart-container {
+    background: var(--irp-bg-secondary);
+    border-radius: var(--irp-radius);
+    padding: 16px;
+}
+
+.irp-breakeven-info {
+    margin-top: 16px;
+    font-size: 14px;
+    color: var(--irp-text-light);
+    
+    strong {
+        color: var(--irp-success);
+    }
+}
+
+// Recommendation
+.irp-recommendation {
+    padding: 24px;
+    background: var(--irp-bg-secondary);
+    border-radius: var(--irp-radius-lg);
+    border-left: 4px solid var(--irp-primary);
+    text-align: left;
+    margin-bottom: 32px;
+    
+    h3 {
+        margin: 0 0 12px;
+        font-size: 18px;
+    }
+}
+
+.irp-recommendation-summary {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.irp-recommendation-factors {
+    margin: 0;
+    padding: 0 0 0 20px;
+    
+    li {
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-tax-notice {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(234, 88, 12, 0.08);
+    border-radius: var(--irp-radius);
+    font-size: 13px;
+    color: var(--irp-warning);
+}
+
+// Results CTA
+.irp-results-cta {
+    p {
+        margin: 0 0 16px;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-results-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+// Lead Form
+.irp-lead-form {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.irp-lead-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+    
+    h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+    }
+    
+    p {
+        margin: 0;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-form-group-checkbox {
+    label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-weight: 400;
+        cursor: pointer;
+        
+        input[type="checkbox"] {
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        
+        a {
+            color: var(--irp-primary);
+            text-decoration: none;
+            
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
+.irp-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.irp-trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--irp-border);
+}
+
+.irp-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--irp-text-light);
+    
+    svg {
+        color: var(--irp-success);
+    }
+}
+
+// Thank You
+.irp-thank-you {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.irp-thank-you-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(22, 163, 74, 0.1);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    
+    svg {
+        width: 40px;
+        height: 40px;
+        color: var(--irp-success);
+    }
+}
+
+.irp-thank-you h2 {
+    margin: 0 0 16px;
+    font-size: 28px;
+    color: var(--irp-success);
+}
+
+.irp-thank-you-message {
+    font-size: 16px;
+    margin-bottom: 32px;
+    color: var(--irp-text-light);
+}
+
+.irp-thank-you-info {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto 32px;
+}
+
+.irp-info-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--irp-bg-secondary);
+    border-radius: var(--irp-radius);
+    margin-bottom: 12px;
+    
+    svg {
+        flex-shrink: 0;
+        color: var(--irp-primary);
+    }
+    
+    strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--irp-text-light);
+    }
+}
+
+.irp-thank-you-actions {
+    margin-top: 16px;
+}
