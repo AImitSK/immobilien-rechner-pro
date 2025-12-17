@@ -808,9 +808,9 @@ select {
 .irp-result-primary {
     background: linear-gradient(135deg, var(--irp-primary), var(--irp-secondary));
     color: white;
-    
+
     .irp-result-label {
-        opacity: 0.9;
+        color: rgba(255, 255, 255, 0.9);
     }
 }
 
