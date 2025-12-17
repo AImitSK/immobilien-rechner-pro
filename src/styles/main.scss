@@ -1164,3 +1164,102 @@ select {
 .irp-thank-you-actions {
     margin-top: 16px;
 }
+
+// Fixed City Badge (shown when city_id provided via shortcode)
+.irp-fixed-city {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--irp-primary);
+    margin-bottom: 20px;
+
+    svg {
+        flex-shrink: 0;
+        color: var(--irp-primary);
+    }
+}
+
+// City Selection Step
+.irp-city-step {
+    h3 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        font-weight: 600;
+    }
+}
+
+.irp-city-select {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    border: 2px solid var(--irp-border);
+    border-radius: var(--irp-radius);
+    background: var(--irp-bg);
+    color: var(--irp-text);
+    cursor: pointer;
+    transition: border-color var(--irp-transition), box-shadow var(--irp-transition);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    padding-right: 44px;
+
+    &:focus {
+        outline: none;
+        border-color: var(--irp-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    &:hover:not(:disabled) {
+        border-color: var(--irp-primary);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    option {
+        padding: 12px;
+    }
+}
+
+.irp-city-select-wrapper {
+    position: relative;
+}
+
+// Inline Loading Spinner
+.irp-loading-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    color: var(--irp-text-light);
+    font-size: 14px;
+
+    .irp-loading-spinner-small {
+        margin: 0;
+    }
+}
+
+// No cities configured message
+.irp-no-cities {
+    padding: 24px;
+    background: rgba(234, 88, 12, 0.08);
+    border: 1px solid rgba(234, 88, 12, 0.2);
+    border-radius: var(--irp-radius);
+    text-align: center;
+    color: var(--irp-warning);
+
+    p {
+        margin: 0;
+    }
+}

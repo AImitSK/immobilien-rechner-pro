@@ -3,7 +3,7 @@
  * Extended wizard for sell vs rent comparison
  */
 
-import { useState, useCallback } from '@wordpress/element';
+import { useState, useCallback, useMemo } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import apiFetch from '@wordpress/api-fetch';
@@ -11,28 +11,40 @@ import apiFetch from '@wordpress/api-fetch';
 import ProgressBar from './ProgressBar';
 import PropertyTypeStep from './steps/PropertyTypeStep';
 import PropertyDetailsStep from './steps/PropertyDetailsStep';
-import LocationStep from './steps/LocationStep';
+import CityStep from './steps/CityStep';
 import ConditionStep from './steps/ConditionStep';
 import FeaturesStep from './steps/FeaturesStep';
 import FinancialStep from './steps/FinancialStep';
 
-const STEPS = [
-    { id: 'type', component: PropertyTypeStep, title: __('Immobilie', 'immobilien-rechner-pro') },
-    { id: 'details', component: PropertyDetailsStep, title: __('Details', 'immobilien-rechner-pro') },
-    { id: 'location', component: LocationStep, title: __('Standort', 'immobilien-rechner-pro') },
-    { id: 'condition', component: ConditionStep, title: __('Zustand', 'immobilien-rechner-pro') },
-    { id: 'features', component: FeaturesStep, title: __('Ausstattung', 'immobilien-rechner-pro') },
-    { id: 'financial', component: FinancialStep, title: __('Finanzen', 'immobilien-rechner-pro') },
-];
+export default function ComparisonCalculator({ initialData, onComplete, onBack, cityId, cityName }) {
+    // Determine which steps to show based on whether cityId is provided
+    const STEPS = useMemo(() => {
+        const baseSteps = [
+            { id: 'type', component: PropertyTypeStep, title: __('Immobilie', 'immobilien-rechner-pro') },
+            { id: 'details', component: PropertyDetailsStep, title: __('Details', 'immobilien-rechner-pro') },
+        ];
 
-export default function ComparisonCalculator({ initialData, onComplete, onBack }) {
+        // Only show city selection step if no cityId was provided in shortcode
+        if (!cityId) {
+            baseSteps.push({ id: 'city', component: CityStep, title: __('Standort', 'immobilien-rechner-pro') });
+        }
+
+        baseSteps.push(
+            { id: 'condition', component: ConditionStep, title: __('Zustand', 'immobilien-rechner-pro') },
+            { id: 'features', component: FeaturesStep, title: __('Ausstattung', 'immobilien-rechner-pro') },
+            { id: 'financial', component: FinancialStep, title: __('Finanzen', 'immobilien-rechner-pro') },
+        );
+
+        return baseSteps;
+    }, [cityId]);
+
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
         property_type: '',
         size: '',
         rooms: '',
-        zip_code: '',
-        location: '',
+        city_id: cityId || '',
+        city_name: cityName || '',
         condition: '',
         features: [],
         year_built: '',
@@ -46,12 +58,12 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
     const [isCalculating, setIsCalculating] = useState(false);
     const [error, setError] = useState(null);
     const [direction, setDirection] = useState(1);
-    
+
     // Update form data
     const updateFormData = useCallback((updates) => {
         setFormData((prev) => ({ ...prev, ...updates }));
     }, []);
-    
+
     // Navigate to next step
     const handleNext = useCallback(() => {
         if (currentStep < STEPS.length - 1) {
@@ -60,8 +72,8 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
         } else {
             submitCalculation();
         }
-    }, [currentStep, formData]);
-    
+    }, [currentStep, STEPS.length, formData]);
+
     // Navigate to previous step
     const handlePrev = useCallback(() => {
         if (currentStep > 0) {
@@ -71,12 +83,12 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
             onBack();
         }
     }, [currentStep, onBack]);
-    
+
     // Submit calculation to API
     const submitCalculation = async () => {
         setIsCalculating(true);
         setError(null);
-        
+
         try {
             const response = await apiFetch({
                 path: '/irp/v1/calculate/comparison',
@@ -85,8 +97,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                     property_type: formData.property_type,
                     size: parseFloat(formData.size),
                     rooms: formData.rooms ? parseInt(formData.rooms) : null,
-                    zip_code: formData.zip_code,
-                    location: formData.location,
+                    city_id: formData.city_id,
                     condition: formData.condition,
                     features: formData.features,
                     year_built: formData.year_built ? parseInt(formData.year_built) : null,
@@ -97,7 +108,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                     expected_appreciation: parseFloat(formData.expected_appreciation),
                 },
             });
-            
+
             if (response.success) {
                 onComplete(formData, response.data);
             } else {
@@ -109,10 +120,10 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
             setIsCalculating(false);
         }
     };
-    
+
     // Get current step component
     const CurrentStepComponent = STEPS[currentStep].component;
-    
+
     // Check if current step is valid
     const isStepValid = () => {
         switch (STEPS[currentStep].id) {
@@ -120,8 +131,8 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                 return !!formData.property_type;
             case 'details':
                 return formData.size && parseFloat(formData.size) > 0;
-            case 'location':
-                return formData.zip_code && formData.zip_code.length >= 4;
+            case 'city':
+                return !!formData.city_id;
             case 'condition':
                 return !!formData.condition;
             case 'features':
@@ -132,7 +143,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                 return true;
         }
     };
-    
+
     // Animation variants
     const stepVariants = {
         initial: (dir) => ({
@@ -148,14 +159,25 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
             opacity: 0,
         }),
     };
-    
+
     return (
         <div className="irp-comparison-calculator">
-            <ProgressBar 
-                steps={STEPS.map((s) => s.title)} 
-                currentStep={currentStep} 
+            {/* Show city name if fixed via shortcode */}
+            {cityId && cityName && (
+                <div className="irp-fixed-city">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>{cityName}</span>
+                </div>
+            )}
+
+            <ProgressBar
+                steps={STEPS.map((s) => s.title)}
+                currentStep={currentStep}
             />
-            
+
             <div className="irp-step-container">
                 <AnimatePresence mode="wait" custom={direction}>
                     <motion.div
@@ -175,13 +197,13 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                     </motion.div>
                 </AnimatePresence>
             </div>
-            
+
             {error && (
                 <div className="irp-error">
                     <p>{error}</p>
                 </div>
             )}
-            
+
             <div className="irp-navigation">
                 <button
                     type="button"
@@ -189,10 +211,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                     onClick={handlePrev}
                     disabled={isCalculating}
                 >
-                    {currentStep === 0 && onBack
-                        ? __('Zurück', 'immobilien-rechner-pro')
-                        : __('Zurück', 'immobilien-rechner-pro')
-                    }
+                    {__('Zurück', 'immobilien-rechner-pro')}
                 </button>
 
                 <button

@@ -7,19 +7,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$region_labels = [
-    '0' => __('Leipzig/Dresden (0xxxx)', 'immobilien-rechner-pro'),
-    '1' => __('Berlin (1xxxx)', 'immobilien-rechner-pro'),
-    '2' => __('Hamburg (2xxxx)', 'immobilien-rechner-pro'),
-    '3' => __('Hannover (3xxxx)', 'immobilien-rechner-pro'),
-    '4' => __('Düsseldorf (4xxxx)', 'immobilien-rechner-pro'),
-    '5' => __('Köln/Bonn (5xxxx)', 'immobilien-rechner-pro'),
-    '6' => __('Frankfurt (6xxxx)', 'immobilien-rechner-pro'),
-    '7' => __('Stuttgart (7xxxx)', 'immobilien-rechner-pro'),
-    '8' => __('München (8xxxx)', 'immobilien-rechner-pro'),
-    '9' => __('Nürnberg (9xxxx)', 'immobilien-rechner-pro'),
-];
-
 $condition_labels = [
     'new' => __('Neubau', 'immobilien-rechner-pro'),
     'renovated' => __('Renoviert', 'immobilien-rechner-pro'),
@@ -47,7 +34,10 @@ $feature_labels = [
     'barrier_free' => __('Barrierefrei', 'immobilien-rechner-pro'),
 ];
 
-$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'prices';
+$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'cities';
+
+// Get cities from matrix
+$cities = $matrix['cities'] ?? [];
 ?>
 
 <div class="wrap irp-admin-wrap irp-matrix-wrap">
@@ -58,11 +48,8 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'prices'
     </p>
 
     <nav class="nav-tab-wrapper irp-tabs">
-        <a href="?page=irp-matrix&tab=prices" class="nav-tab <?php echo $active_tab === 'prices' ? 'nav-tab-active' : ''; ?>">
-            <?php esc_html_e('Mietpreise', 'immobilien-rechner-pro'); ?>
-        </a>
-        <a href="?page=irp-matrix&tab=factors" class="nav-tab <?php echo $active_tab === 'factors' ? 'nav-tab-active' : ''; ?>">
-            <?php esc_html_e('Vervielfältiger', 'immobilien-rechner-pro'); ?>
+        <a href="?page=irp-matrix&tab=cities" class="nav-tab <?php echo $active_tab === 'cities' ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e('Städte', 'immobilien-rechner-pro'); ?>
         </a>
         <a href="?page=irp-matrix&tab=multipliers" class="nav-tab <?php echo $active_tab === 'multipliers' ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e('Multiplikatoren', 'immobilien-rechner-pro'); ?>
@@ -78,94 +65,141 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'prices'
     <form method="post" action="options.php" class="irp-matrix-form">
         <?php settings_fields('irp_matrix_group'); ?>
 
-        <!-- Tab: Mietpreise nach Region -->
-        <div class="irp-tab-content <?php echo $active_tab === 'prices' ? 'active' : ''; ?>" id="tab-prices">
+        <!-- Tab: Städte -->
+        <div class="irp-tab-content <?php echo $active_tab === 'cities' ? 'active' : ''; ?>" id="tab-cities">
             <div class="irp-settings-section">
-                <h2><?php esc_html_e('Basis-Mietpreise nach Region', 'immobilien-rechner-pro'); ?></h2>
+                <h2><?php esc_html_e('Städte verwalten', 'immobilien-rechner-pro'); ?></h2>
                 <p class="description">
-                    <?php esc_html_e('Geben Sie die durchschnittlichen Kaltmieten pro m² für jede Region ein. Die Region wird anhand der ersten Ziffer der Postleitzahl bestimmt.', 'immobilien-rechner-pro'); ?>
+                    <?php esc_html_e('Legen Sie hier Städte an, für die der Rechner verwendet werden soll. Jede Stadt bekommt eine eindeutige ID für den Shortcode.', 'immobilien-rechner-pro'); ?>
                 </p>
 
-                <table class="widefat irp-data-table">
+                <div class="irp-shortcode-hint">
+                    <strong><?php esc_html_e('Shortcode-Verwendung:', 'immobilien-rechner-pro'); ?></strong>
+                    <code>[immobilien_rechner city_id="STADT_ID"]</code>
+                    <span class="description"><?php esc_html_e('Ohne city_id wird ein Dropdown mit allen Städten angezeigt.', 'immobilien-rechner-pro'); ?></span>
+                </div>
+
+                <table class="widefat irp-data-table irp-cities-table" id="irp-cities-table">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e('Region', 'immobilien-rechner-pro'); ?></th>
-                            <th><?php esc_html_e('Basis-Preis (€/m²)', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 120px;"><?php esc_html_e('Stadt-ID', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Name', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 140px;"><?php esc_html_e('Basis-Mietpreis', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 120px;"><?php esc_html_e('Vervielfältiger', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 80px;"><?php esc_html_e('Aktionen', 'immobilien-rechner-pro'); ?></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($region_labels as $code => $label) : ?>
-                            <tr>
+                    <tbody id="irp-cities-body">
+                        <?php if (!empty($cities)) : ?>
+                            <?php foreach ($cities as $index => $city) : ?>
+                                <tr class="irp-city-row" data-index="<?php echo esc_attr($index); ?>">
+                                    <td>
+                                        <input type="text"
+                                               name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][id]"
+                                               value="<?php echo esc_attr($city['id'] ?? ''); ?>"
+                                               class="regular-text irp-city-id"
+                                               placeholder="z.B. muenchen"
+                                               pattern="[a-z0-9_-]+"
+                                               required>
+                                    </td>
+                                    <td>
+                                        <input type="text"
+                                               name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][name]"
+                                               value="<?php echo esc_attr($city['name'] ?? ''); ?>"
+                                               class="regular-text"
+                                               placeholder="<?php esc_attr_e('Stadtname', 'immobilien-rechner-pro'); ?>"
+                                               required>
+                                    </td>
+                                    <td>
+                                        <input type="number"
+                                               name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][base_price]"
+                                               value="<?php echo esc_attr($city['base_price'] ?? 12.00); ?>"
+                                               step="0.10"
+                                               min="1"
+                                               max="100"
+                                               class="small-text"> €/m²
+                                    </td>
+                                    <td>
+                                        <input type="number"
+                                               name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][sale_factor]"
+                                               value="<?php echo esc_attr($city['sale_factor'] ?? 25); ?>"
+                                               step="0.5"
+                                               min="5"
+                                               max="60"
+                                               class="small-text">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="button irp-remove-city" title="<?php esc_attr_e('Stadt entfernen', 'immobilien-rechner-pro'); ?>">
+                                            <span class="dashicons dashicons-trash"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr class="irp-city-row" data-index="0">
                                 <td>
-                                    <strong><?php echo esc_html($label); ?></strong>
+                                    <input type="text"
+                                           name="irp_price_matrix[cities][0][id]"
+                                           value=""
+                                           class="regular-text irp-city-id"
+                                           placeholder="z.B. muenchen"
+                                           pattern="[a-z0-9_-]+"
+                                           required>
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           name="irp_price_matrix[cities][0][name]"
+                                           value=""
+                                           class="regular-text"
+                                           placeholder="<?php esc_attr_e('Stadtname', 'immobilien-rechner-pro'); ?>"
+                                           required>
                                 </td>
                                 <td>
                                     <input type="number"
-                                           name="irp_price_matrix[base_prices][<?php echo esc_attr($code); ?>]"
-                                           value="<?php echo esc_attr($matrix['base_prices'][$code] ?? 10.00); ?>"
+                                           name="irp_price_matrix[cities][0][base_price]"
+                                           value="12.00"
                                            step="0.10"
-                                           min="0"
+                                           min="1"
                                            max="100"
                                            class="small-text"> €/m²
                                 </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tab: Vervielfältiger (Verkaufsfaktoren) -->
-        <div class="irp-tab-content <?php echo $active_tab === 'factors' ? 'active' : ''; ?>" id="tab-factors">
-            <div class="irp-settings-section">
-                <h2><?php esc_html_e('Verkaufs-Vervielfältiger nach Region', 'immobilien-rechner-pro'); ?></h2>
-                <p class="description">
-                    <?php esc_html_e('Der Vervielfältiger gibt an, wie viele Jahresnettokaltmieten dem Kaufpreis entsprechen. Ein Vervielfältiger von 25 bedeutet: Kaufpreis = 25 × Jahresnettokaltmiete.', 'immobilien-rechner-pro'); ?>
-                </p>
-
-                <table class="widefat irp-data-table">
-                    <thead>
-                        <tr>
-                            <th><?php esc_html_e('Region', 'immobilien-rechner-pro'); ?></th>
-                            <th><?php esc_html_e('Vervielfältiger', 'immobilien-rechner-pro'); ?></th>
-                            <th><?php esc_html_e('Beispiel', 'immobilien-rechner-pro'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($region_labels as $code => $label) :
-                            $factor = $matrix['sale_factors'][$code] ?? 25;
-                            $example_rent = 1000;
-                            $example_price = $example_rent * 12 * $factor;
-                        ?>
-                            <tr>
-                                <td>
-                                    <strong><?php echo esc_html($label); ?></strong>
-                                </td>
                                 <td>
                                     <input type="number"
-                                           name="irp_price_matrix[sale_factors][<?php echo esc_attr($code); ?>]"
-                                           value="<?php echo esc_attr($factor); ?>"
+                                           name="irp_price_matrix[cities][0][sale_factor]"
+                                           value="25"
                                            step="0.5"
                                            min="5"
                                            max="60"
-                                           class="small-text irp-factor-input"
-                                           data-region="<?php echo esc_attr($code); ?>">
+                                           class="small-text">
                                 </td>
-                                <td class="irp-example">
-                                    <span class="irp-example-text">
-                                        <?php
-                                        printf(
-                                            esc_html__('Bei %s € Monatsmiete = %s € Kaufpreis', 'immobilien-rechner-pro'),
-                                            number_format($example_rent, 0, ',', '.'),
-                                            '<strong class="irp-calc-price" data-region="' . esc_attr($code) . '">' . number_format($example_price, 0, ',', '.') . '</strong>'
-                                        );
-                                        ?>
-                                    </span>
+                                <td>
+                                    <button type="button" class="button irp-remove-city" title="<?php esc_attr_e('Stadt entfernen', 'immobilien-rechner-pro'); ?>">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </button>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5">
+                                <button type="button" class="button button-secondary" id="irp-add-city">
+                                    <span class="dashicons dashicons-plus-alt2"></span>
+                                    <?php esc_html_e('Stadt hinzufügen', 'immobilien-rechner-pro'); ?>
+                                </button>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
+
+                <div class="irp-city-info">
+                    <h4><?php esc_html_e('Hinweise:', 'immobilien-rechner-pro'); ?></h4>
+                    <ul>
+                        <li><?php esc_html_e('Die Stadt-ID muss eindeutig sein und darf nur Kleinbuchstaben, Zahlen, Bindestriche und Unterstriche enthalten.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Der Vervielfältiger gibt an, wie viele Jahresnettokaltmieten dem Kaufpreis entsprechen.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Beispiel: Bei 1.000 € Monatsmiete und Vervielfältiger 25 → Kaufpreis = 300.000 €', 'immobilien-rechner-pro'); ?></li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -359,33 +393,15 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'prices'
                     </tr>
                 </table>
             </div>
-
-            <div class="irp-settings-section irp-info-box">
-                <h3><?php esc_html_e('Hinweis zur Berechnung', 'immobilien-rechner-pro'); ?></h3>
-                <p>
-                    <?php esc_html_e('Die Vergleichsberechnung "Verkaufen vs. Vermieten" verwendet diese Parameter, um zwei Szenarien zu modellieren:', 'immobilien-rechner-pro'); ?>
-                </p>
-                <ul>
-                    <li><strong><?php esc_html_e('Verkaufsszenario:', 'immobilien-rechner-pro'); ?></strong>
-                        <?php esc_html_e('Erlös wird zum Kapitalanlage-Zinssatz angelegt.', 'immobilien-rechner-pro'); ?>
-                    </li>
-                    <li><strong><?php esc_html_e('Vermietungsszenario:', 'immobilien-rechner-pro'); ?></strong>
-                        <?php esc_html_e('Kumulierte Mieteinnahmen + Wertsteigerung der Immobilie.', 'immobilien-rechner-pro'); ?>
-                    </li>
-                </ul>
-            </div>
         </div>
 
         <!-- Hidden fields for preserving data across tabs -->
-        <?php if ($active_tab !== 'prices') : ?>
-            <?php foreach ($matrix['base_prices'] ?? [] as $code => $price) : ?>
-                <input type="hidden" name="irp_price_matrix[base_prices][<?php echo esc_attr($code); ?>]" value="<?php echo esc_attr($price); ?>">
-            <?php endforeach; ?>
-        <?php endif; ?>
-
-        <?php if ($active_tab !== 'factors') : ?>
-            <?php foreach ($matrix['sale_factors'] ?? [] as $code => $factor) : ?>
-                <input type="hidden" name="irp_price_matrix[sale_factors][<?php echo esc_attr($code); ?>]" value="<?php echo esc_attr($factor); ?>">
+        <?php if ($active_tab !== 'cities') : ?>
+            <?php foreach ($cities as $index => $city) : ?>
+                <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][id]" value="<?php echo esc_attr($city['id'] ?? ''); ?>">
+                <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][name]" value="<?php echo esc_attr($city['name'] ?? ''); ?>">
+                <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][base_price]" value="<?php echo esc_attr($city['base_price'] ?? 12); ?>">
+                <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][sale_factor]" value="<?php echo esc_attr($city['sale_factor'] ?? 25); ?>">
             <?php endforeach; ?>
         <?php endif; ?>
 

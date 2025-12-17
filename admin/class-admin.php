@@ -79,11 +79,22 @@ class IRP_Admin {
     public function sanitize_price_matrix(array $input): array {
         $sanitized = [];
 
-        // Regional base prices
-        if (isset($input['base_prices']) && is_array($input['base_prices'])) {
-            foreach ($input['base_prices'] as $region => $price) {
-                $sanitized['base_prices'][sanitize_text_field($region)] = (float) $price;
+        // Cities (new structure)
+        if (isset($input['cities']) && is_array($input['cities'])) {
+            $sanitized['cities'] = [];
+            foreach ($input['cities'] as $city) {
+                if (empty($city['id']) || empty($city['name'])) {
+                    continue; // Skip empty rows
+                }
+                $sanitized['cities'][] = [
+                    'id' => sanitize_key($city['id']),
+                    'name' => sanitize_text_field($city['name']),
+                    'base_price' => max(1, (float) ($city['base_price'] ?? 12)),
+                    'sale_factor' => max(5, (float) ($city['sale_factor'] ?? 25)),
+                ];
             }
+            // Re-index the array
+            $sanitized['cities'] = array_values($sanitized['cities']);
         }
 
         // Condition multipliers
@@ -104,13 +115,6 @@ class IRP_Admin {
         if (isset($input['feature_premiums']) && is_array($input['feature_premiums'])) {
             foreach ($input['feature_premiums'] as $feature => $premium) {
                 $sanitized['feature_premiums'][sanitize_text_field($feature)] = (float) $premium;
-            }
-        }
-
-        // Sale factors (Vervielfältiger)
-        if (isset($input['sale_factors']) && is_array($input['sale_factors'])) {
-            foreach ($input['sale_factors'] as $region => $factor) {
-                $sanitized['sale_factors'][sanitize_text_field($region)] = (float) $factor;
             }
         }
 

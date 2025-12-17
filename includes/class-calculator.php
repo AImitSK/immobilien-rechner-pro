@@ -11,20 +11,6 @@ class IRP_Calculator {
 
     private array $matrix;
 
-    // Default values (fallback if no matrix configured)
-    private array $default_base_prices = [
-        '1' => 18.50,  // Berlin (starts with 1)
-        '2' => 16.00,  // Hamburg (starts with 2)
-        '3' => 11.50,  // Hannover region
-        '4' => 11.00,  // Düsseldorf region
-        '5' => 11.50,  // Köln/Bonn region
-        '6' => 13.50,  // Frankfurt region
-        '7' => 13.00,  // Stuttgart region
-        '8' => 19.00,  // München region
-        '9' => 10.00,  // Nürnberg region
-        '0' => 10.50,  // Leipzig/Dresden region
-    ];
-
     private array $default_condition_multipliers = [
         'new' => 1.25,
         'renovated' => 1.10,
@@ -52,19 +38,6 @@ class IRP_Calculator {
         'barrier_free' => 0.30,
     ];
 
-    private array $default_sale_factors = [
-        '1' => 30,  // Berlin
-        '2' => 28,  // Hamburg
-        '3' => 22,  // Hannover
-        '4' => 23,  // Düsseldorf
-        '5' => 24,  // Köln/Bonn
-        '6' => 27,  // Frankfurt
-        '7' => 26,  // Stuttgart
-        '8' => 35,  // München
-        '9' => 20,  // Nürnberg
-        '0' => 21,  // Leipzig/Dresden
-    ];
-
     public function __construct() {
         $this->load_matrix();
     }
@@ -76,9 +49,9 @@ class IRP_Calculator {
         $saved_matrix = get_option('irp_price_matrix', []);
 
         $this->matrix = [
-            'base_prices' => !empty($saved_matrix['base_prices'])
-                ? $saved_matrix['base_prices']
-                : $this->default_base_prices,
+            'cities' => !empty($saved_matrix['cities'])
+                ? $saved_matrix['cities']
+                : [],
             'condition_multipliers' => !empty($saved_matrix['condition_multipliers'])
                 ? $saved_matrix['condition_multipliers']
                 : $this->default_condition_multipliers,
@@ -88,9 +61,6 @@ class IRP_Calculator {
             'feature_premiums' => !empty($saved_matrix['feature_premiums'])
                 ? $saved_matrix['feature_premiums']
                 : $this->default_feature_premiums,
-            'sale_factors' => !empty($saved_matrix['sale_factors'])
-                ? $saved_matrix['sale_factors']
-                : $this->default_sale_factors,
             'interest_rate' => (float) ($saved_matrix['interest_rate'] ?? 3.0),
             'appreciation_rate' => (float) ($saved_matrix['appreciation_rate'] ?? 2.0),
             'rent_increase_rate' => (float) ($saved_matrix['rent_increase_rate'] ?? 2.0),
@@ -98,10 +68,22 @@ class IRP_Calculator {
     }
 
     /**
-     * Get base prices
+     * Get all configured cities
      */
-    private function get_base_prices(): array {
-        return $this->matrix['base_prices'];
+    public function get_cities(): array {
+        return $this->matrix['cities'];
+    }
+
+    /**
+     * Get a city by its ID
+     */
+    public function get_city_by_id(string $city_id): ?array {
+        foreach ($this->matrix['cities'] as $city) {
+            if ($city['id'] === $city_id) {
+                return $city;
+            }
+        }
+        return null;
     }
 
     /**
@@ -126,33 +108,36 @@ class IRP_Calculator {
     }
 
     /**
-     * Get sale factors (Vervielfältiger)
-     */
-    private function get_sale_factors(): array {
-        return $this->matrix['sale_factors'];
-    }
-    
-    /**
      * Calculate rental value estimate
      */
     public function calculate_rental_value(array $params): array {
         $size = (float) $params['size'];
-        $zip_code = $params['zip_code'];
+        $city_id = $params['city_id'] ?? null;
         $condition = $params['condition'];
         $property_type = $params['property_type'];
         $features = $params['features'] ?? [];
         $year_built = $params['year_built'] ?? null;
         $rooms = $params['rooms'] ?? null;
 
+        // Get city data
+        $city = null;
+        if ($city_id) {
+            $city = $this->get_city_by_id($city_id);
+        }
+
+        // Fallback to first city if no city_id provided or not found
+        if (!$city && !empty($this->matrix['cities'])) {
+            $city = $this->matrix['cities'][0];
+        }
+
+        // Default values if no city configured
+        $base_price = $city ? (float) $city['base_price'] : 12.00;
+        $city_name = $city ? $city['name'] : __('Unbekannt', 'immobilien-rechner-pro');
+
         // Get matrix data
-        $base_prices = $this->get_base_prices();
         $condition_multipliers = $this->get_condition_multipliers();
         $type_multipliers = $this->get_type_multipliers();
         $feature_premiums = $this->get_feature_premiums();
-
-        // Get base price for region
-        $region_code = substr($zip_code, 0, 1);
-        $base_price = $base_prices[$region_code] ?? 11.00;
 
         // Apply multipliers
         $price_per_sqm = $base_price;
@@ -165,7 +150,7 @@ class IRP_Calculator {
                 $price_per_sqm += $feature_premiums[$feature];
             }
         }
-        
+
         // Age adjustment (buildings from 1960-1980 often less desirable)
         if ($year_built) {
             if ($year_built >= 2015) {
@@ -183,7 +168,7 @@ class IRP_Calculator {
                 $price_per_sqm *= 1.05;
             }
         }
-        
+
         // Size adjustment (smaller apartments have higher price per sqm)
         if ($size < 40) {
             $price_per_sqm *= 1.15;
@@ -194,20 +179,20 @@ class IRP_Calculator {
         } elseif ($size > 150) {
             $price_per_sqm *= 0.90;
         }
-        
+
         // Calculate monthly rent
         $monthly_rent = $size * $price_per_sqm;
-        
+
         // Calculate range (±15%)
         $rent_low = $monthly_rent * 0.85;
         $rent_high = $monthly_rent * 1.15;
-        
+
         // Annual calculations
         $annual_rent = $monthly_rent * 12;
-        
-        // Market comparison (simplified)
-        $market_position = $this->calculate_market_position($price_per_sqm, $region_code);
-        
+
+        // Market comparison
+        $market_position = $this->calculate_market_position($price_per_sqm, $base_price);
+
         return [
             'monthly_rent' => [
                 'estimate' => round($monthly_rent, 2),
@@ -217,6 +202,10 @@ class IRP_Calculator {
             'annual_rent' => round($annual_rent, 2),
             'price_per_sqm' => round($price_per_sqm, 2),
             'market_position' => $market_position,
+            'city' => [
+                'id' => $city ? $city['id'] : null,
+                'name' => $city_name,
+            ],
             'factors' => [
                 'base_price' => $base_price,
                 'condition_impact' => $condition_multipliers[$condition] ?? 1.00,
@@ -226,7 +215,7 @@ class IRP_Calculator {
             'calculation_date' => current_time('mysql'),
         ];
     }
-    
+
     /**
      * Calculate sell vs rent comparison
      */
@@ -238,6 +227,7 @@ class IRP_Calculator {
         $remaining_mortgage = (float) ($params['remaining_mortgage'] ?? 0);
         $mortgage_rate = (float) ($params['mortgage_rate'] ?? 3.5) / 100;
         $holding_period = (int) ($params['holding_period_years'] ?? 0);
+        $city_id = $params['city_id'] ?? null;
 
         // Use matrix values for appreciation rate (can be overridden by user)
         $appreciation_rate = isset($params['expected_appreciation'])
@@ -247,62 +237,63 @@ class IRP_Calculator {
         // Get rent increase rate from matrix
         $rent_increase_rate = $this->matrix['rent_increase_rate'] / 100;
 
-        // Get sale factor (Vervielfältiger) for region
-        $zip_code = $params['zip_code'];
-        $region_code = substr($zip_code, 0, 1);
-        $sale_factors = $this->get_sale_factors();
-        $vervielfaeltiger = $sale_factors[$region_code] ?? 25;
+        // Get sale factor (Vervielfältiger) for city
+        $city = $city_id ? $this->get_city_by_id($city_id) : null;
+        if (!$city && !empty($this->matrix['cities'])) {
+            $city = $this->matrix['cities'][0];
+        }
+        $vervielfaeltiger = $city ? (float) $city['sale_factor'] : 25;
 
         $settings = get_option('irp_settings', []);
         $maintenance_rate = (float) ($settings['default_maintenance_rate'] ?? 1.5) / 100;
         $vacancy_rate = (float) ($settings['default_vacancy_rate'] ?? 3) / 100;
         $broker_commission = (float) ($settings['default_broker_commission'] ?? 3.57) / 100;
-        
+
         // Calculate annual rental income (after costs)
         $gross_annual_rent = $rental['annual_rent'];
         $vacancy_loss = $gross_annual_rent * $vacancy_rate;
         $maintenance_cost = $property_value * $maintenance_rate;
         $net_annual_rent = $gross_annual_rent - $vacancy_loss - $maintenance_cost;
-        
+
         // Mortgage costs (if applicable)
         $annual_mortgage_interest = $remaining_mortgage * $mortgage_rate;
         $net_annual_income = $net_annual_rent - $annual_mortgage_interest;
-        
+
         // Calculate rental yield
         $gross_yield = ($gross_annual_rent / $property_value) * 100;
         $net_yield = ($net_annual_income / $property_value) * 100;
-        
+
         // Sale scenario
         $sale_costs = $property_value * $broker_commission;
         $net_sale_proceeds = $property_value - $remaining_mortgage - $sale_costs;
-        
+
         // Speculation tax consideration (simplified)
         $speculation_tax_applies = $holding_period < 10;
         $speculation_tax_note = $speculation_tax_applies
             ? __('Hinweis: Bei Immobilien, die weniger als 10 Jahre gehalten werden, kann Spekulationssteuer anfallen.', 'immobilien-rechner-pro')
             : null;
-        
+
         // Break-even calculation (years until rental income exceeds sale proceeds)
         $years_projection = [];
         $cumulative_rental = 0;
         $break_even_year = null;
-        
+
         for ($year = 1; $year <= 30; $year++) {
             // Property appreciates
             $future_value = $property_value * pow(1 + $appreciation_rate, $year);
-            
+
             // Rental income with configured annual increase
             $year_rental = $net_annual_income * pow(1 + $rent_increase_rate, $year - 1);
             $cumulative_rental += $year_rental;
-            
+
             // Future sale scenario
             $future_sale_costs = $future_value * $broker_commission;
             $future_mortgage = max(0, $remaining_mortgage - ($year * $remaining_mortgage / 25)); // Simplified paydown
             $future_net_sale = $future_value - $future_mortgage - $future_sale_costs;
-            
+
             // Total value if keeping (cumulative rent + current value - mortgage)
             $keep_value = $cumulative_rental + $future_value - $future_mortgage;
-            
+
             $years_projection[] = [
                 'year' => $year,
                 'property_value' => round($future_value, 2),
@@ -310,13 +301,13 @@ class IRP_Calculator {
                 'net_sale_proceeds' => round($future_net_sale, 2),
                 'keep_total_value' => round($keep_value, 2),
             ];
-            
+
             // Find break-even point
             if ($break_even_year === null && $cumulative_rental >= $net_sale_proceeds) {
                 $break_even_year = $year;
             }
         }
-        
+
         // Recommendation logic
         $recommendation = $this->generate_recommendation(
             $net_yield,
@@ -324,7 +315,7 @@ class IRP_Calculator {
             $speculation_tax_applies,
             $net_sale_proceeds
         );
-        
+
         // Calculate estimated sale price based on Vervielfältiger (if not provided by user)
         $estimated_sale_price = $gross_annual_rent * $vervielfaeltiger;
 
@@ -359,17 +350,14 @@ class IRP_Calculator {
             'calculation_date' => current_time('mysql'),
         ];
     }
-    
+
     /**
      * Calculate where the rental price falls in the market
      */
-    private function calculate_market_position(float $price_per_sqm, string $region_code): array {
-        $base_prices = $this->get_base_prices();
-        $base = $base_prices[$region_code] ?? 11.00;
-        
+    private function calculate_market_position(float $price_per_sqm, float $base_price): array {
         // Simplified percentile calculation
-        $ratio = $price_per_sqm / $base;
-        
+        $ratio = $price_per_sqm / $base_price;
+
         if ($ratio < 0.85) {
             $percentile = 20;
             $label = __('Unterdurchschnittlich', 'immobilien-rechner-pro');
@@ -389,13 +377,13 @@ class IRP_Calculator {
             $percentile = 90;
             $label = __('Premium-Segment', 'immobilien-rechner-pro');
         }
-        
+
         return [
             'percentile' => $percentile,
             'label' => $label,
         ];
     }
-    
+
     /**
      * Generate a recommendation based on the analysis
      */
@@ -407,7 +395,7 @@ class IRP_Calculator {
     ): array {
         $factors = [];
         $score = 0; // Positive = favor rent, Negative = favor sell
-        
+
         // Yield analysis
         if ($net_yield >= 5) {
             $factors[] = __('Die hohe Mietrendite spricht für eine Vermietung.', 'immobilien-rechner-pro');
@@ -460,7 +448,7 @@ class IRP_Calculator {
             $summary = __('Beide Optionen haben ihre Vorteile. Eine Beratung kann den besten Weg aufzeigen.', 'immobilien-rechner-pro');
             $direction = 'neutral';
         }
-        
+
         return [
             'direction' => $direction,
             'summary' => $summary,

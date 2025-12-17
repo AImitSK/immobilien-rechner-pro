@@ -53,6 +53,13 @@ class IRP_Rest_API {
                 ],
             ],
         ]);
+
+        // Get configured cities
+        register_rest_route($this->namespace, '/cities', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_cities'],
+            'permission_callback' => '__return_true',
+        ]);
     }
     
     private function get_rental_args(): array {
@@ -75,8 +82,13 @@ class IRP_Rest_API {
                 'minimum' => 1,
                 'maximum' => 20,
             ],
+            'city_id' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_key',
+            ],
             'zip_code' => [
-                'required' => true,
+                'required' => false, // Not required when city_id is provided
                 'type' => 'string',
                 'sanitize_callback' => 'sanitize_text_field',
             ],
@@ -271,12 +283,25 @@ class IRP_Rest_API {
             ['zip' => '70173', 'city' => 'Stuttgart', 'state' => 'Baden-Württemberg'],
             ['zip' => '40213', 'city' => 'Düsseldorf', 'state' => 'Nordrhein-Westfalen'],
         ];
-        
+
         $search_lower = strtolower($search);
-        
+
         return array_filter($cities, function($city) use ($search_lower) {
             return str_contains(strtolower($city['city']), $search_lower) ||
                    str_starts_with($city['zip'], $search);
         });
+    }
+
+    /**
+     * Get all configured cities
+     */
+    public function get_cities(\WP_REST_Request $request): \WP_REST_Response {
+        $calculator = new IRP_Calculator();
+        $cities = $calculator->get_cities();
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'data' => $cities,
+        ]);
     }
 }

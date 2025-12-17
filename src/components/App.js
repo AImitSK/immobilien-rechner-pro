@@ -22,8 +22,8 @@ const STEPS = {
 };
 
 export default function App({ config }) {
-    const { initialMode, theme, showBranding } = config;
-    
+    const { initialMode, theme, showBranding, cityId, cityName } = config;
+
     // State
     const [currentStep, setCurrentStep] = useState(
         initialMode ? STEPS.CALCULATOR : STEPS.MODE_SELECT
@@ -31,43 +31,43 @@ export default function App({ config }) {
     const [mode, setMode] = useState(initialMode || '');
     const [formData, setFormData] = useState({});
     const [results, setResults] = useState(null);
-    
+
     // Get settings from localized script
     const settings = window.irpSettings?.settings || {};
-    
+
     // Dynamic styles based on branding
     const brandStyles = useMemo(() => ({
         '--irp-primary': settings.primaryColor || '#2563eb',
         '--irp-secondary': settings.secondaryColor || '#1e40af',
     }), [settings]);
-    
+
     // Handlers
     const handleModeSelect = (selectedMode) => {
         setMode(selectedMode);
         setCurrentStep(STEPS.CALCULATOR);
     };
-    
+
     const handleCalculationComplete = (data, calculationResults) => {
         setFormData(data);
         setResults(calculationResults);
         setCurrentStep(STEPS.RESULTS);
     };
-    
+
     const handleRequestConsultation = () => {
         setCurrentStep(STEPS.LEAD_FORM);
     };
-    
+
     const handleLeadSubmitted = () => {
         setCurrentStep(STEPS.THANK_YOU);
     };
-    
+
     const handleStartOver = () => {
         setMode(initialMode || '');
         setFormData({});
         setResults(null);
         setCurrentStep(initialMode ? STEPS.CALCULATOR : STEPS.MODE_SELECT);
     };
-    
+
     const handleBack = () => {
         switch (currentStep) {
             case STEPS.CALCULATOR:
@@ -85,34 +85,34 @@ export default function App({ config }) {
                 break;
         }
     };
-    
+
     // Animation variants
     const pageVariants = {
         initial: { opacity: 0, x: 20 },
         animate: { opacity: 1, x: 0 },
         exit: { opacity: 0, x: -20 },
     };
-    
+
     const pageTransition = {
         duration: 0.3,
         ease: 'easeInOut',
     };
-    
+
     return (
-        <div 
+        <div
             className={`irp-calculator irp-theme-${theme}`}
             style={brandStyles}
         >
             {showBranding && settings.companyLogo && (
                 <div className="irp-branding">
-                    <img 
-                        src={settings.companyLogo} 
-                        alt={settings.companyName || ''} 
+                    <img
+                        src={settings.companyLogo}
+                        alt={settings.companyName || ''}
                         className="irp-logo"
                     />
                 </div>
             )}
-            
+
             <div className="irp-calculator-content">
                 <AnimatePresence mode="wait">
                     {currentStep === STEPS.MODE_SELECT && (
@@ -127,7 +127,7 @@ export default function App({ config }) {
                             <ModeSelector onSelect={handleModeSelect} />
                         </motion.div>
                     )}
-                    
+
                     {currentStep === STEPS.CALCULATOR && (
                         <motion.div
                             key="calculator"
@@ -142,17 +142,21 @@ export default function App({ config }) {
                                     initialData={formData}
                                     onComplete={handleCalculationComplete}
                                     onBack={!initialMode ? handleBack : null}
+                                    cityId={cityId}
+                                    cityName={cityName}
                                 />
                             ) : (
                                 <ComparisonCalculator
                                     initialData={formData}
                                     onComplete={handleCalculationComplete}
                                     onBack={!initialMode ? handleBack : null}
+                                    cityId={cityId}
+                                    cityName={cityName}
                                 />
                             )}
                         </motion.div>
                     )}
-                    
+
                     {currentStep === STEPS.RESULTS && (
                         <motion.div
                             key="results"
@@ -172,7 +176,7 @@ export default function App({ config }) {
                             />
                         </motion.div>
                     )}
-                    
+
                     {currentStep === STEPS.LEAD_FORM && (
                         <motion.div
                             key="lead-form"
@@ -190,7 +194,7 @@ export default function App({ config }) {
                             />
                         </motion.div>
                     )}
-                    
+
                     {currentStep === STEPS.THANK_YOU && (
                         <motion.div
                             key="thank-you"
@@ -208,7 +212,7 @@ export default function App({ config }) {
                     )}
                 </AnimatePresence>
             </div>
-            
+
             {showBranding && settings.companyName && !settings.companyLogo && (
                 <div className="irp-footer">
                     <span>{settings.companyName}</span>

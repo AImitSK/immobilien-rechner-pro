@@ -443,3 +443,85 @@
         padding-left: 0;
     }
 }
+
+/* Cities Management */
+.irp-shortcode-hint {
+    background: #f0f6fc;
+    border: 1px solid #72aee6;
+    border-radius: 4px;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+}
+
+.irp-shortcode-hint code {
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 13px;
+    margin: 0 5px;
+}
+
+.irp-shortcode-hint .description {
+    display: block;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.irp-cities-table .irp-city-id {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.irp-cities-table input.regular-text {
+    width: 100%;
+    max-width: 200px;
+}
+
+.irp-cities-table tfoot td {
+    background: #f6f7f7;
+    padding: 15px;
+}
+
+.irp-cities-table .irp-remove-city {
+    padding: 4px 8px;
+    min-height: 30px;
+}
+
+.irp-cities-table .irp-remove-city .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.irp-cities-table .irp-remove-city:hover {
+    color: #d63638;
+    border-color: #d63638;
+}
+
+#irp-add-city .dashicons {
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.irp-city-info {
+    background: #fff8e5;
+    border: 1px solid #dba617;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.irp-city-info h4 {
+    margin: 0 0 10px;
+    color: #7c5e00;
+}
+
+.irp-city-info ul {
+    margin: 0 0 0 20px;
+}
+
+.irp-city-info li {
+    margin-bottom: 5px;
+    color: #614f00;
+}
