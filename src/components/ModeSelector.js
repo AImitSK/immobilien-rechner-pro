@@ -15,9 +15,9 @@ export default function ModeSelector({ onSelect }) {
                     <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
             ),
-            title: __('Rental Value', 'immobilien-rechner-pro'),
-            description: __('Find out how much rent you could charge for your property', 'immobilien-rechner-pro'),
-            tagline: __('I want to rent out my property', 'immobilien-rechner-pro'),
+            title: __('Mietwert berechnen', 'immobilien-rechner-pro'),
+            description: __('Erfahren Sie, wie viel Miete Sie für Ihre Immobilie verlangen können', 'immobilien-rechner-pro'),
+            tagline: __('Ich möchte meine Immobilie vermieten', 'immobilien-rechner-pro'),
         },
         {
             id: 'comparison',
@@ -28,9 +28,9 @@ export default function ModeSelector({ onSelect }) {
                     <line x1="6" y1="20" x2="6" y2="16" />
                 </svg>
             ),
-            title: __('Sell vs. Rent', 'immobilien-rechner-pro'),
-            description: __('Compare the financial outcomes of selling now versus renting out', 'immobilien-rechner-pro'),
-            tagline: __("I'm not sure if I should sell or rent", 'immobilien-rechner-pro'),
+            title: __('Verkaufen vs. Vermieten', 'immobilien-rechner-pro'),
+            description: __('Vergleichen Sie die finanziellen Ergebnisse von Verkauf und Vermietung', 'immobilien-rechner-pro'),
+            tagline: __('Ich bin unsicher, ob ich verkaufen oder vermieten soll', 'immobilien-rechner-pro'),
         },
     ];
     
@@ -43,8 +43,8 @@ export default function ModeSelector({ onSelect }) {
     return (
         <div className="irp-mode-selector">
             <div className="irp-mode-header">
-                <h2>{__('What would you like to know?', 'immobilien-rechner-pro')}</h2>
-                <p>{__('Select an option to get started with your property analysis', 'immobilien-rechner-pro')}</p>
+                <h2>{__('Was möchten Sie wissen?', 'immobilien-rechner-pro')}</h2>
+                <p>{__('Wählen Sie eine Option, um mit Ihrer Immobilienanalyse zu beginnen', 'immobilien-rechner-pro')}</p>
             </div>
             
             <div className="irp-mode-options">

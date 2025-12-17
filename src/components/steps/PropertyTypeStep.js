@@ -17,8 +17,8 @@ const PROPERTY_TYPES = [
                 <line x1="3" y1="15" x2="21" y2="15" />
             </svg>
         ),
-        label: __('Apartment', 'immobilien-rechner-pro'),
-        description: __('Flat in a multi-family building', 'immobilien-rechner-pro'),
+        label: __('Wohnung', 'immobilien-rechner-pro'),
+        description: __('Wohnung in einem Mehrfamilienhaus', 'immobilien-rechner-pro'),
     },
     {
         id: 'house',
@@ -28,8 +28,8 @@ const PROPERTY_TYPES = [
                 <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
         ),
-        label: __('House', 'immobilien-rechner-pro'),
-        description: __('Single-family or semi-detached house', 'immobilien-rechner-pro'),
+        label: __('Haus', 'immobilien-rechner-pro'),
+        description: __('Einfamilienhaus oder Doppelhaushälfte', 'immobilien-rechner-pro'),
     },
     {
         id: 'commercial',
@@ -39,8 +39,8 @@ const PROPERTY_TYPES = [
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
             </svg>
         ),
-        label: __('Commercial', 'immobilien-rechner-pro'),
-        description: __('Office, retail, or mixed-use space', 'immobilien-rechner-pro'),
+        label: __('Gewerbe', 'immobilien-rechner-pro'),
+        description: __('Büro, Einzelhandel oder Mischnutzung', 'immobilien-rechner-pro'),
     },
 ];
 
@@ -51,7 +51,7 @@ export default function PropertyTypeStep({ data, onChange }) {
     
     return (
         <div className="irp-property-type-step">
-            <h3>{__('What type of property do you have?', 'immobilien-rechner-pro')}</h3>
+            <h3>{__('Welche Art von Immobilie haben Sie?', 'immobilien-rechner-pro')}</h3>
             
             <div className="irp-type-grid">
                 {PROPERTY_TYPES.map((type) => (

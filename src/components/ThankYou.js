@@ -13,11 +13,11 @@ export default function ThankYou({ companyName, onStartOver }) {
                 className="irp-thank-you-icon"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ 
+                transition={{
                     type: 'spring',
                     stiffness: 200,
                     damping: 15,
-                    delay: 0.2 
+                    delay: 0.2
                 }}
             >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -25,15 +25,15 @@ export default function ThankYou({ companyName, onStartOver }) {
                     <polyline points="16 8 10 14 8 12" />
                 </svg>
             </motion.div>
-            
+
             <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
             >
-                {__('Thank You!', 'immobilien-rechner-pro')}
+                {__('Vielen Dank!', 'immobilien-rechner-pro')}
             </motion.h2>
-            
+
             <motion.p
                 className="irp-thank-you-message"
                 initial={{ opacity: 0, y: 20 }}
@@ -42,15 +42,15 @@ export default function ThankYou({ companyName, onStartOver }) {
             >
                 {companyName ? (
                     <>
-                        {__('Your request has been submitted.', 'immobilien-rechner-pro')}{' '}
+                        {__('Ihre Anfrage wurde übermittelt.', 'immobilien-rechner-pro')}{' '}
                         <strong>{companyName}</strong>{' '}
-                        {__('will be in touch with you shortly.', 'immobilien-rechner-pro')}
+                        {__('wird sich in Kürze bei Ihnen melden.', 'immobilien-rechner-pro')}
                     </>
                 ) : (
-                    __('Your request has been submitted. We will be in touch with you shortly.', 'immobilien-rechner-pro')
+                    __('Ihre Anfrage wurde übermittelt. Wir werden uns in Kürze bei Ihnen melden.', 'immobilien-rechner-pro')
                 )}
             </motion.p>
-            
+
             <motion.div
                 className="irp-thank-you-info"
                 initial={{ opacity: 0 }}
@@ -63,23 +63,23 @@ export default function ThankYou({ companyName, onStartOver }) {
                         <polyline points="22,6 12,13 2,6" />
                     </svg>
                     <div>
-                        <strong>{__('Check your email', 'immobilien-rechner-pro')}</strong>
-                        <p>{__('We\'ve sent a confirmation with your calculation results.', 'immobilien-rechner-pro')}</p>
+                        <strong>{__('Prüfen Sie Ihre E-Mails', 'immobilien-rechner-pro')}</strong>
+                        <p>{__('Wir haben Ihnen eine Bestätigung mit Ihren Berechnungsergebnissen gesendet.', 'immobilien-rechner-pro')}</p>
                     </div>
                 </div>
-                
+
                 <div className="irp-info-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                     </svg>
                     <div>
-                        <strong>{__('What happens next?', 'immobilien-rechner-pro')}</strong>
-                        <p>{__('A local expert will contact you within 24 hours to discuss your property.', 'immobilien-rechner-pro')}</p>
+                        <strong>{__('Wie geht es weiter?', 'immobilien-rechner-pro')}</strong>
+                        <p>{__('Ein lokaler Experte wird Sie innerhalb von 24 Stunden kontaktieren, um Ihre Immobilie zu besprechen.', 'immobilien-rechner-pro')}</p>
                     </div>
                 </div>
             </motion.div>
-            
+
             <motion.div
                 className="irp-thank-you-actions"
                 initial={{ opacity: 0 }}
@@ -91,7 +91,7 @@ export default function ThankYou({ companyName, onStartOver }) {
                     className="irp-btn irp-btn-secondary"
                     onClick={onStartOver}
                 >
-                    {__('Calculate Another Property', 'immobilien-rechner-pro')}
+                    {__('Weitere Immobilie berechnen', 'immobilien-rechner-pro')}
                 </button>
             </motion.div>
         </div>

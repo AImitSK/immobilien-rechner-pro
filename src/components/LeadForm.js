@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 
 export default function LeadForm({ mode, calculationData, onSubmitted, onBack }) {
     const settings = window.irpSettings?.settings || {};
-    
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -19,47 +19,47 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
-    
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData((prev) => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
         }));
-        
+
         // Clear error on change
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: null }));
         }
     };
-    
+
     const validate = () => {
         const newErrors = {};
-        
+
         if (!formData.email) {
-            newErrors.email = __('Email is required', 'immobilien-rechner-pro');
+            newErrors.email = __('E-Mail ist erforderlich', 'immobilien-rechner-pro');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = __('Please enter a valid email address', 'immobilien-rechner-pro');
+            newErrors.email = __('Bitte geben Sie eine gültige E-Mail-Adresse ein', 'immobilien-rechner-pro');
         }
-        
+
         if (settings.requireConsent && !formData.consent) {
-            newErrors.consent = __('You must agree to the privacy policy', 'immobilien-rechner-pro');
+            newErrors.consent = __('Sie müssen der Datenschutzerklärung zustimmen', 'immobilien-rechner-pro');
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validate()) {
             return;
         }
-        
+
         setIsSubmitting(true);
         setSubmitError(null);
-        
+
         try {
             const response = await apiFetch({
                 path: '/irp/v1/leads',
@@ -73,19 +73,19 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                     consent: formData.consent,
                 },
             });
-            
+
             if (response.success) {
                 onSubmitted();
             } else {
-                setSubmitError(response.message || __('Submission failed', 'immobilien-rechner-pro'));
+                setSubmitError(response.message || __('Übermittlung fehlgeschlagen', 'immobilien-rechner-pro'));
             }
         } catch (err) {
-            setSubmitError(err.message || __('An error occurred', 'immobilien-rechner-pro'));
+            setSubmitError(err.message || __('Ein Fehler ist aufgetreten', 'immobilien-rechner-pro'));
         } finally {
             setIsSubmitting(false);
         }
     };
-    
+
     return (
         <div className="irp-lead-form">
             <motion.div
@@ -93,12 +93,12 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
             >
-                <h2>{__('Get Your Free Consultation', 'immobilien-rechner-pro')}</h2>
+                <h2>{__('Ihre kostenlose Beratung', 'immobilien-rechner-pro')}</h2>
                 <p>
-                    {__('Leave your contact details and a local expert will reach out to discuss your options.', 'immobilien-rechner-pro')}
+                    {__('Hinterlassen Sie Ihre Kontaktdaten und ein lokaler Experte wird sich mit Ihnen in Verbindung setzen.', 'immobilien-rechner-pro')}
                 </p>
             </motion.div>
-            
+
             <motion.form
                 onSubmit={handleSubmit}
                 className="irp-form"
@@ -116,14 +116,14 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder={__('Your name', 'immobilien-rechner-pro')}
+                        placeholder={__('Ihr Name', 'immobilien-rechner-pro')}
                         autoComplete="name"
                     />
                 </div>
-                
+
                 <div className="irp-form-group">
                     <label htmlFor="irp-lead-email">
-                        {__('Email', 'immobilien-rechner-pro')}
+                        {__('E-Mail', 'immobilien-rechner-pro')}
                         <span className="irp-required">*</span>
                     </label>
                     <input
@@ -132,7 +132,7 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder={__('your@email.com', 'immobilien-rechner-pro')}
+                        placeholder={__('ihre@email.de', 'immobilien-rechner-pro')}
                         autoComplete="email"
                         required
                         className={errors.email ? 'has-error' : ''}
@@ -141,10 +141,10 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         <span className="irp-error-message">{errors.email}</span>
                     )}
                 </div>
-                
+
                 <div className="irp-form-group">
                     <label htmlFor="irp-lead-phone">
-                        {__('Phone', 'immobilien-rechner-pro')}
+                        {__('Telefon', 'immobilien-rechner-pro')}
                     </label>
                     <input
                         type="tel"
@@ -152,14 +152,14 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder={__('Your phone number', 'immobilien-rechner-pro')}
+                        placeholder={__('Ihre Telefonnummer', 'immobilien-rechner-pro')}
                         autoComplete="tel"
                     />
                     <p className="irp-help-text">
-                        {__('Optional - for faster response', 'immobilien-rechner-pro')}
+                        {__('Optional - für schnellere Rückmeldung', 'immobilien-rechner-pro')}
                     </p>
                 </div>
-                
+
                 {settings.requireConsent && (
                     <div className="irp-form-group irp-form-group-checkbox">
                         <label className={errors.consent ? 'has-error' : ''}>
@@ -170,15 +170,15 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                                 onChange={handleChange}
                             />
                             <span>
-                                {__('I agree to the', 'immobilien-rechner-pro')}{' '}
+                                {__('Ich stimme der', 'immobilien-rechner-pro')}{' '}
                                 <a
                                     href={settings.privacyPolicyUrl || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    {__('privacy policy', 'immobilien-rechner-pro')}
+                                    {__('Datenschutzerklärung', 'immobilien-rechner-pro')}
                                 </a>
-                                {' '}{__('and consent to being contacted.', 'immobilien-rechner-pro')}
+                                {' '}{__('zu und bin mit einer Kontaktaufnahme einverstanden.', 'immobilien-rechner-pro')}
                                 <span className="irp-required">*</span>
                             </span>
                         </label>
@@ -187,13 +187,13 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         )}
                     </div>
                 )}
-                
+
                 {submitError && (
                     <div className="irp-error-box">
                         <p>{submitError}</p>
                     </div>
                 )}
-                
+
                 <div className="irp-form-actions">
                     <button
                         type="button"
@@ -201,9 +201,9 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         onClick={onBack}
                         disabled={isSubmitting}
                     >
-                        {__('Back', 'immobilien-rechner-pro')}
+                        {__('Zurück', 'immobilien-rechner-pro')}
                     </button>
-                    
+
                     <button
                         type="submit"
                         className="irp-btn irp-btn-primary"
@@ -212,15 +212,15 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         {isSubmitting ? (
                             <>
                                 <span className="irp-loading-spinner-small" />
-                                {__('Submitting...', 'immobilien-rechner-pro')}
+                                {__('Wird gesendet...', 'immobilien-rechner-pro')}
                             </>
                         ) : (
-                            __('Request Consultation', 'immobilien-rechner-pro')
+                            __('Beratung anfordern', 'immobilien-rechner-pro')
                         )}
                     </button>
                 </div>
             </motion.form>
-            
+
             <motion.div
                 className="irp-trust-badges"
                 initial={{ opacity: 0 }}
@@ -231,21 +231,21 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
-                    <span>{__('Your data is secure', 'immobilien-rechner-pro')}</span>
+                    <span>{__('Ihre Daten sind sicher', 'immobilien-rechner-pro')}</span>
                 </div>
                 <div className="irp-trust-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    <span>{__('Response within 24h', 'immobilien-rechner-pro')}</span>
+                    <span>{__('Antwort innerhalb 24h', 'immobilien-rechner-pro')}</span>
                 </div>
                 <div className="irp-trust-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                         <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
-                    <span>{__('No obligation', 'immobilien-rechner-pro')}</span>
+                    <span>{__('Unverbindlich', 'immobilien-rechner-pro')}</span>
                 </div>
             </motion.div>
         </div>

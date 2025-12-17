@@ -8,26 +8,26 @@ import { motion } from 'framer-motion';
 const CONDITIONS = [
     {
         id: 'new',
-        label: __('New / First Occupancy', 'immobilien-rechner-pro'),
-        description: __('Never lived in, brand new construction', 'immobilien-rechner-pro'),
+        label: __('Neubau / Erstbezug', 'immobilien-rechner-pro'),
+        description: __('Noch nie bewohnt, neu gebaut', 'immobilien-rechner-pro'),
         icon: '✨',
     },
     {
         id: 'renovated',
-        label: __('Recently Renovated', 'immobilien-rechner-pro'),
-        description: __('Modernized in the last 5 years', 'immobilien-rechner-pro'),
+        label: __('Kürzlich renoviert', 'immobilien-rechner-pro'),
+        description: __('In den letzten 5 Jahren modernisiert', 'immobilien-rechner-pro'),
         icon: '🔧',
     },
     {
         id: 'good',
-        label: __('Good Condition', 'immobilien-rechner-pro'),
-        description: __('Well maintained, move-in ready', 'immobilien-rechner-pro'),
+        label: __('Guter Zustand', 'immobilien-rechner-pro'),
+        description: __('Gut gepflegt, bezugsfertig', 'immobilien-rechner-pro'),
         icon: '👍',
     },
     {
         id: 'needs_renovation',
-        label: __('Needs Renovation', 'immobilien-rechner-pro'),
-        description: __('Requires updates or repairs', 'immobilien-rechner-pro'),
+        label: __('Renovierungsbedürftig', 'immobilien-rechner-pro'),
+        description: __('Erfordert Modernisierung oder Reparaturen', 'immobilien-rechner-pro'),
         icon: '🏗️',
     },
 ];
@@ -36,11 +36,11 @@ export default function ConditionStep({ data, onChange }) {
     const handleSelect = (conditionId) => {
         onChange({ condition: conditionId });
     };
-    
+
     return (
         <div className="irp-condition-step">
-            <h3>{__('What condition is your property in?', 'immobilien-rechner-pro')}</h3>
-            
+            <h3>{__('In welchem Zustand ist Ihre Immobilie?', 'immobilien-rechner-pro')}</h3>
+
             <div className="irp-condition-grid">
                 {CONDITIONS.map((condition) => (
                     <motion.button

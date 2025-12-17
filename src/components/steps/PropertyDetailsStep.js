@@ -9,16 +9,16 @@ export default function PropertyDetailsStep({ data, onChange }) {
         const { name, value } = e.target;
         onChange({ [name]: value });
     };
-    
+
     const currentYear = new Date().getFullYear();
-    
+
     return (
         <div className="irp-details-step">
-            <h3>{__('Tell us about your property', 'immobilien-rechner-pro')}</h3>
-            
+            <h3>{__('Erzählen Sie uns von Ihrer Immobilie', 'immobilien-rechner-pro')}</h3>
+
             <div className="irp-form-group">
                 <label htmlFor="irp-size">
-                    {__('Living Space', 'immobilien-rechner-pro')}
+                    {__('Wohnfläche', 'immobilien-rechner-pro')}
                     <span className="irp-required">*</span>
                 </label>
                 <div className="irp-input-with-unit">
@@ -37,14 +37,14 @@ export default function PropertyDetailsStep({ data, onChange }) {
                     <span className="irp-unit">m²</span>
                 </div>
                 <p className="irp-help-text">
-                    {__('Total living area in square meters', 'immobilien-rechner-pro')}
+                    {__('Gesamte Wohnfläche in Quadratmetern', 'immobilien-rechner-pro')}
                 </p>
             </div>
-            
+
             <div className="irp-form-row">
                 <div className="irp-form-group">
                     <label htmlFor="irp-rooms">
-                        {__('Number of Rooms', 'immobilien-rechner-pro')}
+                        {__('Anzahl der Zimmer', 'immobilien-rechner-pro')}
                     </label>
                     <select
                         id="irp-rooms"
@@ -52,26 +52,26 @@ export default function PropertyDetailsStep({ data, onChange }) {
                         value={data.rooms}
                         onChange={handleChange}
                     >
-                        <option value="">{__('Select...', 'immobilien-rechner-pro')}</option>
+                        <option value="">{__('Auswählen...', 'immobilien-rechner-pro')}</option>
                         <option value="1">1</option>
-                        <option value="1.5">1.5</option>
+                        <option value="1.5">1,5</option>
                         <option value="2">2</option>
-                        <option value="2.5">2.5</option>
+                        <option value="2.5">2,5</option>
                         <option value="3">3</option>
-                        <option value="3.5">3.5</option>
+                        <option value="3.5">3,5</option>
                         <option value="4">4</option>
-                        <option value="4.5">4.5</option>
+                        <option value="4.5">4,5</option>
                         <option value="5">5</option>
                         <option value="6">6+</option>
                     </select>
                     <p className="irp-help-text">
-                        {__('Excluding kitchen and bathroom', 'immobilien-rechner-pro')}
+                        {__('Ohne Küche und Bad', 'immobilien-rechner-pro')}
                     </p>
                 </div>
-                
+
                 <div className="irp-form-group">
                     <label htmlFor="irp-year">
-                        {__('Year Built', 'immobilien-rechner-pro')}
+                        {__('Baujahr', 'immobilien-rechner-pro')}
                     </label>
                     <input
                         type="number"
@@ -84,7 +84,7 @@ export default function PropertyDetailsStep({ data, onChange }) {
                         max={currentYear + 5}
                     />
                     <p className="irp-help-text">
-                        {__('Original construction year', 'immobilien-rechner-pro')}
+                        {__('Ursprüngliches Baujahr', 'immobilien-rechner-pro')}
                     </p>
                 </div>
             </div>

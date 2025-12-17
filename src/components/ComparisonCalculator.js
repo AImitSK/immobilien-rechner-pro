@@ -17,12 +17,12 @@ import FeaturesStep from './steps/FeaturesStep';
 import FinancialStep from './steps/FinancialStep';
 
 const STEPS = [
-    { id: 'type', component: PropertyTypeStep, title: __('Property', 'immobilien-rechner-pro') },
+    { id: 'type', component: PropertyTypeStep, title: __('Immobilie', 'immobilien-rechner-pro') },
     { id: 'details', component: PropertyDetailsStep, title: __('Details', 'immobilien-rechner-pro') },
-    { id: 'location', component: LocationStep, title: __('Location', 'immobilien-rechner-pro') },
-    { id: 'condition', component: ConditionStep, title: __('Condition', 'immobilien-rechner-pro') },
-    { id: 'features', component: FeaturesStep, title: __('Features', 'immobilien-rechner-pro') },
-    { id: 'financial', component: FinancialStep, title: __('Finances', 'immobilien-rechner-pro') },
+    { id: 'location', component: LocationStep, title: __('Standort', 'immobilien-rechner-pro') },
+    { id: 'condition', component: ConditionStep, title: __('Zustand', 'immobilien-rechner-pro') },
+    { id: 'features', component: FeaturesStep, title: __('Ausstattung', 'immobilien-rechner-pro') },
+    { id: 'financial', component: FinancialStep, title: __('Finanzen', 'immobilien-rechner-pro') },
 ];
 
 export default function ComparisonCalculator({ initialData, onComplete, onBack }) {
@@ -101,10 +101,10 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
             if (response.success) {
                 onComplete(formData, response.data);
             } else {
-                setError(response.message || __('Calculation failed', 'immobilien-rechner-pro'));
+                setError(response.message || __('Berechnung fehlgeschlagen', 'immobilien-rechner-pro'));
             }
         } catch (err) {
-            setError(err.message || __('An error occurred', 'immobilien-rechner-pro'));
+            setError(err.message || __('Ein Fehler ist aufgetreten', 'immobilien-rechner-pro'));
         } finally {
             setIsCalculating(false);
         }
@@ -190,11 +190,11 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                     disabled={isCalculating}
                 >
                     {currentStep === 0 && onBack
-                        ? __('Back', 'immobilien-rechner-pro')
-                        : __('Previous', 'immobilien-rechner-pro')
+                        ? __('Zurück', 'immobilien-rechner-pro')
+                        : __('Zurück', 'immobilien-rechner-pro')
                     }
                 </button>
-                
+
                 <button
                     type="button"
                     className="irp-btn irp-btn-primary"
@@ -204,9 +204,9 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack }
                     {isCalculating ? (
                         <span className="irp-loading-spinner-small" />
                     ) : currentStep === STEPS.length - 1 ? (
-                        __('Calculate', 'immobilien-rechner-pro')
+                        __('Berechnen', 'immobilien-rechner-pro')
                     ) : (
-                        __('Next', 'immobilien-rechner-pro')
+                        __('Weiter', 'immobilien-rechner-pro')
                     )}
                 </button>
             </div>
