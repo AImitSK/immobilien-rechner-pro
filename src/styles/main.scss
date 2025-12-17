@@ -1319,3 +1319,21 @@ select {
         margin: 0;
     }
 }
+
+// Force input text color - maximum specificity override
+.irp-calculator {
+    input,
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea,
+    .irp-city-select,
+    .irp-form-group input,
+    .irp-input-with-unit input {
+        color: #44474c !important;
+        -webkit-text-fill-color: #44474c !important;
+        opacity: 1 !important;
+    }
+}
