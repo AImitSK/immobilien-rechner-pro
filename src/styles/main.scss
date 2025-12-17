@@ -813,46 +813,68 @@ select {
     gap: 16px;
 }
 
-// Gauge
-.irp-gauge {
+// ApexCharts Gauge
+.irp-gauge-apex {
     position: relative;
-    width: 200px;
-    margin: 0 auto 16px;
+    max-width: 320px;
+    margin: 0 auto;
 }
 
-.irp-gauge-svg {
-    width: 100%;
-    height: auto;
+.irp-gauge-scale {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 30px;
+    margin-top: -10px;
 }
 
-.irp-gauge-label {
-    font-size: 11px;
-    fill: var(--irp-text-light);
-}
-
-.irp-gauge-value {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-}
-
-.irp-gauge-number {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--irp-primary);
-}
-
-.irp-gauge-percent {
-    font-size: 16px;
+.irp-gauge-scale-label {
+    font-size: 12px;
     color: var(--irp-text-light);
+    font-weight: 500;
+}
+
+.irp-scale-low {
+    color: #0891b2;
+}
+
+.irp-scale-high {
+    color: #ea580c;
+}
+
+.irp-market-position {
+    margin-bottom: 24px;
+
+    h3 {
+        text-align: center;
+        margin-bottom: 8px;
+    }
 }
 
 .irp-market-label {
     font-size: 16px;
     font-weight: 500;
     color: var(--irp-text);
+    text-align: center;
+    margin-top: 8px;
+}
+
+// ApexCharts global overrides
+.apexcharts-canvas {
+    margin: 0 auto;
+}
+
+.apexcharts-tooltip {
+    border-radius: var(--irp-radius) !important;
+    box-shadow: var(--irp-shadow-lg) !important;
+}
+
+.apexcharts-tooltip-title {
+    background: var(--irp-bg-secondary) !important;
+    border-bottom: 1px solid var(--irp-border) !important;
+}
+
+.apexcharts-legend-text {
+    color: var(--irp-text) !important;
 }
 
 // Comparison Cards

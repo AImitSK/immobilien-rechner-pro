@@ -1,19 +1,12 @@
 /**
  * Results Display Component
+ * Using ApexCharts for beautiful visualizations
  */
 
+import { useMemo } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
-import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    ReferenceLine,
-} from 'recharts';
+import Chart from 'react-apexcharts';
 
 import RentalGauge from './RentalGauge';
 
@@ -201,13 +194,144 @@ function ComparisonResults({
 }) {
     const { rental, sale, rental_scenario, yields, break_even_year, projection, recommendation } = results;
 
-    // Prepare chart data
-    const chartData = projection.map((p) => ({
-        year: p.year,
-        rental: p.cumulative_rental_income,
-        sale: p.net_sale_proceeds,
-        keep: p.keep_total_value,
-    }));
+    // ApexCharts options for the projection chart
+    const chartOptions = useMemo(() => ({
+        chart: {
+            type: 'area',
+            height: 350,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            toolbar: {
+                show: false
+            },
+            zoom: {
+                enabled: false
+            },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                }
+            },
+            dropShadow: {
+                enabled: true,
+                top: 3,
+                left: 0,
+                blur: 4,
+                opacity: 0.1
+            }
+        },
+        colors: ['#2563eb', '#ea580c'],
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [0, 100]
+            }
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'left',
+            fontSize: '14px',
+            fontWeight: 500,
+            markers: {
+                width: 12,
+                height: 12,
+                radius: 12
+            },
+            itemMargin: {
+                horizontal: 20
+            }
+        },
+        xaxis: {
+            categories: projection.map(p => `${p.year}J`),
+            axisBorder: {
+                show: false
+            },
+            axisTicks: {
+                show: false
+            },
+            labels: {
+                style: {
+                    colors: '#6b7280',
+                    fontSize: '12px'
+                }
+            }
+        },
+        yaxis: {
+            labels: {
+                formatter: (value) => formatCurrencyShort(value),
+                style: {
+                    colors: '#6b7280',
+                    fontSize: '12px'
+                }
+            }
+        },
+        grid: {
+            borderColor: '#e5e7eb',
+            strokeDashArray: 4,
+            padding: {
+                left: 10,
+                right: 10
+            }
+        },
+        tooltip: {
+            shared: true,
+            intersect: false,
+            theme: 'light',
+            y: {
+                formatter: (value) => formatCurrency(value)
+            },
+            style: {
+                fontSize: '13px'
+            }
+        },
+        annotations: break_even_year ? {
+            xaxis: [{
+                x: `${break_even_year}J`,
+                borderColor: '#16a34a',
+                strokeDashArray: 5,
+                label: {
+                    borderColor: '#16a34a',
+                    style: {
+                        color: '#fff',
+                        background: '#16a34a',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: {
+                            left: 10,
+                            right: 10,
+                            top: 5,
+                            bottom: 5
+                        }
+                    },
+                    text: 'Break-even'
+                }
+            }]
+        } : {}
+    }), [projection, break_even_year, formatCurrency, formatCurrencyShort]);
+
+    const chartSeries = useMemo(() => [
+        {
+            name: __('Kumulierte Mieteinnahmen', 'immobilien-rechner-pro'),
+            data: projection.map(p => p.cumulative_rental_income)
+        },
+        {
+            name: __('Verkaufserlös (wenn in dem Jahr verkauft)', 'immobilien-rechner-pro'),
+            data: projection.map(p => p.net_sale_proceeds)
+        }
+    ], [projection]);
 
     const getRecommendationColor = () => {
         switch (recommendation.direction) {
@@ -306,62 +430,12 @@ function ComparisonResults({
             >
                 <h3>{__('15-Jahres-Prognose', 'immobilien-rechner-pro')}</h3>
                 <div className="irp-chart-container">
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={chartData}>
-                            <defs>
-                                <linearGradient id="colorRental" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="var(--irp-primary)" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="var(--irp-primary)" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="var(--irp-warning)" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="var(--irp-warning)" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis
-                                dataKey="year"
-                                tickFormatter={(value) => `${value}J`}
-                                stroke="#9ca3af"
-                            />
-                            <YAxis
-                                tickFormatter={formatCurrencyShort}
-                                stroke="#9ca3af"
-                            />
-                            <Tooltip
-                                formatter={(value) => formatCurrency(value)}
-                                labelFormatter={(label) => `${__('Jahr', 'immobilien-rechner-pro')} ${label}`}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="rental"
-                                name={__('Kumulierte Mieteinnahmen', 'immobilien-rechner-pro')}
-                                stroke="var(--irp-primary)"
-                                fillOpacity={1}
-                                fill="url(#colorRental)"
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="sale"
-                                name={__('Verkaufserlös (wenn in dem Jahr verkauft)', 'immobilien-rechner-pro')}
-                                stroke="var(--irp-warning)"
-                                fillOpacity={1}
-                                fill="url(#colorSale)"
-                            />
-                            {break_even_year && (
-                                <ReferenceLine
-                                    x={break_even_year}
-                                    stroke="var(--irp-success)"
-                                    strokeDasharray="5 5"
-                                    label={{
-                                        value: __('Break-even', 'immobilien-rechner-pro'),
-                                        position: 'top',
-                                        fill: 'var(--irp-success)',
-                                    }}
-                                />
-                            )}
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    <Chart
+                        options={chartOptions}
+                        series={chartSeries}
+                        type="area"
+                        height={350}
+                    />
                 </div>
 
                 {break_even_year && (

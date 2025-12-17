@@ -1,126 +1,145 @@
 /**
  * Rental Gauge Component
- * Visual gauge showing market position percentile
+ * Modern radial gauge using ApexCharts
  */
 
-import { useEffect, useState } from '@wordpress/element';
-import { motion } from 'framer-motion';
+import { useMemo } from '@wordpress/element';
+import Chart from 'react-apexcharts';
+import { __ } from '@wordpress/i18n';
 
 export default function RentalGauge({ percentile }) {
-    const [animatedPercentile, setAnimatedPercentile] = useState(0);
-    
-    useEffect(() => {
-        // Animate the percentile value
-        const timer = setTimeout(() => {
-            setAnimatedPercentile(percentile);
-        }, 100);
-        
-        return () => clearTimeout(timer);
-    }, [percentile]);
-    
-    // Calculate rotation for the needle (-90 to 90 degrees)
-    const rotation = (animatedPercentile / 100) * 180 - 90;
-    
-    // Color based on percentile
+    // Determine color based on percentile
     const getColor = () => {
-        if (percentile < 30) return 'var(--irp-info)';
-        if (percentile < 50) return 'var(--irp-primary)';
-        if (percentile < 70) return 'var(--irp-success)';
-        if (percentile < 85) return 'var(--irp-warning)';
-        return 'var(--irp-danger)';
+        if (percentile < 25) return '#0891b2'; // cyan/info - günstig
+        if (percentile < 50) return '#2563eb'; // blue/primary - durchschnittlich
+        if (percentile < 75) return '#16a34a'; // green/success - gut
+        if (percentile < 90) return '#ea580c'; // orange/warning - hoch
+        return '#dc2626'; // red/danger - sehr hoch
     };
-    
+
+    // Get label based on percentile
+    const getLabel = () => {
+        if (percentile < 25) return __('Günstig', 'immobilien-rechner-pro');
+        if (percentile < 50) return __('Durchschnittlich', 'immobilien-rechner-pro');
+        if (percentile < 75) return __('Überdurchschnittlich', 'immobilien-rechner-pro');
+        if (percentile < 90) return __('Premium', 'immobilien-rechner-pro');
+        return __('Luxus', 'immobilien-rechner-pro');
+    };
+
+    const options = useMemo(() => ({
+        chart: {
+            type: 'radialBar',
+            offsetY: -10,
+            sparkline: {
+                enabled: true
+            },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 1000,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                },
+                dynamicAnimation: {
+                    enabled: true,
+                    speed: 350
+                }
+            }
+        },
+        plotOptions: {
+            radialBar: {
+                startAngle: -135,
+                endAngle: 135,
+                hollow: {
+                    margin: 0,
+                    size: '70%',
+                    background: 'transparent',
+                },
+                track: {
+                    background: '#e7e7e7',
+                    strokeWidth: '100%',
+                    margin: 5,
+                    dropShadow: {
+                        enabled: true,
+                        top: 2,
+                        left: 0,
+                        color: '#999',
+                        opacity: 0.15,
+                        blur: 4
+                    }
+                },
+                dataLabels: {
+                    name: {
+                        offsetY: -10,
+                        show: true,
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontWeight: 500
+                    },
+                    value: {
+                        formatter: function(val) {
+                            return parseInt(val) + '%';
+                        },
+                        color: getColor(),
+                        fontSize: '36px',
+                        fontWeight: 700,
+                        show: true,
+                        offsetY: 5
+                    }
+                }
+            }
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shade: 'dark',
+                type: 'horizontal',
+                shadeIntensity: 0.5,
+                gradientToColors: [getColor()],
+                inverseColors: false,
+                opacityFrom: 1,
+                opacityTo: 1,
+                stops: [0, 100],
+                colorStops: [
+                    {
+                        offset: 0,
+                        color: getColor(),
+                        opacity: 0.7
+                    },
+                    {
+                        offset: 100,
+                        color: getColor(),
+                        opacity: 1
+                    }
+                ]
+            }
+        },
+        stroke: {
+            lineCap: 'round'
+        },
+        labels: [getLabel()],
+        colors: [getColor()]
+    }), [percentile]);
+
+    const series = [percentile];
+
     return (
-        <div className="irp-gauge">
-            <svg viewBox="0 0 200 120" className="irp-gauge-svg">
-                {/* Background arc */}
-                <path
-                    d="M 20 100 A 80 80 0 0 1 180 100"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                />
-                
-                {/* Colored segments */}
-                <path
-                    d="M 20 100 A 80 80 0 0 1 56 40"
-                    fill="none"
-                    stroke="var(--irp-info)"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    opacity="0.3"
-                />
-                <path
-                    d="M 56 40 A 80 80 0 0 1 100 20"
-                    fill="none"
-                    stroke="var(--irp-primary)"
-                    strokeWidth="12"
-                    opacity="0.3"
-                />
-                <path
-                    d="M 100 20 A 80 80 0 0 1 144 40"
-                    fill="none"
-                    stroke="var(--irp-success)"
-                    strokeWidth="12"
-                    opacity="0.3"
-                />
-                <path
-                    d="M 144 40 A 80 80 0 0 1 180 100"
-                    fill="none"
-                    stroke="var(--irp-warning)"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    opacity="0.3"
-                />
-                
-                {/* Needle */}
-                <motion.g
-                    initial={{ rotate: -90 }}
-                    animate={{ rotate: rotation }}
-                    transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
-                    style={{ transformOrigin: '100px 100px' }}
-                >
-                    <line
-                        x1="100"
-                        y1="100"
-                        x2="100"
-                        y2="35"
-                        stroke={getColor()}
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                    />
-                    <circle
-                        cx="100"
-                        cy="100"
-                        r="8"
-                        fill={getColor()}
-                    />
-                </motion.g>
-                
-                {/* Center cover */}
-                <circle
-                    cx="100"
-                    cy="100"
-                    r="5"
-                    fill="white"
-                />
-                
-                {/* Labels */}
-                <text x="20" y="115" className="irp-gauge-label" textAnchor="middle">0%</text>
-                <text x="100" y="10" className="irp-gauge-label" textAnchor="middle">50%</text>
-                <text x="180" y="115" className="irp-gauge-label" textAnchor="middle">100%</text>
-            </svg>
-            
-            <motion.div
-                className="irp-gauge-value"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-            >
-                <span className="irp-gauge-number">{percentile}</span>
-                <span className="irp-gauge-percent">%</span>
-            </motion.div>
+        <div className="irp-gauge-apex">
+            <Chart
+                options={options}
+                series={series}
+                type="radialBar"
+                height={280}
+            />
+            <div className="irp-gauge-scale">
+                <span className="irp-gauge-scale-label irp-scale-low">
+                    {__('Günstig', 'immobilien-rechner-pro')}
+                </span>
+                <span className="irp-gauge-scale-label irp-scale-high">
+                    {__('Premium', 'immobilien-rechner-pro')}
+                </span>
+            </div>
         </div>
     );
 }
