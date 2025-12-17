@@ -4,6 +4,11 @@
 
 import { __ } from '@wordpress/i18n';
 
+const inputStyle = {
+    color: '#44474c',
+    WebkitTextFillColor: '#44474c',
+};
+
 export default function PropertyDetailsStep({ data, onChange }) {
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -33,6 +38,7 @@ export default function PropertyDetailsStep({ data, onChange }) {
                         max="10000"
                         step="0.5"
                         required
+                        style={inputStyle}
                     />
                     <span className="irp-unit">m²</span>
                 </div>
@@ -51,6 +57,7 @@ export default function PropertyDetailsStep({ data, onChange }) {
                         name="rooms"
                         value={data.rooms}
                         onChange={handleChange}
+                        style={inputStyle}
                     >
                         <option value="">{__('Auswählen...', 'immobilien-rechner-pro')}</option>
                         <option value="1">1</option>
@@ -82,6 +89,7 @@ export default function PropertyDetailsStep({ data, onChange }) {
                         placeholder={currentYear.toString()}
                         min="1800"
                         max={currentYear + 5}
+                        style={inputStyle}
                     />
                     <p className="irp-help-text">
                         {__('Ursprüngliches Baujahr', 'immobilien-rechner-pro')}

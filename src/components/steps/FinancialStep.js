@@ -5,6 +5,11 @@
 
 import { __ } from '@wordpress/i18n';
 
+const inputStyle = {
+    color: '#44474c',
+    WebkitTextFillColor: '#44474c',
+};
+
 export default function FinancialStep({ data, onChange }) {
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,6 +51,7 @@ export default function FinancialStep({ data, onChange }) {
                         placeholder="350.000"
                         inputMode="numeric"
                         required
+                        style={inputStyle}
                     />
                     <span className="irp-unit">€</span>
                 </div>
@@ -67,6 +73,7 @@ export default function FinancialStep({ data, onChange }) {
                         onChange={handleCurrencyChange}
                         placeholder="150.000"
                         inputMode="numeric"
+                        style={inputStyle}
                     />
                     <span className="irp-unit">€</span>
                 </div>
@@ -90,6 +97,7 @@ export default function FinancialStep({ data, onChange }) {
                             placeholder="5"
                             min="0"
                             max="50"
+                            style={inputStyle}
                         />
                         <span className="irp-unit">{__('Jahre', 'immobilien-rechner-pro')}</span>
                     </div>
@@ -113,6 +121,7 @@ export default function FinancialStep({ data, onChange }) {
                             min="0"
                             max="15"
                             step="0.1"
+                            style={inputStyle}
                         />
                         <span className="irp-unit">%</span>
                     </div>
@@ -151,6 +160,7 @@ export default function FinancialStep({ data, onChange }) {
                                 min="-10"
                                 max="20"
                                 step="0.5"
+                                style={inputStyle}
                             />
                             <span className="irp-unit">%</span>
                         </div>

@@ -7,6 +7,11 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { motion } from 'framer-motion';
 
+const inputStyle = {
+    color: '#44474c',
+    WebkitTextFillColor: '#44474c',
+};
+
 export default function LeadForm({ mode, calculationData, onSubmitted, onBack }) {
     const settings = window.irpSettings?.settings || {};
 
@@ -118,6 +123,7 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         onChange={handleChange}
                         placeholder={__('Ihr Name', 'immobilien-rechner-pro')}
                         autoComplete="name"
+                        style={inputStyle}
                     />
                 </div>
 
@@ -136,6 +142,7 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         autoComplete="email"
                         required
                         className={errors.email ? 'has-error' : ''}
+                        style={inputStyle}
                     />
                     {errors.email && (
                         <span className="irp-error-message">{errors.email}</span>
@@ -154,6 +161,7 @@ export default function LeadForm({ mode, calculationData, onSubmitted, onBack })
                         onChange={handleChange}
                         placeholder={__('Ihre Telefonnummer', 'immobilien-rechner-pro')}
                         autoComplete="tel"
+                        style={inputStyle}
                     />
                     <p className="irp-help-text">
                         {__('Optional - für schnellere Rückmeldung', 'immobilien-rechner-pro')}

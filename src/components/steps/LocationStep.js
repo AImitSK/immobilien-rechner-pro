@@ -7,6 +7,11 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { useDebouncedCallback } from '../../hooks/useDebounce';
 
+const inputStyle = {
+    color: '#44474c',
+    WebkitTextFillColor: '#44474c',
+};
+
 export default function LocationStep({ data, onChange }) {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -91,6 +96,7 @@ export default function LocationStep({ data, onChange }) {
                         pattern="[0-9]*"
                         inputMode="numeric"
                         required
+                        style={inputStyle}
                     />
                 </div>
 
@@ -109,6 +115,7 @@ export default function LocationStep({ data, onChange }) {
                             onBlur={handleBlur}
                             placeholder={__('z.B. Berlin Mitte', 'immobilien-rechner-pro')}
                             autoComplete="off"
+                            style={inputStyle}
                         />
 
                         {isLoading && (

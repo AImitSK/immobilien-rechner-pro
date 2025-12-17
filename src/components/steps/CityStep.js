@@ -7,6 +7,11 @@ import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
+const inputStyle = {
+    color: '#44474c',
+    WebkitTextFillColor: '#44474c',
+};
+
 export default function CityStep({ data, onChange }) {
     const [cities, setCities] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -105,6 +110,7 @@ export default function CityStep({ data, onChange }) {
                     onChange={handleCityChange}
                     className="irp-city-select"
                     required
+                    style={inputStyle}
                 >
                     <option value="">{__('Bitte wählen...', 'immobilien-rechner-pro')}</option>
                     {cities.map((city) => (
