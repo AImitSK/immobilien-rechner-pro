@@ -1257,7 +1257,7 @@ select {
     border: 2px solid var(--irp-border);
     border-radius: var(--irp-radius);
     background: var(--irp-bg);
-    color: var(--irp-text);
+    color: #44474c !important;
     cursor: pointer;
     transition: border-color var(--irp-transition), box-shadow var(--irp-transition);
     appearance: none;
