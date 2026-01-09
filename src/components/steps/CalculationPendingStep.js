@@ -6,6 +6,7 @@
 import { useEffect, useState, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
+import { irpDebug } from '../../utils/debug';
 
 const LOADING_MESSAGES = [
     __('Daten werden analysiert...', 'immobilien-rechner-pro'),
@@ -38,16 +39,16 @@ export default function CalculationPendingStep({ onComplete, error, isReady }) {
         return () => clearTimeout(timer);
     }, []);
 
-    // Debug logging
+    // Debug logging (using irpDebug to survive minification)
     useEffect(() => {
-        console.log('[CalculationPendingStep] State:', { minTimeElapsed, isReady, error, hasAdvanced: hasAdvanced.current });
+        irpDebug('CalculationPendingStep State:', { minTimeElapsed, isReady, error, hasAdvanced: hasAdvanced.current });
     }, [minTimeElapsed, isReady, error]);
 
     // Advance when BOTH conditions are met: min time elapsed AND lead is ready
     useEffect(() => {
-        console.log('[CalculationPendingStep] Checking advance conditions:', { minTimeElapsed, isReady, error, hasAdvanced: hasAdvanced.current });
+        irpDebug('Checking advance conditions:', { minTimeElapsed, isReady, error, hasAdvanced: hasAdvanced.current });
         if (minTimeElapsed && isReady && !error && !hasAdvanced.current) {
-            console.log('[CalculationPendingStep] Advancing to contact form!');
+            irpDebug('Advancing to contact form!');
             hasAdvanced.current = true;
             onComplete?.();
         }

@@ -360,17 +360,26 @@ class IRP_Rest_API {
      * Create a partial lead (property data only, no contact info yet)
      */
     public function create_partial_lead(\WP_REST_Request $request): \WP_REST_Response {
+        error_log('[IRP] create_partial_lead called');
+
         $leads = new IRP_Leads();
         $params = $request->get_params();
 
+        error_log('[IRP] Params: ' . print_r($params, true));
+
         $lead_id = $leads->create_partial($params);
 
+        error_log('[IRP] Lead ID result: ' . print_r($lead_id, true));
+
         if (is_wp_error($lead_id)) {
+            error_log('[IRP] Error: ' . $lead_id->get_error_message());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => $lead_id->get_error_message(),
             ], 400);
         }
+
+        error_log('[IRP] Success, returning lead_id: ' . $lead_id);
 
         return new \WP_REST_Response([
             'success' => true,

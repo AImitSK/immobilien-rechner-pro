@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import apiFetch from '@wordpress/api-fetch';
 
+import { irpDebug } from '../utils/debug';
 import ModeSelector from './ModeSelector';
 import RentalCalculator from './RentalCalculator';
 import ComparisonCalculator from './ComparisonCalculator';
@@ -54,7 +55,7 @@ export default function App({ config }) {
 
     // Called when calculator completes - creates partial lead and shows pending animation
     const handleCalculationComplete = useCallback(async (data, calculationResults) => {
-        console.log('[App] handleCalculationComplete called');
+        irpDebug('handleCalculationComplete called');
         setFormData(data);
         setResults(calculationResults);
         setPendingError(null);
@@ -63,7 +64,7 @@ export default function App({ config }) {
 
         // Create partial lead in background
         try {
-            console.log('[App] Creating partial lead...');
+            irpDebug('Creating partial lead...');
             const response = await apiFetch({
                 path: '/irp/v1/leads/partial',
                 method: 'POST',
@@ -80,24 +81,24 @@ export default function App({ config }) {
                 },
             });
 
-            console.log('[App] API response:', response);
+            irpDebug('API response:', response);
 
             if (response.success) {
-                console.log('[App] Setting leadId:', response.lead_id);
+                irpDebug('Setting leadId:', response.lead_id);
                 setLeadId(response.lead_id);
             } else {
-                console.log('[App] API error:', response.message);
+                irpDebug('API error:', response.message);
                 setPendingError(response.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));
             }
         } catch (err) {
-            console.log('[App] API exception:', err);
+            irpDebug('API exception:', err);
             setPendingError(err.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));
         }
     }, [mode]);
 
     // Called when pending animation completes - show contact form
     const handlePendingComplete = useCallback(() => {
-        console.log('[App] handlePendingComplete called - advancing to CONTACT_FORM');
+        irpDebug('handlePendingComplete called - advancing to CONTACT_FORM');
         setCurrentStep(STEPS.CONTACT_FORM);
     }, []);
 

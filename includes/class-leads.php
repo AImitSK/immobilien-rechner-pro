@@ -60,6 +60,8 @@ class IRP_Leads {
     public function create_partial(array $data): int|\WP_Error {
         global $wpdb;
 
+        error_log('[IRP Leads] create_partial called');
+
         $insert_data = [
             'email' => '', // Will be filled when completing
             'mode' => sanitize_text_field($data['mode']),
@@ -81,15 +83,22 @@ class IRP_Leads {
             'source' => sanitize_text_field($data['source'] ?? 'calculator'),
         ];
 
+        error_log('[IRP Leads] Insert data: ' . print_r($insert_data, true));
+
         $result = $wpdb->insert(
             $this->table_name,
             $insert_data,
             ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s']
         );
 
+        error_log('[IRP Leads] Insert result: ' . var_export($result, true));
+
         if ($result === false) {
+            error_log('[IRP Leads] DB Error: ' . $wpdb->last_error);
             return new \WP_Error('db_error', __('Daten konnten nicht gespeichert werden.', 'immobilien-rechner-pro'));
         }
+
+        error_log('[IRP Leads] Insert ID: ' . $wpdb->insert_id);
 
         return $wpdb->insert_id;
     }
