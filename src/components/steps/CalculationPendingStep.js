@@ -38,9 +38,16 @@ export default function CalculationPendingStep({ onComplete, error, isReady }) {
         return () => clearTimeout(timer);
     }, []);
 
+    // Debug logging
+    useEffect(() => {
+        console.log('[CalculationPendingStep] State:', { minTimeElapsed, isReady, error, hasAdvanced: hasAdvanced.current });
+    }, [minTimeElapsed, isReady, error]);
+
     // Advance when BOTH conditions are met: min time elapsed AND lead is ready
     useEffect(() => {
+        console.log('[CalculationPendingStep] Checking advance conditions:', { minTimeElapsed, isReady, error, hasAdvanced: hasAdvanced.current });
         if (minTimeElapsed && isReady && !error && !hasAdvanced.current) {
+            console.log('[CalculationPendingStep] Advancing to contact form!');
             hasAdvanced.current = true;
             onComplete?.();
         }

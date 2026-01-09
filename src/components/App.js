@@ -54,13 +54,16 @@ export default function App({ config }) {
 
     // Called when calculator completes - creates partial lead and shows pending animation
     const handleCalculationComplete = useCallback(async (data, calculationResults) => {
+        console.log('[App] handleCalculationComplete called');
         setFormData(data);
         setResults(calculationResults);
         setPendingError(null);
+        setLeadId(null); // Reset lead ID
         setCurrentStep(STEPS.CALCULATION_PENDING);
 
         // Create partial lead in background
         try {
+            console.log('[App] Creating partial lead...');
             const response = await apiFetch({
                 path: '/irp/v1/leads/partial',
                 method: 'POST',
@@ -77,18 +80,24 @@ export default function App({ config }) {
                 },
             });
 
+            console.log('[App] API response:', response);
+
             if (response.success) {
+                console.log('[App] Setting leadId:', response.lead_id);
                 setLeadId(response.lead_id);
             } else {
+                console.log('[App] API error:', response.message);
                 setPendingError(response.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));
             }
         } catch (err) {
+            console.log('[App] API exception:', err);
             setPendingError(err.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));
         }
     }, [mode]);
 
     // Called when pending animation completes - show contact form
     const handlePendingComplete = useCallback(() => {
+        console.log('[App] handlePendingComplete called - advancing to CONTACT_FORM');
         setCurrentStep(STEPS.CONTACT_FORM);
     }, []);
 
