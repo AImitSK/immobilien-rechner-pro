@@ -89,10 +89,8 @@ export default function App({ config }) {
 
     // Called when pending animation completes - show contact form
     const handlePendingComplete = useCallback(() => {
-        if (leadId && !pendingError) {
-            setCurrentStep(STEPS.CONTACT_FORM);
-        }
-    }, [leadId, pendingError]);
+        setCurrentStep(STEPS.CONTACT_FORM);
+    }, []);
 
     // Called when contact form is submitted successfully - show results
     const handleContactFormComplete = useCallback((calculationData) => {
@@ -216,6 +214,7 @@ export default function App({ config }) {
                             <CalculationPendingStep
                                 onComplete={handlePendingComplete}
                                 error={pendingError}
+                                isReady={!!leadId}
                             />
                         </motion.div>
                     )}

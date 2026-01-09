@@ -3,7 +3,7 @@
  * Shows a loading animation while the partial lead is being saved
  */
 
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useState, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
 
@@ -13,8 +13,12 @@ const LOADING_MESSAGES = [
     __('Mietwert wird berechnet...', 'immobilien-rechner-pro'),
 ];
 
-export default function CalculationPendingStep({ onComplete, error }) {
+const MIN_DISPLAY_TIME = 3000; // Show loading for at least 3 seconds
+
+export default function CalculationPendingStep({ onComplete, error, isReady }) {
     const [messageIndex, setMessageIndex] = useState(0);
+    const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+    const hasAdvanced = useRef(false);
 
     // Cycle through loading messages
     useEffect(() => {
@@ -25,16 +29,22 @@ export default function CalculationPendingStep({ onComplete, error }) {
         return () => clearInterval(interval);
     }, []);
 
-    // Auto-advance after minimum display time (if no error)
+    // Track minimum display time
     useEffect(() => {
-        if (!error) {
-            const timer = setTimeout(() => {
-                onComplete?.();
-            }, 3000); // Show loading for at least 3 seconds
+        const timer = setTimeout(() => {
+            setMinTimeElapsed(true);
+        }, MIN_DISPLAY_TIME);
 
-            return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Advance when BOTH conditions are met: min time elapsed AND lead is ready
+    useEffect(() => {
+        if (minTimeElapsed && isReady && !error && !hasAdvanced.current) {
+            hasAdvanced.current = true;
+            onComplete?.();
         }
-    }, [error, onComplete]);
+    }, [minTimeElapsed, isReady, error, onComplete]);
 
     if (error) {
         return (
