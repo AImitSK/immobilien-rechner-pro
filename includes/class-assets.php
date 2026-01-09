@@ -86,6 +86,7 @@ class IRP_Assets {
                 'defaultVacancyRate' => $settings['default_vacancy_rate'] ?? 3,
                 'googleMapsApiKey' => $google_maps_api_key,
                 'showMapInLocationStep' => !empty($settings['show_map_in_location_step']),
+                'calculatorMaxWidth' => (int) ($settings['calculator_max_width'] ?? 680),
             ],
             'locationRatings' => $location_ratings,
             'i18n' => [

@@ -173,6 +173,9 @@ class IRP_Admin {
         $sanitized['google_maps_api_key'] = sanitize_text_field($input['google_maps_api_key'] ?? '');
         $sanitized['show_map_in_location_step'] = !empty($input['show_map_in_location_step']);
 
+        // Display settings
+        $sanitized['calculator_max_width'] = max(680, min(1200, (int) ($input['calculator_max_width'] ?? 680)));
+
         return $sanitized;
     }
     

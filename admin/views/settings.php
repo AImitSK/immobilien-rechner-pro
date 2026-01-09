@@ -14,6 +14,28 @@ if (!defined('ABSPATH')) {
         <?php settings_fields('irp_settings_group'); ?>
 
         <div class="irp-settings-section">
+            <h2><?php esc_html_e('Darstellung', 'immobilien-rechner-pro'); ?></h2>
+
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="calculator_max_width"><?php esc_html_e('Maximale Breite', 'immobilien-rechner-pro'); ?></label>
+                    </th>
+                    <td>
+                        <?php $max_width = $settings['calculator_max_width'] ?? 680; ?>
+                        <div class="irp-range-slider-container">
+                            <input type="range" id="calculator_max_width" name="irp_settings[calculator_max_width]"
+                                   value="<?php echo esc_attr($max_width); ?>"
+                                   min="680" max="1200" step="20" class="irp-range-slider">
+                            <output for="calculator_max_width" class="irp-range-value"><?php echo esc_html($max_width); ?>px</output>
+                        </div>
+                        <p class="description"><?php esc_html_e('Maximale Breite des Rechners (680px - 1200px).', 'immobilien-rechner-pro'); ?></p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="irp-settings-section">
             <h2><?php esc_html_e('Branding', 'immobilien-rechner-pro'); ?></h2>
 
             <table class="form-table">

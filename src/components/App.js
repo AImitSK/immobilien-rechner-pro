@@ -39,6 +39,7 @@ export default function App({ config }) {
     const brandStyles = useMemo(() => ({
         '--irp-primary': settings.primaryColor || '#2563eb',
         '--irp-secondary': settings.secondaryColor || '#1e40af',
+        maxWidth: `${settings.calculatorMaxWidth || 680}px`,
     }), [settings]);
 
     // Handlers

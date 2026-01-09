@@ -48,6 +48,12 @@
             $(this).hide();
         });
 
+        // Range slider output update
+        $('#calculator_max_width').on('input', function() {
+            var value = $(this).val();
+            $('output[for="calculator_max_width"]').text(value + 'px');
+        });
+
         // Color picker enhancement
         $('input[type="color"]').each(function() {
             var $input = $(this);

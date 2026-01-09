@@ -282,6 +282,60 @@
     margin-right: 5px;
 }
 
+/* Range Slider */
+.irp-range-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 400px;
+}
+
+.irp-range-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: #c3c4c7;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.irp-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #2271b1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.irp-range-slider::-webkit-slider-thumb:hover {
+    background: #135e96;
+}
+
+.irp-range-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #2271b1;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.irp-range-value {
+    min-width: 65px;
+    padding: 6px 12px;
+    background: #f0f6fc;
+    border: 1px solid #72aee6;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #2271b1;
+    text-align: center;
+}
+
 /* Settings */
 .irp-settings-section {
     background: #fff;
