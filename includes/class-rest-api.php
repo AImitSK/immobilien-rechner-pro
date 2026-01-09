@@ -114,6 +114,18 @@ class IRP_Rest_API {
                 'minimum' => 1800,
                 'maximum' => 2030,
             ],
+            'location_rating' => [
+                'required' => false,
+                'type' => 'integer',
+                'minimum' => 1,
+                'maximum' => 5,
+                'default' => 3, // "Gute Lage"
+            ],
+            'address' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
         ];
     }
     

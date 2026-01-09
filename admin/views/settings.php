@@ -125,6 +125,50 @@ if (!defined('ABSPATH')) {
         </div>
 
         <div class="irp-settings-section">
+            <h2><?php esc_html_e('Google Maps Integration', 'immobilien-rechner-pro'); ?></h2>
+
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="google_maps_api_key"><?php esc_html_e('Google Maps API Key', 'immobilien-rechner-pro'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text" id="google_maps_api_key" name="irp_settings[google_maps_api_key]"
+                               value="<?php echo esc_attr($settings['google_maps_api_key'] ?? ''); ?>" class="regular-text"
+                               placeholder="AIzaSy...">
+                        <p class="description"><?php esc_html_e('Wird für die Kartenanzeige und Adress-Autocomplete im Lage-Step benötigt.', 'immobilien-rechner-pro'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Karte anzeigen', 'immobilien-rechner-pro'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="irp_settings[show_map_in_location_step]" value="1"
+                                   <?php checked(!empty($settings['show_map_in_location_step']), true); ?>>
+                            <?php esc_html_e('Karte im Lage-Bewertungs-Step anzeigen', 'immobilien-rechner-pro'); ?>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="irp-info-box">
+                <h4><?php esc_html_e('So erhalten Sie einen API-Key:', 'immobilien-rechner-pro'); ?></h4>
+                <ol>
+                    <li><?php esc_html_e('Google Cloud Console öffnen', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Neues Projekt erstellen oder vorhandenes auswählen', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('APIs aktivieren:', 'immobilien-rechner-pro'); ?>
+                        <ul>
+                            <li>Maps JavaScript API</li>
+                            <li>Places API</li>
+                        </ul>
+                    </li>
+                    <li><?php esc_html_e('API-Key erstellen und hier einfügen', 'immobilien-rechner-pro'); ?></li>
+                </ol>
+                <p><a href="https://console.cloud.google.com/apis" target="_blank" rel="noopener">console.cloud.google.com</a></p>
+            </div>
+        </div>
+
+        <div class="irp-settings-section">
             <h2><?php esc_html_e('Datenschutz & Einwilligung', 'immobilien-rechner-pro'); ?></h2>
 
             <table class="form-table">

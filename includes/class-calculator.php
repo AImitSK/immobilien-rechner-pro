@@ -64,7 +64,29 @@ class IRP_Calculator {
             'interest_rate' => (float) ($saved_matrix['interest_rate'] ?? 3.0),
             'appreciation_rate' => (float) ($saved_matrix['appreciation_rate'] ?? 2.0),
             'rent_increase_rate' => (float) ($saved_matrix['rent_increase_rate'] ?? 2.0),
+            'location_ratings' => $saved_matrix['location_ratings'] ?? $this->get_default_location_ratings(),
         ];
+    }
+
+    /**
+     * Get default location ratings
+     */
+    private function get_default_location_ratings(): array {
+        return [
+            1 => ['name' => 'Einfache Lage', 'multiplier' => 0.85],
+            2 => ['name' => 'Normale Lage', 'multiplier' => 0.95],
+            3 => ['name' => 'Gute Lage', 'multiplier' => 1.00],
+            4 => ['name' => 'Sehr gute Lage', 'multiplier' => 1.10],
+            5 => ['name' => 'Premium-Lage', 'multiplier' => 1.25],
+        ];
+    }
+
+    /**
+     * Get location rating data
+     */
+    public function get_location_rating(int $rating): array {
+        $ratings = $this->matrix['location_ratings'];
+        return $ratings[$rating] ?? $ratings[3]; // Default to "Gute Lage"
     }
 
     /**
@@ -120,6 +142,10 @@ class IRP_Calculator {
         $features = $params['features'] ?? [];
         $year_built = $params['year_built'] ?? null;
         $rooms = $params['rooms'] ?? null;
+        $location_rating = (int) ($params['location_rating'] ?? 3); // Default: "Gute Lage"
+
+        // Ensure location_rating is between 1 and 5
+        $location_rating = max(1, min(5, $location_rating));
 
         // Get city data
         $city = null;
@@ -152,6 +178,11 @@ class IRP_Calculator {
             $size_factor = pow(self::REFERENCE_SIZE / $size, $size_degression);
             $price_per_sqm *= $size_factor;
         }
+
+        // Apply location rating multiplier
+        $location_data = $this->get_location_rating($location_rating);
+        $location_multiplier = (float) ($location_data['multiplier'] ?? 1.00);
+        $price_per_sqm *= $location_multiplier;
 
         // Apply condition multiplier
         $price_per_sqm *= $condition_multipliers[$condition] ?? 1.00;
@@ -215,6 +246,9 @@ class IRP_Calculator {
                 'size_degression' => $size_degression,
                 'size_factor' => $size_degression > 0 ? round(pow(self::REFERENCE_SIZE / $size, $size_degression), 3) : 1.0,
                 'reference_size' => self::REFERENCE_SIZE,
+                'location_rating' => $location_rating,
+                'location_name' => $location_data['name'] ?? '',
+                'location_impact' => $location_multiplier,
                 'condition_impact' => $condition_multipliers[$condition] ?? 1.00,
                 'type_impact' => $type_multipliers[$property_type] ?? 1.00,
                 'features_count' => count($features),

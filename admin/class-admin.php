@@ -133,6 +133,24 @@ class IRP_Admin {
         $sanitized['appreciation_rate'] = (float) ($input['appreciation_rate'] ?? 2.0);
         $sanitized['rent_increase_rate'] = (float) ($input['rent_increase_rate'] ?? 2.0);
 
+        // Location ratings
+        if (isset($input['location_ratings']) && is_array($input['location_ratings'])) {
+            $sanitized['location_ratings'] = [];
+            foreach ($input['location_ratings'] as $level => $rating) {
+                $level = (int) $level;
+                if ($level >= 1 && $level <= 5) {
+                    $sanitized['location_ratings'][$level] = [
+                        'name' => sanitize_text_field($rating['name'] ?? ''),
+                        'multiplier' => max(0.5, min(2.0, (float) ($rating['multiplier'] ?? 1.0))),
+                        'description' => sanitize_textarea_field($rating['description'] ?? ''),
+                    ];
+                }
+            }
+        } else {
+            // Use defaults if not set
+            $sanitized['location_ratings'] = $this->get_default_location_ratings();
+        }
+
         return $sanitized;
     }
     
@@ -150,7 +168,11 @@ class IRP_Admin {
         $sanitized['enable_pdf_export'] = !empty($input['enable_pdf_export']);
         $sanitized['require_consent'] = !empty($input['require_consent']);
         $sanitized['privacy_policy_url'] = esc_url_raw($input['privacy_policy_url'] ?? '');
-        
+
+        // Google Maps settings
+        $sanitized['google_maps_api_key'] = sanitize_text_field($input['google_maps_api_key'] ?? '');
+        $sanitized['show_map_in_location_step'] = !empty($input['show_map_in_location_step']);
+
         return $sanitized;
     }
     
@@ -331,5 +353,35 @@ class IRP_Admin {
         
         echo $csv;
         wp_die();
+    }
+
+    public function get_default_location_ratings(): array {
+        return [
+            1 => [
+                'name' => __('Einfache Lage', 'immobilien-rechner-pro'),
+                'multiplier' => 0.85,
+                'description' => "Eingeschränkte Anbindung an öffentliche Verkehrsmittel\nWenig Infrastruktur in direkter Umgebung\nLärm durch Verkehr, Gewerbe oder Industrie\nEinfache Wohngegend",
+            ],
+            2 => [
+                'name' => __('Normale Lage', 'immobilien-rechner-pro'),
+                'multiplier' => 0.95,
+                'description' => "Akzeptable Anbindung an öffentliche Verkehrsmittel\nGrundversorgung (Supermarkt) erreichbar\nDurchschnittliche Wohngegend\nMäßiger Geräuschpegel",
+            ],
+            3 => [
+                'name' => __('Gute Lage', 'immobilien-rechner-pro'),
+                'multiplier' => 1.00,
+                'description' => "Gute Anbindung an öffentliche Verkehrsmittel\nEinkaufsmöglichkeiten und Schulen in der Nähe\nRuhige Wohngegend\nGepflegtes Umfeld",
+            ],
+            4 => [
+                'name' => __('Sehr gute Lage', 'immobilien-rechner-pro'),
+                'multiplier' => 1.10,
+                'description' => "Sehr gute Verkehrsanbindung (ÖPNV und Straße)\nUmfangreiche Infrastruktur (Ärzte, Restaurants, Kultur)\nGrünflächen und Parks in der Nähe\nGehobene Wohngegend",
+            ],
+            5 => [
+                'name' => __('Premium-Lage', 'immobilien-rechner-pro'),
+                'multiplier' => 1.25,
+                'description' => "Beste Verkehrsanbindung\nExklusive Nachbarschaft\nTop-Infrastruktur und Freizeitmöglichkeiten\nBesondere Lagevorteile (Seenähe, Altstadt, Villenviertel)",
+            ],
+        ];
     }
 }

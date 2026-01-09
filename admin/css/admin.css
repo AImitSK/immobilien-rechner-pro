@@ -526,6 +526,70 @@
     color: #614f00;
 }
 
+/* Location Ratings Table */
+.irp-location-table .irp-location-level {
+    text-align: center;
+}
+
+.irp-location-table .irp-stars {
+    color: #dba617;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.irp-location-table .irp-location-description {
+    width: 100%;
+    min-height: 80px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.irp-location-table .irp-location-description + .description {
+    margin-top: 5px;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.irp-location-table input.regular-text {
+    width: 100%;
+}
+
+.irp-location-table .irp-location-impact {
+    display: inline-block;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Info Box in Settings */
+.irp-settings-section .irp-info-box {
+    background: #f0f6fc;
+    border: 1px solid #72aee6;
+    border-radius: 4px;
+    padding: 15px 20px;
+    margin-top: 15px;
+}
+
+.irp-settings-section .irp-info-box h4 {
+    margin: 0 0 10px;
+    color: #135e96;
+}
+
+.irp-settings-section .irp-info-box ol {
+    margin: 0 0 10px 20px;
+}
+
+.irp-settings-section .irp-info-box li {
+    margin-bottom: 5px;
+}
+
+.irp-settings-section .irp-info-box ul {
+    margin: 5px 0 5px 20px;
+}
+
+.irp-settings-section .irp-info-box a {
+    color: #2271b1;
+}
+
 /* Formula Box Styling */
 .irp-info-box-formula {
     background: #f0f6fc;

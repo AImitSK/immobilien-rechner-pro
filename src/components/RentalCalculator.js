@@ -13,6 +13,7 @@ import PropertyTypeStep from './steps/PropertyTypeStep';
 import PropertyDetailsStep from './steps/PropertyDetailsStep';
 import CityStep from './steps/CityStep';
 import ConditionStep from './steps/ConditionStep';
+import LocationRatingStep from './steps/LocationRatingStep';
 import FeaturesStep from './steps/FeaturesStep';
 
 export default function RentalCalculator({ initialData, onComplete, onBack, cityId, cityName }) {
@@ -30,6 +31,7 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
 
         baseSteps.push(
             { id: 'condition', component: ConditionStep, title: __('Zustand', 'immobilien-rechner-pro') },
+            { id: 'location_rating', component: LocationRatingStep, title: __('Lage', 'immobilien-rechner-pro') },
             { id: 'features', component: FeaturesStep, title: __('Ausstattung', 'immobilien-rechner-pro') },
         );
 
@@ -44,6 +46,8 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
         city_id: cityId || '',
         city_name: cityName || '',
         condition: '',
+        location_rating: 3, // Default: "Gute Lage"
+        address: '',
         features: [],
         year_built: '',
         ...initialData,
@@ -90,6 +94,8 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
                     rooms: formData.rooms ? parseInt(formData.rooms) : null,
                     city_id: formData.city_id,
                     condition: formData.condition,
+                    location_rating: formData.location_rating || 3,
+                    address: formData.address || '',
                     features: formData.features,
                     year_built: formData.year_built ? parseInt(formData.year_built) : null,
                 },
@@ -121,6 +127,8 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
                 return !!formData.city_id;
             case 'condition':
                 return !!formData.condition;
+            case 'location_rating':
+                return formData.location_rating >= 1 && formData.location_rating <= 5;
             case 'features':
                 return true; // Features are optional
             default:

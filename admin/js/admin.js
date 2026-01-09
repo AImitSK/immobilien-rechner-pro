@@ -111,6 +111,20 @@
             }
         });
 
+        // Matrix: Update location rating impact display
+        $('.irp-location-multiplier').on('input', function() {
+            var $row = $(this).closest('tr');
+            var $impactCell = $row.find('.irp-location-impact');
+            var multiplier = parseFloat($(this).val()) || 1;
+            var impact = (multiplier - 1) * 100;
+            var sign = impact >= 0 ? '+' : '';
+
+            $impactCell
+                .text(sign + Math.round(impact) + '%')
+                .removeClass('irp-positive irp-negative')
+                .addClass(impact >= 0 ? 'irp-positive' : 'irp-negative');
+        });
+
         // Cities: Add new city row
         $('#irp-add-city').on('click', function() {
             var $tbody = $('#irp-cities-body');

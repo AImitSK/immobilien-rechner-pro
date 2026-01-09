@@ -1320,6 +1320,204 @@ select {
     }
 }
 
+// Location Rating Step
+.irp-location-rating-step {
+    .irp-optional {
+        font-weight: 400;
+        color: var(--irp-text-light);
+        font-size: 13px;
+    }
+}
+
+.irp-map-container {
+    margin: 16px 0 24px;
+    border-radius: var(--irp-radius);
+    overflow: hidden;
+    border: 1px solid var(--irp-border);
+}
+
+.irp-google-map {
+    width: 100%;
+    height: 200px;
+    background: var(--irp-bg-secondary);
+}
+
+// Rating Section
+.irp-rating-section {
+    margin: 24px 0;
+}
+
+.irp-rating-label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.irp-rating-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.irp-rating-end-label {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &.irp-rating-low {
+        color: var(--irp-text-light);
+    }
+
+    &.irp-rating-high {
+        color: var(--irp-primary);
+    }
+}
+
+.irp-rating-slider-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.irp-rating-slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, var(--irp-border), var(--irp-primary));
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: var(--irp-primary);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: transform 0.15s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    &::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        background: var(--irp-primary);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.irp-rating-marks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 4px;
+}
+
+.irp-rating-mark {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--irp-bg);
+    border: 2px solid var(--irp-border);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--irp-text-light);
+    cursor: pointer;
+    transition: all var(--irp-transition);
+
+    &:hover {
+        border-color: var(--irp-primary);
+        color: var(--irp-primary);
+    }
+
+    &.is-active {
+        background: var(--irp-primary);
+        border-color: var(--irp-primary);
+        color: white;
+    }
+}
+
+// Rating Description Box
+.irp-rating-description-box {
+    background: var(--irp-bg-secondary);
+    border-radius: var(--irp-radius);
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.irp-rating-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--irp-border);
+}
+
+.irp-rating-stars {
+    font-size: 18px;
+    color: #f59e0b;
+    letter-spacing: 2px;
+}
+
+.irp-rating-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--irp-text);
+}
+
+.irp-rating-features {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 14px;
+        color: var(--irp-text);
+
+        svg {
+            flex-shrink: 0;
+            margin-top: 2px;
+            color: var(--irp-success);
+        }
+    }
+}
+
+.irp-rating-impact {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--irp-border);
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+
+    .irp-impact-positive {
+        color: var(--irp-success);
+    }
+
+    .irp-impact-negative {
+        color: var(--irp-warning);
+    }
+}
+
 // Force input text color - maximum specificity override
 .irp-calculator {
     input,

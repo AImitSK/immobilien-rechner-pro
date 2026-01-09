@@ -38,6 +38,10 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'cities'
 
 // Get cities from matrix
 $cities = $matrix['cities'] ?? [];
+
+// Get location ratings (with defaults)
+$admin = new IRP_Admin();
+$location_ratings = $matrix['location_ratings'] ?? $admin->get_default_location_ratings();
 ?>
 
 <div class="wrap irp-admin-wrap irp-matrix-wrap">
@@ -50,6 +54,9 @@ $cities = $matrix['cities'] ?? [];
     <nav class="nav-tab-wrapper irp-tabs">
         <a href="?page=irp-matrix&tab=cities" class="nav-tab <?php echo $active_tab === 'cities' ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e('Städte', 'immobilien-rechner-pro'); ?>
+        </a>
+        <a href="?page=irp-matrix&tab=location" class="nav-tab <?php echo $active_tab === 'location' ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e('Lage-Faktoren', 'immobilien-rechner-pro'); ?>
         </a>
         <a href="?page=irp-matrix&tab=multipliers" class="nav-tab <?php echo $active_tab === 'multipliers' ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e('Multiplikatoren', 'immobilien-rechner-pro'); ?>
@@ -272,6 +279,79 @@ $cities = $matrix['cities'] ?? [];
             </div>
         </div>
 
+        <!-- Tab: Lage-Faktoren -->
+        <div class="irp-tab-content <?php echo $active_tab === 'location' ? 'active' : ''; ?>" id="tab-location">
+            <div class="irp-settings-section">
+                <h2><?php esc_html_e('Lage-Faktoren', 'immobilien-rechner-pro'); ?></h2>
+                <p class="description">
+                    <?php esc_html_e('Konfigurieren Sie die Multiplikatoren und Beschreibungen für die 5 Lage-Stufen. Die Bewertung fließt als Multiplikator in die Mietpreisberechnung ein.', 'immobilien-rechner-pro'); ?>
+                </p>
+
+                <table class="widefat irp-data-table irp-location-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;"><?php esc_html_e('Stufe', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 180px;"><?php esc_html_e('Bezeichnung', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 100px;"><?php esc_html_e('Faktor', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 100px;"><?php esc_html_e('Auswirkung', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Beschreibung', 'immobilien-rechner-pro'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php for ($level = 1; $level <= 5; $level++) :
+                            $rating = $location_ratings[$level] ?? [];
+                            $multiplier = $rating['multiplier'] ?? 1.00;
+                            $impact = ($multiplier - 1) * 100;
+                            $stars = str_repeat('★', $level);
+                        ?>
+                            <tr class="irp-location-row" data-level="<?php echo esc_attr($level); ?>">
+                                <td class="irp-location-level">
+                                    <span class="irp-stars"><?php echo $stars; ?></span>
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           name="irp_price_matrix[location_ratings][<?php echo esc_attr($level); ?>][name]"
+                                           value="<?php echo esc_attr($rating['name'] ?? ''); ?>"
+                                           class="regular-text"
+                                           required>
+                                </td>
+                                <td>
+                                    <input type="number"
+                                           name="irp_price_matrix[location_ratings][<?php echo esc_attr($level); ?>][multiplier]"
+                                           value="<?php echo esc_attr($multiplier); ?>"
+                                           step="0.01"
+                                           min="0.5"
+                                           max="2"
+                                           class="small-text irp-location-multiplier">
+                                </td>
+                                <td>
+                                    <span class="<?php echo $impact >= 0 ? 'irp-positive' : 'irp-negative'; ?> irp-location-impact">
+                                        <?php echo ($impact >= 0 ? '+' : '') . number_format($impact, 0) . '%'; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <textarea name="irp_price_matrix[location_ratings][<?php echo esc_attr($level); ?>][description]"
+                                              rows="3"
+                                              class="large-text irp-location-description"
+                                              placeholder="<?php esc_attr_e('Eine Zeile pro Punkt...', 'immobilien-rechner-pro'); ?>"><?php echo esc_textarea($rating['description'] ?? ''); ?></textarea>
+                                    <p class="description"><?php esc_html_e('Jede Zeile wird als Aufzählungspunkt angezeigt.', 'immobilien-rechner-pro'); ?></p>
+                                </td>
+                            </tr>
+                        <?php endfor; ?>
+                    </tbody>
+                </table>
+
+                <div class="irp-info-box">
+                    <h4><?php esc_html_e('Hinweise:', 'immobilien-rechner-pro'); ?></h4>
+                    <ul>
+                        <li><?php esc_html_e('Stufe 3 (Gute Lage) sollte den Faktor 1.00 haben - dies entspricht dem Basis-Mietpreis.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Einfache Lagen (Stufe 1-2) haben niedrigere Faktoren, Premium-Lagen (Stufe 4-5) höhere.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Die Beschreibungen werden dem Nutzer im Frontend angezeigt, wenn er eine Lage-Stufe auswählt.', 'immobilien-rechner-pro'); ?></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <!-- Tab: Multiplikatoren -->
         <div class="irp-tab-content <?php echo $active_tab === 'multipliers' ? 'active' : ''; ?>" id="tab-multipliers">
             <div class="irp-settings-section">
@@ -487,6 +567,14 @@ $cities = $matrix['cities'] ?? [];
         <?php if ($active_tab !== 'features') : ?>
             <?php foreach ($matrix['feature_premiums'] ?? [] as $key => $premium) : ?>
                 <input type="hidden" name="irp_price_matrix[feature_premiums][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($premium); ?>">
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+        <?php if ($active_tab !== 'location') : ?>
+            <?php foreach ($location_ratings as $level => $rating) : ?>
+                <input type="hidden" name="irp_price_matrix[location_ratings][<?php echo esc_attr($level); ?>][name]" value="<?php echo esc_attr($rating['name'] ?? ''); ?>">
+                <input type="hidden" name="irp_price_matrix[location_ratings][<?php echo esc_attr($level); ?>][multiplier]" value="<?php echo esc_attr($rating['multiplier'] ?? 1.0); ?>">
+                <input type="hidden" name="irp_price_matrix[location_ratings][<?php echo esc_attr($level); ?>][description]" value="<?php echo esc_attr($rating['description'] ?? ''); ?>">
             <?php endforeach; ?>
         <?php endif; ?>
 

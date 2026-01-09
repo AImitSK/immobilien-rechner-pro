@@ -7,6 +7,7 @@ Professionelles WordPress-Plugin für Mietwertberechnung und Verkaufen-vs-Vermie
 - **Mietwert-Rechner**: Schätzung potenzieller Mieteinnahmen basierend auf Immobiliendaten
 - **Verkaufen vs. Vermieten Vergleich**: Visuelle Break-Even-Analyse mit interaktiven Charts
 - **Städte-System**: Individuelle Konfiguration pro Stadt mit eigenem Basis-Mietpreis und Vervielfältiger
+- **Lage-Bewertung**: 5-stufige Lage-Bewertung mit konfigurierbaren Multiplikatoren und Google Maps Integration
 - **Lead-Generierung**: Erfassung und Verwaltung von Leads mit E-Mail-Benachrichtigungen
 - **White-Label-Ready**: Vollständig anpassbares Branding (Farben, Logo, Firmeninfo)
 - **Responsives Design**: Funktioniert auf allen Geräten
@@ -207,6 +208,19 @@ Zuschläge pro m² für Ausstattungsmerkmale:
 | Gäste-WC | 0,25 | +18 €/Monat |
 | Barrierefrei | 0,30 | +21 €/Monat |
 
+#### Tab: Lage-Faktoren
+5-stufige Lage-Bewertung mit konfigurierbaren Multiplikatoren:
+
+| Stufe | Name | Standard-Multiplikator | Beschreibung |
+|-------|------|------------------------|--------------|
+| 1 ★ | Einfache Lage | 0,85 | Lärm, wenig Infrastruktur |
+| 2 ★★ | Normale Lage | 0,95 | Durchschnittliche Wohngegend |
+| 3 ★★★ | Gute Lage | 1,00 | Referenzwert |
+| 4 ★★★★ | Sehr gute Lage | 1,10 | Ruhig, gute Anbindung |
+| 5 ★★★★★ | Premium-Lage | 1,25 | Beste Wohnlagen, Top-Infrastruktur |
+
+Für jede Stufe können Name, Multiplikator und eine mehrzeilige Beschreibung konfiguriert werden.
+
 #### Tab: Globale Parameter
 | Parameter | Beschreibung | Standard |
 |-----------|--------------|----------|
@@ -218,9 +232,17 @@ Zuschläge pro m² für Ausstattungsmerkmale:
 **WordPress Admin → Immo Rechner → Settings**
 
 - **Branding**: Firmenname, Logo, Primär-/Sekundärfarbe
+- **Google Maps Integration**: API-Key für Kartenanzeige und Adress-Autocomplete im Lage-Step
 - **Benachrichtigungen**: E-Mail für Lead-Benachrichtigungen
 - **Rechner-Defaults**: Instandhaltungsrate, Leerstandsquote, Maklerkosten
 - **Datenschutz**: Einwilligungspflicht, Datenschutz-URL
+
+**Google Maps API Key einrichten:**
+1. Google Cloud Console öffnen (https://console.cloud.google.com)
+2. Projekt erstellen oder auswählen
+3. "Maps JavaScript API" und "Places API" aktivieren
+4. API-Key erstellen und unter Settings eintragen
+5. Optional: "Karte im Lage-Step anzeigen" aktivieren
 
 ---
 
@@ -231,6 +253,7 @@ Zuschläge pro m² für Ausstattungsmerkmale:
 ```
 Mietpreis/m² = Basis-Mietpreis (Stadt)
              × Größendegression-Faktor
+             × Lage-Multiplikator
              × Zustands-Multiplikator
              × Objekttyp-Multiplikator
              + Ausstattungs-Zuschläge
@@ -311,6 +334,21 @@ Nettorendite = (Nettojahreseinkommen / Immobilienwert) × 100%
 | `/irp/v1/cities` | GET | Alle konfigurierten Städte abrufen |
 | `/irp/v1/locations` | GET | Ortssuche (Autocomplete) |
 
+**Neue Parameter für `/irp/v1/calculate/rental` und `/irp/v1/calculate/comparison`:**
+
+| Parameter | Typ | Standard | Beschreibung |
+|-----------|-----|----------|--------------|
+| `location_rating` | integer (1-5) | 3 | Lage-Bewertung (1=Einfach, 5=Premium) |
+| `address` | string | - | Adresse der Immobilie (optional) |
+
+**Response enthält zusätzlich:**
+
+| Feld | Beschreibung |
+|------|--------------|
+| `factors.location_rating` | Gewählte Lage-Stufe (1-5) |
+| `factors.location_name` | Name der Lage-Stufe |
+| `factors.location_impact` | Lage-Multiplikator |
+
 ---
 
 ## Dateistruktur
@@ -352,7 +390,7 @@ immobilien-rechner-pro/
 │   │       ├── CityStep.js       # Stadt-Auswahl
 │   │       ├── PropertyTypeStep.js
 │   │       ├── PropertyDetailsStep.js
-│   │       ├── LocationStep.js
+│   │       ├── LocationRatingStep.js # Lage-Bewertung mit Google Maps
 │   │       ├── ConditionStep.js
 │   │       ├── FeaturesStep.js
 │   │       └── FinancialStep.js
