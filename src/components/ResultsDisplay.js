@@ -14,10 +14,11 @@ export default function ResultsDisplay({
     mode,
     formData,
     results,
-    onRequestConsultation,
-    onBack,
     onStartOver,
+    showBrokerNotice = false,
 }) {
+    const settings = window.irpSettings?.settings || {};
+
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('de-DE', {
             style: 'currency',
@@ -43,9 +44,9 @@ export default function ResultsDisplay({
                 formData={formData}
                 results={results}
                 formatCurrency={formatCurrency}
-                onRequestConsultation={onRequestConsultation}
-                onBack={onBack}
                 onStartOver={onStartOver}
+                showBrokerNotice={showBrokerNotice}
+                companyName={settings.companyName}
             />
         );
     }
@@ -56,10 +57,38 @@ export default function ResultsDisplay({
             results={results}
             formatCurrency={formatCurrency}
             formatCurrencyShort={formatCurrencyShort}
-            onRequestConsultation={onRequestConsultation}
-            onBack={onBack}
             onStartOver={onStartOver}
+            showBrokerNotice={showBrokerNotice}
+            companyName={settings.companyName}
         />
+    );
+}
+
+function BrokerNotice({ companyName }) {
+    return (
+        <motion.div
+            className="irp-broker-notice"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+        >
+            <div className="irp-broker-notice-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+            </div>
+            <div className="irp-broker-notice-content">
+                <strong>{__('Vielen Dank für Ihre Anfrage!', 'immobilien-rechner-pro')}</strong>
+                <p>
+                    {companyName ? (
+                        __('Ein Berater von %s wird sich in Kürze bei Ihnen melden, um Ihre Immobilie persönlich zu bewerten.', 'immobilien-rechner-pro').replace('%s', companyName)
+                    ) : (
+                        __('Ein Berater wird sich in Kürze bei Ihnen melden, um Ihre Immobilie persönlich zu bewerten.', 'immobilien-rechner-pro')
+                    )}
+                </p>
+            </div>
+        </motion.div>
     );
 }
 
@@ -67,14 +96,16 @@ function RentalResults({
     formData,
     results,
     formatCurrency,
-    onRequestConsultation,
-    onBack,
     onStartOver,
+    showBrokerNotice,
+    companyName,
 }) {
     const { monthly_rent, price_per_sqm, market_position } = results;
 
     return (
         <div className="irp-results irp-results-rental">
+            {showBrokerNotice && <BrokerNotice companyName={companyName} />}
+
             <motion.div
                 className="irp-results-header"
                 initial={{ opacity: 0, y: -20 }}
@@ -148,36 +179,18 @@ function RentalResults({
             </motion.div>
 
             <motion.div
-                className="irp-results-cta"
+                className="irp-results-footer"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
             >
-                <p>{__('Möchten Sie eine professionelle Bewertung Ihrer Immobilie?', 'immobilien-rechner-pro')}</p>
                 <button
                     type="button"
-                    className="irp-btn irp-btn-primary irp-btn-large"
-                    onClick={onRequestConsultation}
+                    className="irp-btn irp-btn-secondary"
+                    onClick={onStartOver}
                 >
-                    {__('Kostenlose Beratung anfordern', 'immobilien-rechner-pro')}
+                    {__('Neue Berechnung starten', 'immobilien-rechner-pro')}
                 </button>
-
-                <div className="irp-results-actions">
-                    <button
-                        type="button"
-                        className="irp-btn irp-btn-text"
-                        onClick={onBack}
-                    >
-                        {__('Details bearbeiten', 'immobilien-rechner-pro')}
-                    </button>
-                    <button
-                        type="button"
-                        className="irp-btn irp-btn-text"
-                        onClick={onStartOver}
-                    >
-                        {__('Neu starten', 'immobilien-rechner-pro')}
-                    </button>
-                </div>
             </motion.div>
         </div>
     );
@@ -188,9 +201,9 @@ function ComparisonResults({
     results,
     formatCurrency,
     formatCurrencyShort,
-    onRequestConsultation,
-    onBack,
     onStartOver,
+    showBrokerNotice,
+    companyName,
 }) {
     const { rental, sale, rental_scenario, yields, break_even_year, projection, recommendation } = results;
 
@@ -346,6 +359,8 @@ function ComparisonResults({
 
     return (
         <div className="irp-results irp-results-comparison">
+            {showBrokerNotice && <BrokerNotice companyName={companyName} />}
+
             <motion.div
                 className="irp-results-header"
                 initial={{ opacity: 0, y: -20 }}
@@ -462,42 +477,24 @@ function ComparisonResults({
 
                 {results.speculation_tax_note && (
                     <p className="irp-tax-notice">
-                        ⚠️ {results.speculation_tax_note}
+                        {results.speculation_tax_note}
                     </p>
                 )}
             </motion.div>
 
             <motion.div
-                className="irp-results-cta"
+                className="irp-results-footer"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
             >
-                <p>{__('Erhalten Sie persönliche Beratung von einem lokalen Experten', 'immobilien-rechner-pro')}</p>
                 <button
                     type="button"
-                    className="irp-btn irp-btn-primary irp-btn-large"
-                    onClick={onRequestConsultation}
+                    className="irp-btn irp-btn-secondary"
+                    onClick={onStartOver}
                 >
-                    {__('Kostenlose Beratung anfordern', 'immobilien-rechner-pro')}
+                    {__('Neue Berechnung starten', 'immobilien-rechner-pro')}
                 </button>
-
-                <div className="irp-results-actions">
-                    <button
-                        type="button"
-                        className="irp-btn irp-btn-text"
-                        onClick={onBack}
-                    >
-                        {__('Details bearbeiten', 'immobilien-rechner-pro')}
-                    </button>
-                    <button
-                        type="button"
-                        className="irp-btn irp-btn-text"
-                        onClick={onStartOver}
-                    >
-                        {__('Neu starten', 'immobilien-rechner-pro')}
-                    </button>
-                </div>
             </motion.div>
         </div>
     );

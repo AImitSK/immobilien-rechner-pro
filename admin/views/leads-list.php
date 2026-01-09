@@ -20,6 +20,12 @@ if (!defined('ABSPATH')) {
                 <option value="comparison" <?php selected($args['mode'], 'comparison'); ?>><?php esc_html_e('Vergleich', 'immobilien-rechner-pro'); ?></option>
             </select>
 
+            <select name="status">
+                <option value=""><?php esc_html_e('Alle Status', 'immobilien-rechner-pro'); ?></option>
+                <option value="complete" <?php selected($args['status'] ?? '', 'complete'); ?>><?php esc_html_e('Vollständig', 'immobilien-rechner-pro'); ?></option>
+                <option value="partial" <?php selected($args['status'] ?? '', 'partial'); ?>><?php esc_html_e('Unvollständig', 'immobilien-rechner-pro'); ?></option>
+            </select>
+
             <input type="search" name="s" value="<?php echo esc_attr($args['search']); ?>"
                    placeholder="<?php esc_attr_e('Suchen...', 'immobilien-rechner-pro'); ?>">
 
@@ -40,6 +46,7 @@ if (!defined('ABSPATH')) {
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
+                    <th class="column-status"><?php esc_html_e('Status', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-name"><?php esc_html_e('Name', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-email"><?php esc_html_e('E-Mail', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-phone"><?php esc_html_e('Telefon', 'immobilien-rechner-pro'); ?></th>
@@ -50,8 +57,18 @@ if (!defined('ABSPATH')) {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($leads['items'] as $lead) : ?>
+                <?php foreach ($leads['items'] as $lead) :
+                    $status = $lead->status ?? 'complete';
+                    $status_label = $status === 'complete'
+                        ? __('Vollständig', 'immobilien-rechner-pro')
+                        : __('Unvollständig', 'immobilien-rechner-pro');
+                ?>
                     <tr>
+                        <td class="column-status">
+                            <span class="irp-status-badge irp-status-<?php echo esc_attr($status); ?>">
+                                <?php echo esc_html($status_label); ?>
+                            </span>
+                        </td>
                         <td class="column-name">
                             <a href="<?php echo esc_url(admin_url('admin.php?page=irp-leads&lead=' . $lead->id)); ?>">
                                 <strong><?php echo esc_html($lead->name ?: '—'); ?></strong>

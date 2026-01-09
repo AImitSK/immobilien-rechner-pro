@@ -32,12 +32,28 @@ class IRP_Rest_API {
             'args' => $this->get_comparison_args(),
         ]);
         
-        // Submit lead
+        // Submit lead (legacy - full lead in one step)
         register_rest_route($this->namespace, '/leads', [
             'methods' => 'POST',
             'callback' => [$this, 'submit_lead'],
             'permission_callback' => '__return_true',
             'args' => $this->get_lead_args(),
+        ]);
+
+        // Create partial lead (property data only, no contact info)
+        register_rest_route($this->namespace, '/leads/partial', [
+            'methods' => 'POST',
+            'callback' => [$this, 'create_partial_lead'],
+            'permission_callback' => '__return_true',
+            'args' => $this->get_partial_lead_args(),
+        ]);
+
+        // Complete a partial lead (add contact info)
+        register_rest_route($this->namespace, '/leads/complete', [
+            'methods' => 'POST',
+            'callback' => [$this, 'complete_lead'],
+            'permission_callback' => '__return_true',
+            'args' => $this->get_complete_lead_args(),
         ]);
         
         // Get location suggestions (for autocomplete)
@@ -198,6 +214,93 @@ class IRP_Rest_API {
             ],
         ];
     }
+
+    private function get_partial_lead_args(): array {
+        return [
+            'mode' => [
+                'required' => true,
+                'type' => 'string',
+                'enum' => ['rental', 'comparison'],
+            ],
+            'property_type' => [
+                'required' => true,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'property_size' => [
+                'required' => true,
+                'type' => 'number',
+            ],
+            'city_id' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_key',
+            ],
+            'city_name' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'condition' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'location_rating' => [
+                'required' => false,
+                'type' => 'integer',
+                'default' => 3,
+            ],
+            'features' => [
+                'required' => false,
+                'type' => 'array',
+                'default' => [],
+            ],
+            'calculation_result' => [
+                'required' => false,
+                'type' => 'object',
+            ],
+        ];
+    }
+
+    private function get_complete_lead_args(): array {
+        return [
+            'lead_id' => [
+                'required' => true,
+                'type' => 'integer',
+            ],
+            'name' => [
+                'required' => true,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'email' => [
+                'required' => true,
+                'type' => 'string',
+                'format' => 'email',
+                'sanitize_callback' => 'sanitize_email',
+            ],
+            'phone' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'consent' => [
+                'required' => true,
+                'type' => 'boolean',
+            ],
+            'newsletter_consent' => [
+                'required' => false,
+                'type' => 'boolean',
+                'default' => false,
+            ],
+            'recaptcha_token' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+        ];
+    }
     
     public function calculate_rental(\WP_REST_Request $request): \WP_REST_Response {
         $calculator = new IRP_Calculator();
@@ -252,7 +355,107 @@ class IRP_Rest_API {
             'lead_id' => $lead_id,
         ]);
     }
-    
+
+    /**
+     * Create a partial lead (property data only, no contact info yet)
+     */
+    public function create_partial_lead(\WP_REST_Request $request): \WP_REST_Response {
+        $leads = new IRP_Leads();
+        $params = $request->get_params();
+
+        $lead_id = $leads->create_partial($params);
+
+        if (is_wp_error($lead_id)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => $lead_id->get_error_message(),
+            ], 400);
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'lead_id' => $lead_id,
+            'message' => __('Daten gespeichert.', 'immobilien-rechner-pro'),
+        ]);
+    }
+
+    /**
+     * Complete a partial lead (add contact info)
+     */
+    public function complete_lead(\WP_REST_Request $request): \WP_REST_Response {
+        // Verify reCAPTCHA if configured
+        $recaptcha = new IRP_Recaptcha();
+        $token = $request->get_param('recaptcha_token');
+
+        if ($recaptcha->is_configured()) {
+            $verification = $recaptcha->verify($token, 'submit_lead');
+
+            if (!$verification['success']) {
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'message' => $verification['error'] ?? __('reCAPTCHA-Validierung fehlgeschlagen.', 'immobilien-rechner-pro'),
+                ], 400);
+            }
+        }
+
+        // Validate consent
+        if (!$request->get_param('consent')) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => __('Die Einwilligung ist erforderlich.', 'immobilien-rechner-pro'),
+            ], 400);
+        }
+
+        $leads = new IRP_Leads();
+        $lead_id = (int) $request->get_param('lead_id');
+
+        // Check if lead exists and is partial
+        $lead = $leads->get($lead_id);
+        if (!$lead) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => __('Lead nicht gefunden.', 'immobilien-rechner-pro'),
+            ], 404);
+        }
+
+        if ($lead->status !== 'partial') {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => __('Dieser Lead wurde bereits vervollständigt.', 'immobilien-rechner-pro'),
+            ], 400);
+        }
+
+        // Complete the lead
+        $result = $leads->complete($lead_id, [
+            'name' => $request->get_param('name'),
+            'email' => $request->get_param('email'),
+            'phone' => $request->get_param('phone') ?? '',
+            'consent' => $request->get_param('consent'),
+            'newsletter_consent' => $request->get_param('newsletter_consent') ?? false,
+            'recaptcha_score' => $verification['score'] ?? null,
+        ]);
+
+        if (is_wp_error($result)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => $result->get_error_message(),
+            ], 400);
+        }
+
+        // Send notification email to admin
+        $leads->send_notification($lead_id);
+
+        // Get updated lead with calculation data
+        $updated_lead = $leads->get($lead_id);
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'message' => __('Vielen Dank! Ein Makler wird sich in Kürze bei Ihnen melden.', 'immobilien-rechner-pro'),
+            'lead_id' => $lead_id,
+            'calculation_data' => $updated_lead->calculation_data ?? null,
+        ]);
+    }
+
     public function get_locations(\WP_REST_Request $request): \WP_REST_Response {
         $search = $request->get_param('search');
         

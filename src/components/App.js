@@ -1,24 +1,26 @@
 /**
  * Main App Component
+ * Lead Magnet Flow: Calculator -> Pending -> Contact Form -> Results
  */
 
-import { useState, useMemo } from '@wordpress/element';
+import { useState, useMemo, useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
+import apiFetch from '@wordpress/api-fetch';
 
 import ModeSelector from './ModeSelector';
 import RentalCalculator from './RentalCalculator';
 import ComparisonCalculator from './ComparisonCalculator';
 import ResultsDisplay from './ResultsDisplay';
-import LeadForm from './LeadForm';
-import ThankYou from './ThankYou';
+import CalculationPendingStep from './steps/CalculationPendingStep';
+import ContactFormStep from './steps/ContactFormStep';
 
 const STEPS = {
     MODE_SELECT: 'mode_select',
     CALCULATOR: 'calculator',
+    CALCULATION_PENDING: 'calculation_pending',
+    CONTACT_FORM: 'contact_form',
     RESULTS: 'results',
-    LEAD_FORM: 'lead_form',
-    THANK_YOU: 'thank_you',
 };
 
 export default function App({ config }) {
@@ -31,6 +33,8 @@ export default function App({ config }) {
     const [mode, setMode] = useState(initialMode || '');
     const [formData, setFormData] = useState({});
     const [results, setResults] = useState(null);
+    const [leadId, setLeadId] = useState(null);
+    const [pendingError, setPendingError] = useState(null);
 
     // Get settings from localized script
     const settings = window.irpSettings?.settings || {};
@@ -48,24 +52,69 @@ export default function App({ config }) {
         setCurrentStep(STEPS.CALCULATOR);
     };
 
-    const handleCalculationComplete = (data, calculationResults) => {
+    // Called when calculator completes - creates partial lead and shows pending animation
+    const handleCalculationComplete = useCallback(async (data, calculationResults) => {
         setFormData(data);
         setResults(calculationResults);
+        setPendingError(null);
+        setCurrentStep(STEPS.CALCULATION_PENDING);
+
+        // Create partial lead in background
+        try {
+            const response = await apiFetch({
+                path: '/irp/v1/leads/partial',
+                method: 'POST',
+                data: {
+                    mode: mode,
+                    property_type: data.property_type,
+                    property_size: parseFloat(data.size),
+                    city_id: data.city_id || '',
+                    city_name: data.city_name || '',
+                    condition: data.condition,
+                    location_rating: data.location_rating || 3,
+                    features: data.features || [],
+                    calculation_result: calculationResults,
+                },
+            });
+
+            if (response.success) {
+                setLeadId(response.lead_id);
+            } else {
+                setPendingError(response.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));
+            }
+        } catch (err) {
+            setPendingError(err.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));
+        }
+    }, [mode]);
+
+    // Called when pending animation completes - show contact form
+    const handlePendingComplete = useCallback(() => {
+        if (leadId && !pendingError) {
+            setCurrentStep(STEPS.CONTACT_FORM);
+        }
+    }, [leadId, pendingError]);
+
+    // Called when contact form is submitted successfully - show results
+    const handleContactFormComplete = useCallback((calculationData) => {
+        // If the API returned updated calculation data, use it
+        if (calculationData) {
+            setResults(calculationData.result || results);
+        }
         setCurrentStep(STEPS.RESULTS);
-    };
+    }, [results]);
 
-    const handleRequestConsultation = () => {
-        setCurrentStep(STEPS.LEAD_FORM);
-    };
-
-    const handleLeadSubmitted = () => {
-        setCurrentStep(STEPS.THANK_YOU);
-    };
+    // Back from contact form - go back to calculator
+    const handleContactFormBack = useCallback(() => {
+        setCurrentStep(STEPS.CALCULATOR);
+        setLeadId(null);
+    }, []);
 
     const handleStartOver = () => {
         setMode(initialMode || '');
         setFormData({});
         setResults(null);
+        setLeadId(null);
+        setPendingError(null);
         setCurrentStep(initialMode ? STEPS.CALCULATOR : STEPS.MODE_SELECT);
     };
 
@@ -77,10 +126,7 @@ export default function App({ config }) {
                 }
                 break;
             case STEPS.RESULTS:
-                setCurrentStep(STEPS.CALCULATOR);
-                break;
-            case STEPS.LEAD_FORM:
-                setCurrentStep(STEPS.RESULTS);
+                // From results, user can only start over
                 break;
             default:
                 break;
@@ -158,6 +204,39 @@ export default function App({ config }) {
                         </motion.div>
                     )}
 
+                    {currentStep === STEPS.CALCULATION_PENDING && (
+                        <motion.div
+                            key="calculation-pending"
+                            variants={pageVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={pageTransition}
+                        >
+                            <CalculationPendingStep
+                                onComplete={handlePendingComplete}
+                                error={pendingError}
+                            />
+                        </motion.div>
+                    )}
+
+                    {currentStep === STEPS.CONTACT_FORM && (
+                        <motion.div
+                            key="contact-form"
+                            variants={pageVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={pageTransition}
+                        >
+                            <ContactFormStep
+                                leadId={leadId}
+                                onComplete={handleContactFormComplete}
+                                onBack={handleContactFormBack}
+                            />
+                        </motion.div>
+                    )}
+
                     {currentStep === STEPS.RESULTS && (
                         <motion.div
                             key="results"
@@ -171,43 +250,8 @@ export default function App({ config }) {
                                 mode={mode}
                                 formData={formData}
                                 results={results}
-                                onRequestConsultation={handleRequestConsultation}
-                                onBack={handleBack}
                                 onStartOver={handleStartOver}
-                            />
-                        </motion.div>
-                    )}
-
-                    {currentStep === STEPS.LEAD_FORM && (
-                        <motion.div
-                            key="lead-form"
-                            variants={pageVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={pageTransition}
-                        >
-                            <LeadForm
-                                mode={mode}
-                                calculationData={{ ...formData, results }}
-                                onSubmitted={handleLeadSubmitted}
-                                onBack={handleBack}
-                            />
-                        </motion.div>
-                    )}
-
-                    {currentStep === STEPS.THANK_YOU && (
-                        <motion.div
-                            key="thank-you"
-                            variants={pageVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={pageTransition}
-                        >
-                            <ThankYou
-                                companyName={settings.companyName}
-                                onStartOver={handleStartOver}
+                                showBrokerNotice={true}
                             />
                         </motion.div>
                     )}

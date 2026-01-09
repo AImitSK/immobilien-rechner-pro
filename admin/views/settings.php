@@ -191,6 +191,56 @@ if (!defined('ABSPATH')) {
         </div>
 
         <div class="irp-settings-section">
+            <h2><?php esc_html_e('Spam-Schutz (reCAPTCHA)', 'immobilien-rechner-pro'); ?></h2>
+
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="recaptcha_site_key"><?php esc_html_e('reCAPTCHA Site Key', 'immobilien-rechner-pro'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text" id="recaptcha_site_key" name="irp_settings[recaptcha_site_key]"
+                               value="<?php echo esc_attr($settings['recaptcha_site_key'] ?? ''); ?>" class="regular-text"
+                               placeholder="6Lc...">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="recaptcha_secret_key"><?php esc_html_e('reCAPTCHA Secret Key', 'immobilien-rechner-pro'); ?></label>
+                    </th>
+                    <td>
+                        <input type="password" id="recaptcha_secret_key" name="irp_settings[recaptcha_secret_key]"
+                               value="<?php echo esc_attr($settings['recaptcha_secret_key'] ?? ''); ?>" class="regular-text"
+                               placeholder="6Lc...">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="recaptcha_threshold"><?php esc_html_e('Mindest-Score', 'immobilien-rechner-pro'); ?></label>
+                    </th>
+                    <td>
+                        <input type="number" id="recaptcha_threshold" name="irp_settings[recaptcha_threshold]"
+                               value="<?php echo esc_attr($settings['recaptcha_threshold'] ?? 0.5); ?>"
+                               min="0" max="1" step="0.1" class="small-text">
+                        <p class="description"><?php esc_html_e('0.0 = wahrscheinlich Bot, 1.0 = wahrscheinlich Mensch. Standard: 0.5', 'immobilien-rechner-pro'); ?></p>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="irp-info-box">
+                <h4><?php esc_html_e('So erhalten Sie reCAPTCHA Keys:', 'immobilien-rechner-pro'); ?></h4>
+                <ol>
+                    <li><?php esc_html_e('Google reCAPTCHA Admin Console öffnen', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Neue Website registrieren', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Typ auswählen: reCAPTCHA v3', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Domain hinzufügen (z.B. ihre-website.de)', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Keys kopieren und hier einfügen', 'immobilien-rechner-pro'); ?></li>
+                </ol>
+                <p><a href="https://www.google.com/recaptcha/admin" target="_blank" rel="noopener">google.com/recaptcha/admin</a></p>
+            </div>
+        </div>
+
+        <div class="irp-settings-section">
             <h2><?php esc_html_e('Datenschutz & Einwilligung', 'immobilien-rechner-pro'); ?></h2>
 
             <table class="form-table">

@@ -87,6 +87,7 @@ class IRP_Assets {
                 'googleMapsApiKey' => $google_maps_api_key,
                 'showMapInLocationStep' => !empty($settings['show_map_in_location_step']),
                 'calculatorMaxWidth' => (int) ($settings['calculator_max_width'] ?? 680),
+                'recaptchaSiteKey' => $settings['recaptcha_site_key'] ?? '',
             ],
             'locationRatings' => $location_ratings,
             'i18n' => [

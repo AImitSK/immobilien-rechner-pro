@@ -11,8 +11,43 @@ class IRP_Activator {
     
     public static function activate(): void {
         self::create_tables();
+        self::upgrade_database();
         self::set_default_options();
         flush_rewrite_rules();
+    }
+
+    /**
+     * Upgrade database schema for existing installations
+     */
+    private static function upgrade_database(): void {
+        global $wpdb;
+
+        $leads_table = $wpdb->prefix . 'irp_leads';
+        $current_version = get_option('irp_db_version', '1.0.0');
+
+        // Check if new columns exist, if not add them
+        $columns = $wpdb->get_col("DESCRIBE {$leads_table}", 0);
+
+        if (!in_array('status', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN status varchar(20) NOT NULL DEFAULT 'complete' AFTER consent");
+            $wpdb->query("ALTER TABLE {$leads_table} ADD INDEX idx_status (status)");
+        }
+
+        if (!in_array('newsletter_consent', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN newsletter_consent tinyint(1) NOT NULL DEFAULT 0 AFTER consent");
+        }
+
+        if (!in_array('recaptcha_score', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN recaptcha_score decimal(3,2) DEFAULT NULL AFTER status");
+        }
+
+        if (!in_array('ip_address', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN ip_address varchar(45) DEFAULT NULL AFTER recaptcha_score");
+        }
+
+        if (!in_array('completed_at', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN completed_at datetime DEFAULT NULL AFTER created_at");
+        }
     }
     
     private static function create_tables(): void {
@@ -34,11 +69,17 @@ class IRP_Activator {
             zip_code varchar(10) DEFAULT NULL,
             calculation_data longtext DEFAULT NULL,
             consent tinyint(1) NOT NULL DEFAULT 0,
+            newsletter_consent tinyint(1) NOT NULL DEFAULT 0,
+            status varchar(20) NOT NULL DEFAULT 'partial',
+            recaptcha_score decimal(3,2) DEFAULT NULL,
+            ip_address varchar(45) DEFAULT NULL,
             source varchar(100) DEFAULT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            completed_at datetime DEFAULT NULL,
             PRIMARY KEY (id),
             KEY email (email),
             KEY mode (mode),
+            KEY status (status),
             KEY created_at (created_at)
         ) $charset_collate;";
         

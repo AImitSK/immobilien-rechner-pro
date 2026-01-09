@@ -149,6 +149,32 @@
     color: #7b3db5;
 }
 
+/* Status Badges */
+.irp-status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.irp-status-complete {
+    background: #edfaef;
+    color: #007017;
+}
+
+.irp-status-partial {
+    background: #fff8e5;
+    color: #996800;
+}
+
+/* Column widths for leads table */
+.column-status {
+    width: 100px;
+}
+
 /* Leads Toolbar */
 .irp-leads-toolbar {
     display: flex;

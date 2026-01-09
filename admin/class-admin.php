@@ -176,6 +176,11 @@ class IRP_Admin {
         // Display settings
         $sanitized['calculator_max_width'] = max(680, min(1200, (int) ($input['calculator_max_width'] ?? 680)));
 
+        // reCAPTCHA settings
+        $sanitized['recaptcha_site_key'] = sanitize_text_field($input['recaptcha_site_key'] ?? '');
+        $sanitized['recaptcha_secret_key'] = sanitize_text_field($input['recaptcha_secret_key'] ?? '');
+        $sanitized['recaptcha_threshold'] = max(0, min(1, (float) ($input['recaptcha_threshold'] ?? 0.5)));
+
         return $sanitized;
     }
     
@@ -257,9 +262,10 @@ class IRP_Admin {
         $args = [
             'page' => (int) ($_GET['paged'] ?? 1),
             'mode' => sanitize_text_field($_GET['mode'] ?? ''),
+            'status' => sanitize_text_field($_GET['status'] ?? ''),
             'search' => sanitize_text_field($_GET['s'] ?? ''),
         ];
-        
+
         $leads = $leads_manager->get_all($args);
         
         include IRP_PLUGIN_DIR . 'admin/views/leads-list.php';

@@ -53,7 +53,113 @@ class IRP_Leads {
         
         return $wpdb->insert_id;
     }
-    
+
+    /**
+     * Create a partial lead (property data only, no contact info)
+     */
+    public function create_partial(array $data): int|\WP_Error {
+        global $wpdb;
+
+        $insert_data = [
+            'email' => '', // Will be filled when completing
+            'mode' => sanitize_text_field($data['mode']),
+            'property_type' => sanitize_text_field($data['property_type'] ?? ''),
+            'property_size' => (float) ($data['property_size'] ?? 0),
+            'property_location' => sanitize_text_field($data['city_name'] ?? ''),
+            'calculation_data' => wp_json_encode([
+                'property_type' => $data['property_type'] ?? '',
+                'size' => $data['property_size'] ?? 0,
+                'city_id' => $data['city_id'] ?? '',
+                'city_name' => $data['city_name'] ?? '',
+                'condition' => $data['condition'] ?? '',
+                'location_rating' => $data['location_rating'] ?? 3,
+                'features' => $data['features'] ?? [],
+                'result' => $data['calculation_result'] ?? null,
+            ]),
+            'status' => 'partial',
+            'ip_address' => $this->get_client_ip(),
+            'source' => sanitize_text_field($data['source'] ?? 'calculator'),
+        ];
+
+        $result = $wpdb->insert(
+            $this->table_name,
+            $insert_data,
+            ['%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s']
+        );
+
+        if ($result === false) {
+            return new \WP_Error('db_error', __('Daten konnten nicht gespeichert werden.', 'immobilien-rechner-pro'));
+        }
+
+        return $wpdb->insert_id;
+    }
+
+    /**
+     * Complete a partial lead (add contact info)
+     */
+    public function complete(int $lead_id, array $data): bool|\WP_Error {
+        global $wpdb;
+
+        // Validate email
+        if (!is_email($data['email'])) {
+            return new \WP_Error('invalid_email', __('Bitte geben Sie eine gültige E-Mail-Adresse an.', 'immobilien-rechner-pro'));
+        }
+
+        $update_data = [
+            'name' => sanitize_text_field($data['name']),
+            'email' => sanitize_email($data['email']),
+            'phone' => sanitize_text_field($data['phone'] ?? ''),
+            'consent' => (int) $data['consent'],
+            'newsletter_consent' => (int) ($data['newsletter_consent'] ?? 0),
+            'status' => 'complete',
+            'completed_at' => current_time('mysql'),
+        ];
+
+        if (isset($data['recaptcha_score'])) {
+            $update_data['recaptcha_score'] = (float) $data['recaptcha_score'];
+        }
+
+        $result = $wpdb->update(
+            $this->table_name,
+            $update_data,
+            ['id' => $lead_id],
+            ['%s', '%s', '%s', '%d', '%d', '%s', '%s', '%f'],
+            ['%d']
+        );
+
+        if ($result === false) {
+            return new \WP_Error('db_error', __('Lead konnte nicht aktualisiert werden.', 'immobilien-rechner-pro'));
+        }
+
+        return true;
+    }
+
+    /**
+     * Get client IP address
+     */
+    private function get_client_ip(): string {
+        $ip_keys = [
+            'HTTP_CF_CONNECTING_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_REAL_IP',
+            'REMOTE_ADDR',
+        ];
+
+        foreach ($ip_keys as $key) {
+            if (!empty($_SERVER[$key])) {
+                $ip = $_SERVER[$key];
+                if (strpos($ip, ',') !== false) {
+                    $ip = trim(explode(',', $ip)[0]);
+                }
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip;
+                }
+            }
+        }
+
+        return '';
+    }
+
     /**
      * Get a single lead by ID
      */
@@ -81,6 +187,7 @@ class IRP_Leads {
             'per_page' => 20,
             'page' => 1,
             'mode' => '',
+            'status' => '',
             'search' => '',
             'date_from' => '',
             'date_to' => '',
@@ -97,7 +204,12 @@ class IRP_Leads {
             $where[] = 'mode = %s';
             $values[] = $args['mode'];
         }
-        
+
+        if (!empty($args['status'])) {
+            $where[] = 'status = %s';
+            $values[] = $args['status'];
+        }
+
         if (!empty($args['search'])) {
             $where[] = '(name LIKE %s OR email LIKE %s OR property_location LIKE %s)';
             $search_term = '%' . $wpdb->esc_like($args['search']) . '%';
@@ -168,14 +280,14 @@ class IRP_Leads {
      */
     public function send_notification(int $lead_id): bool {
         $lead = $this->get($lead_id);
-        
+
         if (!$lead) {
             return false;
         }
-        
+
         $settings = get_option('irp_settings', []);
         $to = $settings['company_email'] ?? get_option('admin_email');
-        
+
         $type_labels = [
             'apartment' => __('Wohnung', 'immobilien-rechner-pro'),
             'house' => __('Haus', 'immobilien-rechner-pro'),
@@ -194,34 +306,47 @@ class IRP_Leads {
 
         $property_type_label = $type_labels[$lead->property_type] ?? ucfirst($lead->property_type ?: '-');
 
+        // Newsletter status
+        $newsletter_status = !empty($lead->newsletter_consent)
+            ? __('Ja', 'immobilien-rechner-pro')
+            : __('Nein', 'immobilien-rechner-pro');
+
         $message = sprintf(
-            __("Neuer Lead vom Immobilien Rechner Pro:\n\n" .
-               "Name: %s\n" .
-               "E-Mail: %s\n" .
-               "Telefon: %s\n\n" .
-               "Modus: %s\n" .
-               "Objekttyp: %s\n" .
-               "Größe: %s m²\n" .
-               "Standort: %s %s\n\n" .
-               "Im Admin ansehen: %s",
+            __("Neuer Lead vom Immobilien Rechner Pro\n" .
+               "══════════════════════════════════════\n\n" .
+               "KONTAKTDATEN\n" .
+               "────────────────────────────────────\n" .
+               "Name:       %s\n" .
+               "E-Mail:     %s\n" .
+               "Telefon:    %s\n" .
+               "Newsletter: %s\n\n" .
+               "IMMOBILIE\n" .
+               "────────────────────────────────────\n" .
+               "Modus:      %s\n" .
+               "Objekttyp:  %s\n" .
+               "Größe:      %s m²\n" .
+               "Standort:   %s %s\n\n" .
+               "────────────────────────────────────\n" .
+               "Im Admin ansehen:\n%s",
             'immobilien-rechner-pro'),
             $lead->name ?: '-',
             $lead->email,
             $lead->phone ?: '-',
+            $newsletter_status,
             $mode_label,
             $property_type_label,
             $lead->property_size ?: '-',
-            $lead->zip_code,
-            $lead->property_location,
+            $lead->zip_code ?: '',
+            $lead->property_location ?: '',
             admin_url('admin.php?page=irp-leads&lead=' . $lead_id)
         );
-        
+
         $headers = ['Content-Type: text/plain; charset=UTF-8'];
-        
+
         if (!empty($settings['company_name'])) {
             $headers[] = 'From: ' . $settings['company_name'] . ' <' . $to . '>';
         }
-        
+
         return wp_mail($to, $subject, $message, $headers);
     }
     
