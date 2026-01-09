@@ -52,10 +52,7 @@ final class Immobilien_Rechner_Pro {
         require_once IRP_PLUGIN_DIR . 'includes/class-rest-api.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-calculator.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-leads.php';
-        
-        if (is_admin()) {
-            require_once IRP_PLUGIN_DIR . 'admin/class-admin.php';
-        }
+        require_once IRP_PLUGIN_DIR . 'admin/class-admin.php';
     }
     
     private function init_hooks(): void {
