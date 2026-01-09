@@ -68,7 +68,7 @@ function BrokerNotice({ companyName }) {
     return (
         <motion.div
             className="irp-broker-notice"
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
@@ -82,9 +82,9 @@ function BrokerNotice({ companyName }) {
                 <strong>{__('Vielen Dank für Ihre Anfrage!', 'immobilien-rechner-pro')}</strong>
                 <p>
                     {companyName ? (
-                        __('Ein Berater von %s wird sich in Kürze bei Ihnen melden, um Ihre Immobilie persönlich zu bewerten.', 'immobilien-rechner-pro').replace('%s', companyName)
+                        __('Ihre Daten werden jetzt von einem erfahrenen Immobilienexperten bei %s analysiert. Sie erhalten in Kürze eine ausführliche Bewertung mit detaillierten Marktdaten direkt in Ihr E-Mail-Postfach.', 'immobilien-rechner-pro').replace('%s', companyName)
                     ) : (
-                        __('Ein Berater wird sich in Kürze bei Ihnen melden, um Ihre Immobilie persönlich zu bewerten.', 'immobilien-rechner-pro')
+                        __('Ihre Daten werden jetzt von einem erfahrenen Immobilienexperten analysiert. Sie erhalten in Kürze eine ausführliche Bewertung mit detaillierten Marktdaten direkt in Ihr E-Mail-Postfach.', 'immobilien-rechner-pro')
                     )}
                 </p>
             </div>
@@ -104,8 +104,6 @@ function RentalResults({
 
     return (
         <div className="irp-results irp-results-rental">
-            {showBrokerNotice && <BrokerNotice companyName={companyName} />}
-
             <motion.div
                 className="irp-results-header"
                 initial={{ opacity: 0, y: -20 }}
@@ -177,6 +175,8 @@ function RentalResults({
                 <RentalGauge percentile={market_position.percentile} />
                 <p className="irp-market-label">{market_position.label}</p>
             </motion.div>
+
+            {showBrokerNotice && <BrokerNotice companyName={companyName} />}
 
             <motion.div
                 className="irp-results-footer"
@@ -359,8 +359,6 @@ function ComparisonResults({
 
     return (
         <div className="irp-results irp-results-comparison">
-            {showBrokerNotice && <BrokerNotice companyName={companyName} />}
-
             <motion.div
                 className="irp-results-header"
                 initial={{ opacity: 0, y: -20 }}
@@ -481,6 +479,8 @@ function ComparisonResults({
                     </p>
                 )}
             </motion.div>
+
+            {showBrokerNotice && <BrokerNotice companyName={companyName} />}
 
             <motion.div
                 className="irp-results-footer"
