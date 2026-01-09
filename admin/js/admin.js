@@ -83,12 +83,12 @@
             );
         });
 
-        // Matrix: Update multiplier impact display
-        $('.irp-data-table input[type="number"]').on('input', function() {
+        // Matrix: Update multiplier impact display (for condition and type multipliers)
+        $('#tab-multipliers .irp-data-table input[type="number"]').on('input', function() {
             var $row = $(this).closest('tr');
             var $impactCell = $row.find('.irp-positive, .irp-negative');
 
-            if ($impactCell.length && $(this).closest('table').find('th').length === 3) {
+            if ($impactCell.length) {
                 var multiplier = parseFloat($(this).val()) || 1;
                 var impact = (multiplier - 1) * 100;
                 var sign = impact >= 0 ? '+' : '';
@@ -100,14 +100,14 @@
             }
         });
 
-        // Matrix: Update feature premium example (based on 80m²)
-        $('#tab-features .irp-data-table input[type="number"]').on('input', function() {
+        // Matrix: Update feature premium example (based on 70m² reference)
+        $('#irp-features-table .irp-feature-input').on('input', function() {
             var premium = parseFloat($(this).val()) || 0;
-            var monthlyExtra = premium * 80;
-            var $example = $(this).closest('tr').find('.irp-positive');
+            var monthlyExtra = premium * 70; // 70m² reference size
+            var $result = $(this).closest('tr').find('.irp-feature-result');
 
-            if ($example.length) {
-                $example.text('+' + Math.round(monthlyExtra).toLocaleString('de-DE') + ' €/Monat');
+            if ($result.length) {
+                $result.text('+' + Math.round(monthlyExtra).toLocaleString('de-DE') + ' €/Monat');
             }
         });
 
@@ -152,6 +152,15 @@
                                min="1"
                                max="100"
                                class="small-text"> €/m²
+                    </td>
+                    <td>
+                        <input type="number"
+                               name="irp_price_matrix[cities][${newIndex}][size_degression]"
+                               value="0.20"
+                               step="0.01"
+                               min="0"
+                               max="0.5"
+                               class="small-text">
                     </td>
                     <td>
                         <input type="number"
@@ -208,6 +217,161 @@
                 $idInput.val(id);
             }
         });
+
+        // =====================================================
+        // Shortcode Generator
+        // =====================================================
+
+        if ($('.irp-shortcode-generator-wrap').length) {
+            initShortcodeGenerator();
+        }
+
+        function initShortcodeGenerator() {
+            var $output = $('#irp-generated-shortcode');
+            var $copyBtn = $('#irp-copy-shortcode');
+            var $copySuccess = $('#irp-copy-success');
+
+            // Info elements
+            var $infoMode = $('#irp-info-mode span').last();
+            var $infoCity = $('#irp-info-city span').last();
+            var $infoTheme = $('#irp-info-theme span').last();
+            var $infoBranding = $('#irp-info-branding span').last();
+
+            // Step elements
+            var $stepMode = $('#irp-step-mode');
+            var $stepCity = $('#irp-step-city');
+
+            // Update shortcode on any change
+            $('input[name="irp_mode"], #irp-city-select, #irp-theme, #irp-show-branding').on('change input', function() {
+                updateShortcode();
+            });
+
+            function updateShortcode() {
+                var mode = $('input[name="irp_mode"]:checked').val();
+                var cityId = $('#irp-city-select').val();
+                var cityName = $('#irp-city-select option:selected').text();
+                var theme = $('#irp-theme').val();
+                var showBranding = $('#irp-show-branding').is(':checked');
+
+                // Build shortcode
+                var shortcode = '[immobilien_rechner';
+                var params = [];
+
+                if (mode) {
+                    params.push('mode="' + mode + '"');
+                }
+                if (cityId) {
+                    params.push('city_id="' + cityId + '"');
+                }
+                if (theme !== 'light') {
+                    params.push('theme="' + theme + '"');
+                }
+                if (!showBranding) {
+                    params.push('show_branding="false"');
+                }
+
+                if (params.length > 0) {
+                    shortcode += ' ' + params.join(' ');
+                }
+                shortcode += ']';
+
+                $output.text(shortcode);
+
+                // Update info panel
+                updateInfoPanel(mode, cityId, cityName, theme, showBranding);
+
+                // Update steps preview
+                updateStepsPreview(mode, cityId);
+            }
+
+            function updateInfoPanel(mode, cityId, cityName, theme, showBranding) {
+                // Mode info
+                var modeText = 'Benutzer wählt';
+                if (mode === 'rental') {
+                    modeText = 'Nur Mietwert-Rechner';
+                } else if (mode === 'comparison') {
+                    modeText = 'Nur Vergleich';
+                }
+                $infoMode.text('Modus: ' + modeText);
+
+                // City info
+                var cityText = 'Benutzer wählt';
+                if (cityId) {
+                    cityText = cityName.replace(/\s*\(.*\)/, ''); // Remove ID part
+                }
+                $infoCity.text('Stadt: ' + cityText);
+
+                // Theme info
+                var themeText = theme === 'light' ? 'Hell' : 'Dunkel';
+                $infoTheme.text('Theme: ' + themeText);
+
+                // Branding info
+                var brandingText = showBranding ? 'Sichtbar' : 'Ausgeblendet';
+                $infoBranding.text('Branding: ' + brandingText);
+            }
+
+            function updateStepsPreview(mode, cityId) {
+                // Mode step
+                if (mode) {
+                    $stepMode.addClass('irp-step-skipped');
+                    $stepMode.find('.irp-step-label').text('Übersprungen');
+                } else {
+                    $stepMode.removeClass('irp-step-skipped');
+                    $stepMode.find('.irp-step-label').text('Modus wählen');
+                }
+
+                // City step
+                if (cityId) {
+                    $stepCity.addClass('irp-step-skipped');
+                    $stepCity.find('.irp-step-label').text('Übersprungen');
+                } else {
+                    $stepCity.removeClass('irp-step-skipped');
+                    $stepCity.find('.irp-step-label').text('Stadt wählen');
+                }
+
+                // Renumber visible steps
+                var stepNum = 1;
+                $('.irp-steps-flow .irp-step-item').each(function() {
+                    if (!$(this).hasClass('irp-step-skipped')) {
+                        $(this).find('.irp-step-number').text(stepNum);
+                        stepNum++;
+                    } else {
+                        $(this).find('.irp-step-number').text('—');
+                    }
+                });
+            }
+
+            // Copy to clipboard
+            $copyBtn.on('click', function() {
+                var shortcode = $output.text();
+
+                navigator.clipboard.writeText(shortcode).then(function() {
+                    // Show success message
+                    $copySuccess.addClass('visible');
+                    $copyBtn.addClass('copied');
+
+                    setTimeout(function() {
+                        $copySuccess.removeClass('visible');
+                        $copyBtn.removeClass('copied');
+                    }, 2000);
+                }).catch(function() {
+                    // Fallback for older browsers
+                    var $temp = $('<textarea>');
+                    $('body').append($temp);
+                    $temp.val(shortcode).select();
+                    document.execCommand('copy');
+                    $temp.remove();
+
+                    $copySuccess.addClass('visible');
+                    setTimeout(function() {
+                        $copySuccess.removeClass('visible');
+                    }, 2000);
+                });
+            });
+
+            // Initial update
+            updateShortcode();
+        }
     });
 
 })(jQuery);

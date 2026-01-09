@@ -84,9 +84,10 @@ $cities = $matrix['cities'] ?? [];
                         <tr>
                             <th style="width: 120px;"><?php esc_html_e('Stadt-ID', 'immobilien-rechner-pro'); ?></th>
                             <th><?php esc_html_e('Name', 'immobilien-rechner-pro'); ?></th>
-                            <th style="width: 140px;"><?php esc_html_e('Basis-Mietpreis', 'immobilien-rechner-pro'); ?></th>
-                            <th style="width: 120px;"><?php esc_html_e('Vervielfältiger', 'immobilien-rechner-pro'); ?></th>
-                            <th style="width: 80px;"><?php esc_html_e('Aktionen', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 130px;"><?php esc_html_e('Basis-Mietpreis', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 120px;"><?php esc_html_e('Degression', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 110px;"><?php esc_html_e('Vervielfältiger', 'immobilien-rechner-pro'); ?></th>
+                            <th style="width: 70px;"><?php esc_html_e('Aktion', 'immobilien-rechner-pro'); ?></th>
                         </tr>
                     </thead>
                     <tbody id="irp-cities-body">
@@ -118,6 +119,15 @@ $cities = $matrix['cities'] ?? [];
                                                min="1"
                                                max="100"
                                                class="small-text"> €/m²
+                                    </td>
+                                    <td>
+                                        <input type="number"
+                                               name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][size_degression]"
+                                               value="<?php echo esc_attr($city['size_degression'] ?? 0.20); ?>"
+                                               step="0.01"
+                                               min="0"
+                                               max="0.5"
+                                               class="small-text">
                                     </td>
                                     <td>
                                         <input type="number"
@@ -165,6 +175,15 @@ $cities = $matrix['cities'] ?? [];
                                 </td>
                                 <td>
                                     <input type="number"
+                                           name="irp_price_matrix[cities][0][size_degression]"
+                                           value="0.20"
+                                           step="0.01"
+                                           min="0"
+                                           max="0.5"
+                                           class="small-text">
+                                </td>
+                                <td>
+                                    <input type="number"
                                            name="irp_price_matrix[cities][0][sale_factor]"
                                            value="25"
                                            step="0.5"
@@ -182,7 +201,7 @@ $cities = $matrix['cities'] ?? [];
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5">
+                            <td colspan="6">
                                 <button type="button" class="button button-secondary" id="irp-add-city">
                                     <span class="dashicons dashicons-plus-alt2"></span>
                                     <?php esc_html_e('Stadt hinzufügen', 'immobilien-rechner-pro'); ?>
@@ -192,12 +211,62 @@ $cities = $matrix['cities'] ?? [];
                     </tfoot>
                 </table>
 
-                <div class="irp-city-info">
-                    <h4><?php esc_html_e('Hinweise:', 'immobilien-rechner-pro'); ?></h4>
+                <div class="irp-city-info irp-info-box-formula">
+                    <h4><?php esc_html_e('Berechnungsformel: Größendegression', 'immobilien-rechner-pro'); ?></h4>
+                    <p><?php esc_html_e('Der Basis-Mietpreis bezieht sich auf eine 70 m² Referenzwohnung. Größere Wohnungen werden pro m² günstiger, kleinere teurer.', 'immobilien-rechner-pro'); ?></p>
+
+                    <div class="irp-formula-box">
+                        <code>m²-Preis = Basis-Preis × (70 / Fläche)<sup>Degression</sup></code>
+                    </div>
+
+                    <table class="irp-formula-example">
+                        <thead>
+                            <tr>
+                                <th><?php esc_html_e('Fläche', 'immobilien-rechner-pro'); ?></th>
+                                <th><?php esc_html_e('Faktor (α=0.20)', 'immobilien-rechner-pro'); ?></th>
+                                <th><?php esc_html_e('Bei 10 €/m² Basis', 'immobilien-rechner-pro'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>35 m²</td>
+                                <td class="irp-positive">× 1.15</td>
+                                <td><strong>11.50 €/m²</strong></td>
+                            </tr>
+                            <tr>
+                                <td>50 m²</td>
+                                <td class="irp-positive">× 1.07</td>
+                                <td><strong>10.70 €/m²</strong></td>
+                            </tr>
+                            <tr class="irp-highlight-row">
+                                <td>70 m² <em>(Referenz)</em></td>
+                                <td>× 1.00</td>
+                                <td><strong>10.00 €/m²</strong></td>
+                            </tr>
+                            <tr>
+                                <td>100 m²</td>
+                                <td class="irp-negative">× 0.93</td>
+                                <td><strong>9.30 €/m²</strong></td>
+                            </tr>
+                            <tr>
+                                <td>140 m²</td>
+                                <td class="irp-negative">× 0.87</td>
+                                <td><strong>8.70 €/m²</strong></td>
+                            </tr>
+                            <tr>
+                                <td>200 m²</td>
+                                <td class="irp-negative">× 0.80</td>
+                                <td><strong>8.00 €/m²</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4><?php esc_html_e('Weitere Hinweise:', 'immobilien-rechner-pro'); ?></h4>
                     <ul>
-                        <li><?php esc_html_e('Die Stadt-ID muss eindeutig sein und darf nur Kleinbuchstaben, Zahlen, Bindestriche und Unterstriche enthalten.', 'immobilien-rechner-pro'); ?></li>
-                        <li><?php esc_html_e('Der Vervielfältiger gibt an, wie viele Jahresnettokaltmieten dem Kaufpreis entsprechen.', 'immobilien-rechner-pro'); ?></li>
-                        <li><?php esc_html_e('Beispiel: Bei 1.000 € Monatsmiete und Vervielfältiger 25 → Kaufpreis = 300.000 €', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Degression 0.20 ist der Standardwert. Höhere Werte = stärkere Preisabnahme bei großen Wohnungen.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Degression 0 = keine Größenanpassung (lineare Berechnung).', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Die Stadt-ID muss eindeutig sein (nur Kleinbuchstaben, Zahlen, Bindestriche, Unterstriche).', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Vervielfältiger: Anzahl Jahresnettokaltmieten = Kaufpreis. Bei 1.000 €/Monat und Faktor 25 → 300.000 € Kaufpreis.', 'immobilien-rechner-pro'); ?></li>
                     </ul>
                 </div>
             </div>
@@ -293,12 +362,12 @@ $cities = $matrix['cities'] ?? [];
                     <?php esc_html_e('Diese Beträge werden pro m² zum Basis-Mietpreis addiert, wenn das Merkmal vorhanden ist.', 'immobilien-rechner-pro'); ?>
                 </p>
 
-                <table class="widefat irp-data-table">
+                <table class="widefat irp-data-table" id="irp-features-table">
                     <thead>
                         <tr>
                             <th><?php esc_html_e('Ausstattungsmerkmal', 'immobilien-rechner-pro'); ?></th>
                             <th><?php esc_html_e('Zuschlag (€/m²)', 'immobilien-rechner-pro'); ?></th>
-                            <th><?php esc_html_e('Bei 80m²', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Bei 70m² Wohnung', 'immobilien-rechner-pro'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -314,11 +383,11 @@ $cities = $matrix['cities'] ?? [];
                                            step="0.05"
                                            min="0"
                                            max="10"
-                                           class="small-text"> €/m²
+                                           class="small-text irp-feature-input"> €/m²
                                 </td>
                                 <td>
-                                    <span class="irp-positive">
-                                        +<?php echo number_format($premium * 80, 0, ',', '.'); ?> €/Monat
+                                    <span class="irp-feature-result irp-positive">
+                                        +<?php echo number_format($premium * 70, 0, ',', '.'); ?> €/Monat
                                     </span>
                                 </td>
                             </tr>
@@ -401,6 +470,7 @@ $cities = $matrix['cities'] ?? [];
                 <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][id]" value="<?php echo esc_attr($city['id'] ?? ''); ?>">
                 <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][name]" value="<?php echo esc_attr($city['name'] ?? ''); ?>">
                 <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][base_price]" value="<?php echo esc_attr($city['base_price'] ?? 12); ?>">
+                <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][size_degression]" value="<?php echo esc_attr($city['size_degression'] ?? 0.20); ?>">
                 <input type="hidden" name="irp_price_matrix[cities][<?php echo esc_attr($index); ?>][sale_factor]" value="<?php echo esc_attr($city['sale_factor'] ?? 25); ?>">
             <?php endforeach; ?>
         <?php endif; ?>

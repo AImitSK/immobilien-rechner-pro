@@ -56,6 +56,15 @@ class IRP_Admin {
 
         add_submenu_page(
             'immobilien-rechner',
+            __('Shortcode', 'immobilien-rechner-pro'),
+            __('Shortcode', 'immobilien-rechner-pro'),
+            'manage_options',
+            'irp-shortcode',
+            [$this, 'render_shortcode_generator']
+        );
+
+        add_submenu_page(
+            'immobilien-rechner',
             __('Settings', 'immobilien-rechner-pro'),
             __('Settings', 'immobilien-rechner-pro'),
             'manage_options',
@@ -90,6 +99,7 @@ class IRP_Admin {
                     'id' => sanitize_key($city['id']),
                     'name' => sanitize_text_field($city['name']),
                     'base_price' => max(1, (float) ($city['base_price'] ?? 12)),
+                    'size_degression' => max(0, min(0.5, (float) ($city['size_degression'] ?? 0.20))),
                     'sale_factor' => max(5, (float) ($city['sale_factor'] ?? 25)),
                 ];
             }
@@ -233,6 +243,12 @@ class IRP_Admin {
     public function render_matrix(): void {
         $matrix = get_option('irp_price_matrix', $this->get_default_matrix());
         include IRP_PLUGIN_DIR . 'admin/views/matrix.php';
+    }
+
+    public function render_shortcode_generator(): void {
+        $matrix = get_option('irp_price_matrix', []);
+        $cities = $matrix['cities'] ?? [];
+        include IRP_PLUGIN_DIR . 'admin/views/shortcode-generator.php';
     }
 
     public function get_default_matrix(): array {

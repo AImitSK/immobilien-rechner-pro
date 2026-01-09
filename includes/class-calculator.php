@@ -107,6 +107,8 @@ class IRP_Calculator {
         return $this->matrix['feature_premiums'];
     }
 
+    private const REFERENCE_SIZE = 70.0; // Reference apartment size in m²
+
     /**
      * Calculate rental value estimate
      */
@@ -132,6 +134,7 @@ class IRP_Calculator {
 
         // Default values if no city configured
         $base_price = $city ? (float) $city['base_price'] : 12.00;
+        $size_degression = $city ? (float) ($city['size_degression'] ?? 0.20) : 0.20;
         $city_name = $city ? $city['name'] : __('Unbekannt', 'immobilien-rechner-pro');
 
         // Get matrix data
@@ -139,12 +142,24 @@ class IRP_Calculator {
         $type_multipliers = $this->get_type_multipliers();
         $feature_premiums = $this->get_feature_premiums();
 
-        // Apply multipliers
+        // Start with base price
         $price_per_sqm = $base_price;
+
+        // Apply size degression formula: price = base × (reference / size)^alpha
+        // This creates a smooth curve where larger apartments have lower price/m²
+        // and smaller apartments have higher price/m²
+        if ($size > 0 && $size_degression > 0) {
+            $size_factor = pow(self::REFERENCE_SIZE / $size, $size_degression);
+            $price_per_sqm *= $size_factor;
+        }
+
+        // Apply condition multiplier
         $price_per_sqm *= $condition_multipliers[$condition] ?? 1.00;
+
+        // Apply property type multiplier
         $price_per_sqm *= $type_multipliers[$property_type] ?? 1.00;
 
-        // Apply feature premiums
+        // Apply feature premiums (added after multipliers)
         foreach ($features as $feature) {
             if (isset($feature_premiums[$feature])) {
                 $price_per_sqm += $feature_premiums[$feature];
@@ -167,17 +182,6 @@ class IRP_Calculator {
                 // Pre-war buildings can be desirable (Altbau)
                 $price_per_sqm *= 1.05;
             }
-        }
-
-        // Size adjustment (smaller apartments have higher price per sqm)
-        if ($size < 40) {
-            $price_per_sqm *= 1.15;
-        } elseif ($size < 60) {
-            $price_per_sqm *= 1.08;
-        } elseif ($size > 120) {
-            $price_per_sqm *= 0.95;
-        } elseif ($size > 150) {
-            $price_per_sqm *= 0.90;
         }
 
         // Calculate monthly rent
@@ -208,6 +212,9 @@ class IRP_Calculator {
             ],
             'factors' => [
                 'base_price' => $base_price,
+                'size_degression' => $size_degression,
+                'size_factor' => $size_degression > 0 ? round(pow(self::REFERENCE_SIZE / $size, $size_degression), 3) : 1.0,
+                'reference_size' => self::REFERENCE_SIZE,
                 'condition_impact' => $condition_multipliers[$condition] ?? 1.00,
                 'type_impact' => $type_multipliers[$property_type] ?? 1.00,
                 'features_count' => count($features),
