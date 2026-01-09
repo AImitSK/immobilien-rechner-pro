@@ -1737,6 +1737,28 @@ select {
     }
 }
 
+// reCAPTCHA Notice
+.irp-recaptcha-notice {
+    text-align: center;
+    margin-top: 16px;
+    padding-top: 12px;
+
+    small {
+        font-size: 11px;
+        color: var(--irp-text-light);
+        line-height: 1.5;
+
+        a {
+            color: var(--irp-text-light);
+            text-decoration: underline;
+
+            &:hover {
+                color: var(--irp-primary);
+            }
+        }
+    }
+}
+
 // Broker Notice Banner
 .irp-broker-notice {
     display: flex;

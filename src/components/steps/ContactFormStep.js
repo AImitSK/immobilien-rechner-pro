@@ -289,6 +289,22 @@ export default function ContactFormStep({ leadId, onComplete, onBack }) {
                     <span>{__('Kostenlos & unverbindlich', 'immobilien-rechner-pro')}</span>
                 </div>
             </div>
+
+            {recaptchaSiteKey && (
+                <div className="irp-recaptcha-notice">
+                    <small>
+                        {__('Diese Seite ist durch reCAPTCHA geschützt. Es gelten die', 'immobilien-rechner-pro')}{' '}
+                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
+                            {__('Datenschutzerklärung', 'immobilien-rechner-pro')}
+                        </a>{' '}
+                        {__('und', 'immobilien-rechner-pro')}{' '}
+                        <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">
+                            {__('Nutzungsbedingungen', 'immobilien-rechner-pro')}
+                        </a>{' '}
+                        {__('von Google.', 'immobilien-rechner-pro')}
+                    </small>
+                </div>
+            )}
         </div>
     );
 }
