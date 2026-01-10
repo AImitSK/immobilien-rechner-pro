@@ -51,18 +51,11 @@ class IRP_Email {
 
         $calculation_data = $lead->calculation_data;
 
-        // Debug: Log raw calculation_data type
-        error_log('[IRP Email] Raw calculation_data type: ' . gettype($calculation_data));
-
         if (is_string($calculation_data)) {
             $calculation_data = json_decode($calculation_data, true);
-            error_log('[IRP Email] Decoded from string');
         } elseif (is_object($calculation_data)) {
-            $calculation_data = json_decode(json_encode($calculation_data), true); // Deep convert
-            error_log('[IRP Email] Converted from object');
+            $calculation_data = json_decode(json_encode($calculation_data), true);
         }
-
-        error_log('[IRP Email] Final calculation_data: ' . print_r($calculation_data, true));
 
         $lead_data = [
             'name' => $lead->name,
@@ -304,23 +297,39 @@ class IRP_Email {
             : [];
         $result = isset($calc['result']) && is_array($calc['result']) ? $calc['result'] : [];
 
-        // Debug logging
-        error_log('[IRP Email] parse_template - data keys: ' . implode(', ', array_keys($data)));
-        error_log('[IRP Email] parse_template - calc keys: ' . (is_array($calc) ? implode(', ', array_keys($calc)) : 'NOT AN ARRAY: ' . gettype($calc)));
-        error_log('[IRP Email] parse_template - city_name: ' . ($calc['city_name'] ?? 'NOT SET'));
-        error_log('[IRP Email] parse_template - property_type: ' . ($calc['property_type'] ?? 'NOT SET'));
-
-        $replacements = [
-            '{name}' => isset($data['name']) ? $data['name'] : '',
-            '{email}' => isset($data['email']) ? $data['email'] : '',
-            '{city}' => isset($calc['city_name']) ? $calc['city_name'] : '',
-            '{property_type}' => self::translate_type(isset($calc['property_type']) ? $calc['property_type'] : ''),
-            '{size}' => isset($calc['size']) ? $calc['size'] : '',
-            '{condition}' => self::translate_condition(isset($calc['condition']) ? $calc['condition'] : ''),
-            '{result_value}' => self::format_rent($result),
+        // Build replacement values
+        $values = [
+            'name' => isset($data['name']) ? $data['name'] : '',
+            'email' => isset($data['email']) ? $data['email'] : '',
+            'city' => isset($calc['city_name']) ? $calc['city_name'] : '',
+            'property_type' => self::translate_type(isset($calc['property_type']) ? $calc['property_type'] : ''),
+            'size' => isset($calc['size']) ? $calc['size'] : '',
+            'condition' => self::translate_condition(isset($calc['condition']) ? $calc['condition'] : ''),
+            'result_value' => self::format_rent($result),
         ];
 
-        return strtr($template, $replacements);
+        // Use regex to handle various placeholder formats (including HTML-wrapped ones)
+        // Matches {name}, { name }, <span>{name}</span>, etc.
+        foreach ($values as $key => $value) {
+            // Standard replacement
+            $template = str_replace('{' . $key . '}', $value, $template);
+
+            // Also try with HTML tags that wp_editor might insert
+            $template = preg_replace(
+                '/<[^>]*>?\s*\{\s*' . preg_quote($key, '/') . '\s*\}\s*<\/[^>]*>?/i',
+                $value,
+                $template
+            );
+
+            // Handle cases where only the braces have tags around them
+            $template = preg_replace(
+                '/\{\s*' . preg_quote($key, '/') . '\s*\}/i',
+                $value,
+                $template
+            );
+        }
+
+        return $template;
     }
 
     /**
