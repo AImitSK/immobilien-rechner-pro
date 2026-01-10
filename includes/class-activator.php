@@ -48,6 +48,14 @@ class IRP_Activator {
         if (!in_array('completed_at', $columns)) {
             $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN completed_at datetime DEFAULT NULL AFTER created_at");
         }
+
+        if (!in_array('email_sent', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN email_sent tinyint(1) NOT NULL DEFAULT 0 AFTER completed_at");
+        }
+
+        if (!in_array('email_sent_at', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN email_sent_at datetime DEFAULT NULL AFTER email_sent");
+        }
     }
     
     private static function create_tables(): void {
@@ -76,6 +84,8 @@ class IRP_Activator {
             source varchar(100) DEFAULT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             completed_at datetime DEFAULT NULL,
+            email_sent tinyint(1) NOT NULL DEFAULT 0,
+            email_sent_at datetime DEFAULT NULL,
             PRIMARY KEY (id),
             KEY email (email),
             KEY mode (mode),

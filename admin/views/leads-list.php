@@ -47,6 +47,9 @@ if (!defined('ABSPATH')) {
             <thead>
                 <tr>
                     <th class="column-status"><?php esc_html_e('Status', 'immobilien-rechner-pro'); ?></th>
+                    <th class="column-email-sent" title="<?php esc_attr_e('PDF-E-Mail versendet', 'immobilien-rechner-pro'); ?>">
+                        <span class="dashicons dashicons-email-alt"></span>
+                    </th>
                     <th class="column-name"><?php esc_html_e('Name', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-email"><?php esc_html_e('E-Mail', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-phone"><?php esc_html_e('Telefon', 'immobilien-rechner-pro'); ?></th>
@@ -68,6 +71,15 @@ if (!defined('ABSPATH')) {
                             <span class="irp-status-badge irp-status-<?php echo esc_attr($status); ?>">
                                 <?php echo esc_html($status_label); ?>
                             </span>
+                        </td>
+                        <td class="column-email-sent">
+                            <?php if (!empty($lead->email_sent)) : ?>
+                                <span class="dashicons dashicons-yes-alt" style="color: #00a32a;" title="<?php echo esc_attr(sprintf(__('Gesendet am %s', 'immobilien-rechner-pro'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($lead->email_sent_at)))); ?>"></span>
+                            <?php elseif ($status === 'complete') : ?>
+                                <span class="dashicons dashicons-minus" style="color: #dba617;" title="<?php esc_attr_e('Nicht gesendet', 'immobilien-rechner-pro'); ?>"></span>
+                            <?php else : ?>
+                                <span class="dashicons dashicons-minus" style="color: #ccc;" title="<?php esc_attr_e('Lead unvollständig', 'immobilien-rechner-pro'); ?>"></span>
+                            <?php endif; ?>
                         </td>
                         <td class="column-name">
                             <a href="<?php echo esc_url(admin_url('admin.php?page=irp-leads&lead=' . $lead->id)); ?>">

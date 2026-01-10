@@ -454,6 +454,9 @@ class IRP_Rest_API {
         // Send notification email to admin
         $leads->send_notification($lead_id);
 
+        // Schedule result email to lead (sent after response via shutdown function)
+        IRP_Email::schedule_after_response($lead_id);
+
         // Get updated lead with calculation data
         $updated_lead = $leads->get($lead_id);
 
