@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-vendor/
+# vendor/ is committed - contains bundled DOMPDF for PDF generation
 
 # Build output
 build/
