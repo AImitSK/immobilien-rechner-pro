@@ -79,10 +79,37 @@ class IRP_Admin {
             'sanitize_callback' => [$this, 'sanitize_settings'],
         ]);
 
+        register_setting('irp_settings_group', 'irp_email_settings', [
+            'type' => 'array',
+            'sanitize_callback' => [$this, 'sanitize_email_settings'],
+        ]);
+
         register_setting('irp_matrix_group', 'irp_price_matrix', [
             'type' => 'array',
             'sanitize_callback' => [$this, 'sanitize_price_matrix'],
         ]);
+    }
+
+    /**
+     * Sanitize email settings
+     *
+     * @param array $input Input data
+     * @return array Sanitized data
+     */
+    public function sanitize_email_settings($input) {
+        if (!is_array($input)) {
+            $input = [];
+        }
+
+        $sanitized = [];
+
+        $sanitized['enabled'] = !empty($input['enabled']);
+        $sanitized['sender_name'] = sanitize_text_field($input['sender_name'] ?? '');
+        $sanitized['sender_email'] = sanitize_email($input['sender_email'] ?? '');
+        $sanitized['subject'] = sanitize_text_field($input['subject'] ?? 'Ihre Immobilienbewertung - {property_type} in {city}');
+        $sanitized['email_content'] = wp_kses_post($input['email_content'] ?? '');
+
+        return $sanitized;
     }
 
     public function sanitize_price_matrix(array $input): array {
@@ -159,8 +186,17 @@ class IRP_Admin {
         
         $sanitized['primary_color'] = sanitize_hex_color($input['primary_color'] ?? '#2563eb');
         $sanitized['secondary_color'] = sanitize_hex_color($input['secondary_color'] ?? '#1e40af');
+
+        // Branding fields
         $sanitized['company_name'] = sanitize_text_field($input['company_name'] ?? '');
+        $sanitized['company_name_2'] = sanitize_text_field($input['company_name_2'] ?? '');
+        $sanitized['company_name_3'] = sanitize_text_field($input['company_name_3'] ?? '');
         $sanitized['company_logo'] = esc_url_raw($input['company_logo'] ?? '');
+        $sanitized['company_logo_width'] = max(50, min(300, (int) ($input['company_logo_width'] ?? 150)));
+        $sanitized['company_street'] = sanitize_text_field($input['company_street'] ?? '');
+        $sanitized['company_zip'] = sanitize_text_field($input['company_zip'] ?? '');
+        $sanitized['company_city'] = sanitize_text_field($input['company_city'] ?? '');
+        $sanitized['company_phone'] = sanitize_text_field($input['company_phone'] ?? '');
         $sanitized['company_email'] = sanitize_email($input['company_email'] ?? get_option('admin_email'));
         $sanitized['default_maintenance_rate'] = (float) ($input['default_maintenance_rate'] ?? 1.5);
         $sanitized['default_vacancy_rate'] = (float) ($input['default_vacancy_rate'] ?? 3);
