@@ -189,10 +189,17 @@ class IRP_Email {
         }
         $address = implode(', ', $address_parts);
 
+        // Check if logo is SVG (not supported in email clients)
+        $logo_url = $branding['company_logo'] ?? '';
+        if (!empty($logo_url) && self::is_svg_url($logo_url)) {
+            $logo_url = ''; // SVG not supported in email clients
+            error_log('[IRP Email] SVG logo not supported in emails - logo skipped');
+        }
+
         // Template variables
         $template_vars = [
             'content' => $content,
-            'logo_url' => $branding['company_logo'] ?? '',
+            'logo_url' => $logo_url,
             'company_name' => $branding['company_name'] ?? '',
             'company_name_2' => $branding['company_name_2'] ?? '',
             'company_name_3' => $branding['company_name_3'] ?? '',
@@ -349,6 +356,21 @@ class IRP_Email {
         }
 
         return number_format($rent, 0, ',', '.') . ' €/Monat';
+    }
+
+    /**
+     * Check if URL points to an SVG file
+     *
+     * @param string $url URL to check
+     * @return bool
+     */
+    private static function is_svg_url($url) {
+        $path = parse_url($url, PHP_URL_PATH);
+        if (!$path) {
+            return false;
+        }
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return $ext === 'svg';
     }
 
     /**

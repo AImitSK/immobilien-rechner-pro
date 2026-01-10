@@ -31,11 +31,20 @@
             mediaUploader.on('select', function() {
                 var attachment = mediaUploader.state().get('selection').first().toJSON();
                 $('#company_logo').val(attachment.url);
-                
+
                 var preview = $('.irp-logo-preview');
                 preview.html('<img src="' + attachment.url + '" alt="Logo">');
-                
+
                 $('.irp-remove-logo').show();
+
+                // Show/hide SVG warning
+                var isSvg = attachment.url.toLowerCase().endsWith('.svg') ||
+                            (attachment.mime && attachment.mime === 'image/svg+xml');
+                if (isSvg) {
+                    $('.irp-svg-warning').show();
+                } else {
+                    $('.irp-svg-warning').hide();
+                }
             });
 
             mediaUploader.open();
@@ -46,6 +55,7 @@
             $('#company_logo').val('');
             $('.irp-logo-preview').empty();
             $(this).hide();
+            $('.irp-svg-warning').hide();
         });
 
         // Range slider output update

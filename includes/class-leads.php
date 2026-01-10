@@ -190,7 +190,7 @@ class IRP_Leads {
         );
         
         if ($lead && $lead->calculation_data) {
-            $lead->calculation_data = json_decode($lead->calculation_data);
+            $lead->calculation_data = json_decode($lead->calculation_data, true);
         }
         
         return $lead;
@@ -273,7 +273,7 @@ class IRP_Leads {
         // Decode JSON data
         foreach ($results as &$lead) {
             if ($lead->calculation_data) {
-                $lead->calculation_data = json_decode($lead->calculation_data);
+                $lead->calculation_data = json_decode($lead->calculation_data, true);
             }
         }
         

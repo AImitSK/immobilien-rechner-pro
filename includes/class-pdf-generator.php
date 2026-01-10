@@ -147,10 +147,12 @@ class IRP_PDF_Generator {
         $upload_dir = wp_upload_dir();
         $logo_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $logo_url);
 
+        // Check if file exists locally
         if (!file_exists($logo_path)) {
             // Try to download if it's an external URL
             $response = wp_remote_get($logo_url, ['timeout' => 5]);
             if (is_wp_error($response)) {
+                error_log('[IRP PDF] Failed to download logo: ' . $response->get_error_message());
                 return '';
             }
             $image_data = wp_remote_retrieve_body($response);
@@ -165,7 +167,62 @@ class IRP_PDF_Generator {
             return '';
         }
 
+        // Check if it's an SVG - DOMPDF has limited SVG support
+        if (self::is_svg($logo_path, $content_type)) {
+            // Try to convert SVG to PNG if possible
+            $png_data = self::convert_svg_to_png($logo_path, $image_data);
+            if ($png_data) {
+                return 'data:image/png;base64,' . base64_encode($png_data);
+            }
+            error_log('[IRP PDF] SVG logo could not be converted - logo skipped. Please use PNG or JPG format.');
+            return '';
+        }
+
         return 'data:' . $content_type . ';base64,' . base64_encode($image_data);
+    }
+
+    /**
+     * Check if file is SVG
+     *
+     * @param string $path File path
+     * @param string $content_type MIME type
+     * @return bool
+     */
+    private static function is_svg($path, $content_type) {
+        if (strpos($content_type, 'svg') !== false) {
+            return true;
+        }
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return $ext === 'svg';
+    }
+
+    /**
+     * Try to convert SVG to PNG using Imagick or GD
+     *
+     * @param string $path File path
+     * @param string $svg_data SVG content
+     * @return string|false PNG data or false on failure
+     */
+    private static function convert_svg_to_png($path, $svg_data) {
+        // Try Imagick first (better SVG support)
+        if (extension_loaded('imagick')) {
+            try {
+                $imagick = new \Imagick();
+                $imagick->readImageBlob($svg_data);
+                $imagick->setImageFormat('png');
+                $imagick->setImageBackgroundColor('transparent');
+                $imagick->resizeImage(300, 0, \Imagick::FILTER_LANCZOS, 1);
+                $png_data = $imagick->getImageBlob();
+                $imagick->clear();
+                $imagick->destroy();
+                return $png_data;
+            } catch (\Exception $e) {
+                error_log('[IRP PDF] Imagick SVG conversion failed: ' . $e->getMessage());
+            }
+        }
+
+        // Note: GD doesn't support SVG natively
+        return false;
     }
 
     /**

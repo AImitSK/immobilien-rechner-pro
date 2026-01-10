@@ -166,6 +166,17 @@ $email_settings = get_option('irp_email_settings', []);
                             <button type="button" class="button irp-remove-logo" <?php echo empty($settings['company_logo']) ? 'style="display:none"' : ''; ?>>
                                 <?php esc_html_e('Entfernen', 'immobilien-rechner-pro'); ?>
                             </button>
+                            <?php
+                            // Show SVG warning if logo is SVG
+                            $logo_url = $settings['company_logo'] ?? '';
+                            $is_svg = !empty($logo_url) && strtolower(pathinfo(parse_url($logo_url, PHP_URL_PATH), PATHINFO_EXTENSION)) === 'svg';
+                            ?>
+                            <div class="irp-svg-warning notice notice-warning inline" <?php echo !$is_svg ? 'style="display:none;"' : ''; ?>>
+                                <p>
+                                    <strong><?php esc_html_e('Hinweis:', 'immobilien-rechner-pro'); ?></strong>
+                                    <?php esc_html_e('SVG-Logos werden in E-Mails nicht unterstützt und im PDF nur eingeschränkt. Bitte verwenden Sie PNG oder JPG für optimale Kompatibilität.', 'immobilien-rechner-pro'); ?>
+                                </p>
+                            </div>
                         </td>
                     </tr>
                     <tr>
