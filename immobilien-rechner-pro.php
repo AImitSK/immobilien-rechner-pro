@@ -56,6 +56,7 @@ final class Immobilien_Rechner_Pro {
         require_once IRP_PLUGIN_DIR . 'includes/class-calculator.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-leads.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-recaptcha.php';
+        require_once IRP_PLUGIN_DIR . 'includes/class-email.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-github-updater.php';
         require_once IRP_PLUGIN_DIR . 'admin/class-admin.php';
     }

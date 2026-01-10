@@ -392,6 +392,52 @@
             // Initial update
             updateShortcode();
         }
+
+        // =====================================================
+        // Test Email
+        // =====================================================
+
+        $('#irp-send-test-email').on('click', function() {
+            var $btn = $(this);
+            var $email = $('#irp-test-email');
+            var $result = $('#irp-test-email-result');
+            var email = $email.val();
+
+            if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                $result.removeClass('notice-success').addClass('notice-error')
+                    .html('<p>Bitte geben Sie eine gültige E-Mail-Adresse ein.</p>').show();
+                return;
+            }
+
+            $btn.prop('disabled', true).text('Sende...');
+            $result.hide();
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: 'irp_send_test_email',
+                    nonce: irpAdmin.nonce,
+                    email: email
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $result.removeClass('notice-error').addClass('notice-success')
+                            .html('<p>' + response.data.message + '</p>').show();
+                    } else {
+                        $result.removeClass('notice-success').addClass('notice-error')
+                            .html('<p>' + response.data.message + '</p>').show();
+                    }
+                },
+                error: function() {
+                    $result.removeClass('notice-success').addClass('notice-error')
+                        .html('<p>Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.</p>').show();
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).text('Test-E-Mail senden');
+                }
+            });
+        });
     });
 
 })(jQuery);

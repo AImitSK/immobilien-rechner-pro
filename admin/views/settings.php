@@ -361,6 +361,28 @@ $email_settings = get_option('irp_email_settings', []);
                 </ul>
             </div>
 
+            <div class="irp-settings-section">
+                <h2><?php esc_html_e('Test-E-Mail', 'immobilien-rechner-pro'); ?></h2>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="irp-test-email"><?php esc_html_e('E-Mail-Adresse', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <input type="email" id="irp-test-email" class="regular-text"
+                                   value="<?php echo esc_attr(get_option('admin_email')); ?>"
+                                   placeholder="ihre@email.de">
+                            <button type="button" id="irp-send-test-email" class="button button-secondary">
+                                <?php esc_html_e('Test-E-Mail senden', 'immobilien-rechner-pro'); ?>
+                            </button>
+                            <div id="irp-test-email-result" class="notice inline" style="display: none; margin-top: 10px;"></div>
+                            <p class="description"><?php esc_html_e('Sendet eine Test-E-Mail mit Beispieldaten an die angegebene Adresse.', 'immobilien-rechner-pro'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
         <?php elseif ($active_tab === 'recaptcha') : ?>
             <!-- TAB: reCAPTCHA -->
             <div class="irp-settings-section">

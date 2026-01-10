@@ -14,6 +14,7 @@ class IRP_Admin {
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
         add_action('wp_ajax_irp_export_leads', [$this, 'ajax_export_leads']);
+        add_action('wp_ajax_irp_send_test_email', [$this, 'ajax_send_test_email']);
     }
     
     public function add_admin_menu(): void {
@@ -399,6 +400,30 @@ class IRP_Admin {
         
         echo $csv;
         wp_die();
+    }
+
+    /**
+     * Send test email via AJAX
+     */
+    public function ajax_send_test_email(): void {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+        }
+
+        check_ajax_referer('irp_admin_nonce', 'nonce');
+
+        $email = sanitize_email($_POST['email'] ?? '');
+        if (!is_email($email)) {
+            wp_send_json_error(['message' => __('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'immobilien-rechner-pro')]);
+        }
+
+        $result = IRP_Email::send_test_email($email);
+
+        if ($result) {
+            wp_send_json_success(['message' => sprintf(__('Test-E-Mail wurde an %s gesendet.', 'immobilien-rechner-pro'), $email)]);
+        } else {
+            wp_send_json_error(['message' => __('E-Mail konnte nicht gesendet werden. Bitte überprüfen Sie Ihre SMTP-Einstellungen.', 'immobilien-rechner-pro')]);
+        }
     }
 
     public function get_default_location_ratings(): array {
