@@ -10,6 +10,7 @@ Professionelles WordPress-Plugin für Mietwertberechnung und Verkaufen-vs-Vermie
 - **Lage-Bewertung**: 5-stufige Lage-Bewertung mit konfigurierbaren Multiplikatoren und Google Maps Integration
 - **Lead-Generierung**: Erfassung und Verwaltung von Leads mit E-Mail-Benachrichtigungen
 - **E-Mail mit PDF**: Automatischer Versand einer professionellen Immobilienbewertung als PDF an Leads
+- **Propstack CRM Integration**: Automatische Lead-Synchronisation mit Makler-Zuweisung nach Stadt
 - **White-Label-Ready**: Vollständig anpassbares Branding (Farben, Logo, Firmeninfo, mehrzeilige Signatur)
 - **reCAPTCHA v3**: Spam-Schutz für Lead-Formulare
 - **GitHub Auto-Updater**: Automatische Updates direkt von GitHub Releases
@@ -136,6 +137,26 @@ Zentrale Konfiguration aller Berechnungsparameter:
 - **Lage-Faktoren**: 5-stufige Bewertung mit Multiplikatoren
 - **Globale Parameter**: Zinssätze, Wertsteigerung
 
+### Integrationen
+**WordPress Admin → Immo Rechner → Integrationen**
+
+Propstack CRM Integration in 3 Tabs:
+
+#### Tab: Verbindung
+- API-Key Eingabe und Speicherung
+- Verbindungstest-Button
+- Status-Anzeige (verbunden/nicht verbunden)
+
+#### Tab: Makler-Zuweisung
+- Tabelle aller konfigurierten Städte
+- Dropdown zur Makler-Zuweisung pro Stadt
+- Makler werden automatisch von Propstack API geladen
+
+#### Tab: Newsletter
+- Newsletter-spezifische Einstellungen
+- Separater Makler für Newsletter-Leads
+- Filter: Nur Leads mit Newsletter-Consent syncen
+
 ### Settings
 **WordPress Admin → Immo Rechner → Settings**
 
@@ -239,6 +260,7 @@ immobilien-rechner-pro/
 │   ├── class-github-updater.php  # Auto-Updates von GitHub
 │   ├── class-leads.php           # Lead-Verwaltung
 │   ├── class-pdf-generator.php   # PDF-Generierung mit DOMPDF
+│   ├── class-propstack.php       # Propstack CRM Integration
 │   ├── class-recaptcha.php       # reCAPTCHA v3
 │   ├── class-rest-api.php        # REST API Endpoints
 │   ├── class-shortcode.php       # Shortcode-Handler
@@ -285,6 +307,10 @@ immobilien-rechner-pro/
 | completed_at | datetime | Vervollständigt am |
 | email_sent | tinyint | E-Mail versendet |
 | email_sent_at | datetime | E-Mail versendet am |
+| propstack_id | bigint | Propstack Kontakt-ID |
+| propstack_synced | tinyint | Sync erfolgreich |
+| propstack_error | text | Fehlermeldung bei Sync |
+| propstack_synced_at | datetime | Zeitpunkt des Syncs |
 
 ---
 
@@ -301,6 +327,15 @@ immobilien-rechner-pro/
 ---
 
 ## Changelog
+
+### Version 1.3.0
+- Propstack CRM Integration
+- Neue Admin-Seite "Integrationen" mit 3 Tabs
+- Automatische Lead-Synchronisation bei Vervollständigung
+- Makler-Zuweisung nach Stadt
+- Propstack-Status in Lead-Liste und Detail-Ansicht
+- Retry-Button für fehlgeschlagene Syncs
+- 4 neue Datenbank-Spalten für Sync-Tracking
 
 ### Version 1.2.0
 - E-Mail mit PDF-Anhang an Leads
