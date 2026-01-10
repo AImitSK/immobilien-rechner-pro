@@ -14,6 +14,7 @@
  * - $city_name: City name
  * - $condition: Translated condition
  * - $location_rating: 1-5 rating
+ * - $features: Array of translated feature names
  * - $monthly_rent: Formatted rent estimate
  * - $rent_min, $rent_max: Formatted rent range
  * - $price_per_sqm: Price per square meter
@@ -42,14 +43,14 @@ if (!defined('ABSPATH')) {
 
         body {
             font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
+            font-size: 10pt;
+            line-height: 1.4;
             color: #1f2937;
             background: #ffffff;
         }
 
         .page {
-            padding: 50px;
+            padding: 25px 40px 100px 40px;
             min-height: 100%;
             position: relative;
         }
@@ -57,91 +58,83 @@ if (!defined('ABSPATH')) {
         /* Header with Logo */
         .header {
             text-align: center;
-            padding-bottom: 30px;
-            border-bottom: 3px solid <?php echo esc_attr($primary_color); ?>;
-            margin-bottom: 40px;
+            margin-bottom: 15px;
         }
 
         .logo {
             max-width: <?php echo (int) $logo_width; ?>px;
-            max-height: 80px;
-            margin-bottom: 15px;
+            max-height: 60px;
+            margin-bottom: 8px;
         }
 
         .document-title {
-            font-size: 28pt;
+            font-size: 22pt;
             font-weight: bold;
             color: <?php echo esc_attr($primary_color); ?>;
-            margin: 20px 0 10px;
+            margin: 8px 0 2px;
         }
 
         .document-subtitle {
-            font-size: 14pt;
+            font-size: 11pt;
             color: #6b7280;
         }
 
         /* Lead greeting */
         .greeting {
-            font-size: 12pt;
-            margin-bottom: 30px;
-            color: #374151;
+            font-size: 9pt;
+            margin: 15px 0;
+            color: #4b5563;
+            line-height: 1.5;
         }
 
-        /* Main result box */
+        /* Main result box - COMPACT */
         .result-container {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: #f8fafc;
             border: 2px solid <?php echo esc_attr($primary_color); ?>;
-            border-radius: 12px;
-            padding: 35px;
+            border-radius: 8px;
+            padding: 15px 20px;
             text-align: center;
-            margin: 30px 0;
+            margin: 12px 0;
         }
 
         .result-label {
-            font-size: 13pt;
+            font-size: 9pt;
             color: #6b7280;
-            margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
         }
 
         .result-value {
-            font-size: 42pt;
+            font-size: 28pt;
             font-weight: bold;
             color: <?php echo esc_attr($primary_color); ?>;
-            margin: 10px 0;
+            margin: 3px 0;
         }
 
-        .result-suffix {
-            font-size: 16pt;
+        .result-details {
+            font-size: 9pt;
             color: #6b7280;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
         }
 
-        .result-range {
-            font-size: 11pt;
-            color: #6b7280;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #cbd5e1;
-        }
-
-        .result-sqm {
-            font-size: 12pt;
-            color: #374151;
-            margin-top: 10px;
+        .result-details span {
+            margin: 0 10px;
         }
 
         /* Property details */
         .details-section {
-            margin: 35px 0;
+            margin: 15px 0 12px;
         }
 
         .section-title {
-            font-size: 14pt;
+            font-size: 11pt;
             font-weight: bold;
             color: <?php echo esc_attr($primary_color); ?>;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
             border-bottom: 2px solid #e5e7eb;
         }
 
@@ -151,7 +144,7 @@ if (!defined('ABSPATH')) {
         }
 
         .details-table tr {
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         .details-table tr:last-child {
@@ -159,13 +152,14 @@ if (!defined('ABSPATH')) {
         }
 
         .details-table td {
-            padding: 12px 0;
+            padding: 6px 0;
             vertical-align: top;
+            font-size: 9pt;
         }
 
         .details-table td:first-child {
             color: #6b7280;
-            width: 40%;
+            width: 35%;
         }
 
         .details-table td:last-child {
@@ -176,28 +170,50 @@ if (!defined('ABSPATH')) {
         /* Location rating stars */
         .rating-stars {
             color: #fbbf24;
-            font-size: 14pt;
+            font-size: 11pt;
         }
 
         .rating-stars .empty {
             color: #d1d5db;
         }
 
+        .rating-text {
+            font-size: 9pt;
+            color: #6b7280;
+            margin-left: 5px;
+        }
+
+        /* Features list */
+        .features-list {
+            display: inline;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            background: #f0f9ff;
+            color: <?php echo esc_attr($primary_color); ?>;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            margin: 1px 2px 1px 0;
+        }
+
         /* Disclaimer box */
         .disclaimer {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            border-radius: 0 8px 8px 0;
-            padding: 20px;
-            margin: 35px 0;
-            font-size: 10pt;
-            color: #92400e;
+            background: #fef9e7;
+            border-left: 3px solid #f59e0b;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 15px;
+            margin: 15px 0 0;
+            font-size: 8pt;
+            color: #78350f;
+            line-height: 1.4;
         }
 
         .disclaimer strong {
             display: block;
-            margin-bottom: 5px;
-            color: #78350f;
+            margin-bottom: 3px;
+            font-size: 9pt;
         }
 
         /* Footer */
@@ -208,27 +224,27 @@ if (!defined('ABSPATH')) {
             right: 0;
             background: #f8fafc;
             border-top: 1px solid #e5e7eb;
-            padding: 20px 50px;
+            padding: 12px 40px;
             text-align: center;
-            font-size: 9pt;
+            font-size: 8pt;
             color: #6b7280;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .footer-company {
             font-weight: bold;
             color: #374151;
-            font-size: 10pt;
+            font-size: 9pt;
         }
 
         .footer-contact {
-            margin-top: 5px;
+            margin-top: 3px;
         }
 
         .footer-date {
-            margin-top: 8px;
+            margin-top: 4px;
             color: #9ca3af;
-            font-size: 8pt;
+            font-size: 7pt;
         }
     </style>
 </head>
@@ -247,19 +263,18 @@ if (!defined('ABSPATH')) {
         <?php if (!empty($lead_name)) : ?>
             <div class="greeting">
                 Sehr geehrte/r <?php echo esc_html($lead_name); ?>,<br>
-                vielen Dank für Ihr Interesse. Nachfolgend finden Sie Ihre persönliche Immobilienbewertung.
+                vielen Dank für Ihr Interesse an unserer Immobilienbewertung. Basierend auf Ihren Angaben und aktuellen Marktdaten haben wir den voraussichtlichen Mietwert Ihrer Immobilie ermittelt. Diese Einschätzung dient als erste Orientierung und kann Ihnen bei der Einordnung des Marktpotenzials helfen.
             </div>
         <?php endif; ?>
 
-        <!-- Result Box -->
+        <!-- Result Box - COMPACT -->
         <div class="result-container">
             <div class="result-label">Geschätzte Monatsmiete</div>
             <div class="result-value"><?php echo $monthly_rent; ?></div>
-            <div class="result-range">
-                Spanne: <?php echo $rent_min; ?> – <?php echo $rent_max; ?>
-            </div>
-            <div class="result-sqm">
-                Quadratmeterpreis: <?php echo $price_per_sqm; ?>
+            <div class="result-details">
+                <span>Spanne: <?php echo $rent_min; ?> – <?php echo $rent_max; ?></span>
+                <span>·</span>
+                <span>Quadratmeterpreis: <?php echo $price_per_sqm; ?></span>
             </div>
         </div>
 
@@ -286,16 +301,24 @@ if (!defined('ABSPATH')) {
                 <tr>
                     <td>Lagebewertung</td>
                     <td>
-                        <span class="rating-stars">
-                            <?php
+                        <span class="rating-stars"><?php
                             for ($i = 1; $i <= 5; $i++) {
                                 echo $i <= $location_rating ? '★' : '<span class="empty">★</span>';
                             }
-                            ?>
-                        </span>
-                        (<?php echo $location_rating; ?> von 5)
+                        ?></span>
+                        <span class="rating-text">(<?php echo $location_rating; ?> von 5)</span>
                     </td>
                 </tr>
+                <?php if (!empty($features)) : ?>
+                <tr>
+                    <td>Ausstattung</td>
+                    <td>
+                        <?php foreach ($features as $feature) : ?>
+                            <span class="feature-tag"><?php echo esc_html($feature); ?></span>
+                        <?php endforeach; ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
             </table>
         </div>
 

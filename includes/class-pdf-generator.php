@@ -108,6 +108,7 @@ class IRP_PDF_Generator {
             'rent_min' => self::format_currency(self::get_rent_min($result)),
             'rent_max' => self::format_currency(self::get_rent_max($result)),
             'price_per_sqm' => self::format_price_per_sqm($result),
+            'features' => isset($calc['features']) ? self::translate_features($calc['features']) : [],
             'date' => date_i18n('d.m.Y'),
         ];
 
@@ -279,6 +280,38 @@ class IRP_PDF_Generator {
             'needs_renovation' => 'Renovierungsbedürftig',
         ];
         return isset($conditions[$condition]) ? $conditions[$condition] : $condition;
+    }
+
+    /**
+     * Translate features array
+     *
+     * @param array $features Feature keys
+     * @return array Translated feature names
+     */
+    private static function translate_features($features) {
+        if (!is_array($features) || empty($features)) {
+            return [];
+        }
+
+        $translations = [
+            'balcony' => 'Balkon',
+            'terrace' => 'Terrasse',
+            'garden' => 'Garten',
+            'elevator' => 'Aufzug',
+            'parking' => 'Stellplatz',
+            'garage' => 'Garage',
+            'cellar' => 'Keller',
+            'fitted_kitchen' => 'Einbauküche',
+            'floor_heating' => 'Fußbodenheizung',
+            'guest_toilet' => 'Gäste-WC',
+            'barrier_free' => 'Barrierefrei',
+        ];
+
+        $translated = [];
+        foreach ($features as $feature) {
+            $translated[] = isset($translations[$feature]) ? $translations[$feature] : $feature;
+        }
+        return $translated;
     }
 
     /**
