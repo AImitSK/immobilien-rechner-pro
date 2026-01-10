@@ -204,8 +204,9 @@ class IRP_Admin {
             true
         );
 
-        // Localize script for translations
+        // Localize script for translations and AJAX
         wp_localize_script('irp-admin', 'irpAdmin', [
+            'nonce' => wp_create_nonce('irp_admin_nonce'),
             'i18n' => [
                 'mediaTitle' => __('Logo auswählen', 'immobilien-rechner-pro'),
                 'mediaButton' => __('Dieses Bild verwenden', 'immobilien-rechner-pro'),

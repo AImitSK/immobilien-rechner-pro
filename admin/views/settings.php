@@ -268,4 +268,109 @@ if (!defined('ABSPATH')) {
 
         <?php submit_button(__('Änderungen speichern', 'immobilien-rechner-pro')); ?>
     </form>
+
+    <div class="irp-settings-section irp-update-section">
+        <h2><?php esc_html_e('Plugin-Updates', 'immobilien-rechner-pro'); ?></h2>
+
+        <table class="form-table">
+            <tr>
+                <th scope="row"><?php esc_html_e('Aktuelle Version', 'immobilien-rechner-pro'); ?></th>
+                <td>
+                    <strong id="irp-current-version"><?php echo esc_html(IRP_VERSION); ?></strong>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e('Update-Status', 'immobilien-rechner-pro'); ?></th>
+                <td>
+                    <div id="irp-update-status">
+                        <span class="irp-update-status-text"><?php esc_html_e('Klicken Sie auf "Nach Updates suchen" um den Status zu prüfen.', 'immobilien-rechner-pro'); ?></span>
+                    </div>
+                    <div id="irp-update-result" style="display: none; margin-top: 15px;">
+                        <div id="irp-update-message" class="notice inline" style="margin: 0;"></div>
+                        <div id="irp-update-actions" style="margin-top: 10px;"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"></th>
+                <td>
+                    <button type="button" id="irp-check-updates" class="button button-secondary">
+                        <span class="dashicons dashicons-update" style="margin-top: 3px;"></span>
+                        <?php esc_html_e('Nach Updates suchen', 'immobilien-rechner-pro'); ?>
+                    </button>
+                    <span id="irp-update-spinner" class="spinner" style="float: none; margin-top: 0;"></span>
+                </td>
+            </tr>
+        </table>
+
+        <div class="irp-info-box" style="margin-top: 20px;">
+            <h4><?php esc_html_e('Automatische Updates', 'immobilien-rechner-pro'); ?></h4>
+            <p><?php esc_html_e('Dieses Plugin prüft automatisch auf neue Versionen bei GitHub. Wenn ein Update verfügbar ist, erscheint eine Benachrichtigung unter Dashboard > Aktualisierungen.', 'immobilien-rechner-pro'); ?></p>
+            <p>
+                <a href="https://github.com/<?php echo esc_attr(IRP_GITHUB_REPO); ?>/releases" target="_blank" rel="noopener">
+                    <?php esc_html_e('Alle Releases auf GitHub ansehen', 'immobilien-rechner-pro'); ?> →
+                </a>
+            </p>
+        </div>
+    </div>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    $('#irp-check-updates').on('click', function() {
+        var $button = $(this);
+        var $spinner = $('#irp-update-spinner');
+        var $result = $('#irp-update-result');
+        var $message = $('#irp-update-message');
+        var $actions = $('#irp-update-actions');
+
+        $button.prop('disabled', true);
+        $spinner.addClass('is-active');
+        $result.hide();
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'irp_check_updates',
+                nonce: irpAdmin.nonce
+            },
+            success: function(response) {
+                $spinner.removeClass('is-active');
+                $button.prop('disabled', false);
+                $result.show();
+
+                if (response.success) {
+                    var data = response.data;
+
+                    if (data.update_available) {
+                        $message.removeClass('notice-info notice-success').addClass('notice-warning');
+                        $message.html('<p><strong>' + data.message + '</strong></p>');
+                        $actions.html(
+                            '<a href="' + data.download_url + '" class="button button-primary">' +
+                            '<?php esc_html_e('Jetzt aktualisieren', 'immobilien-rechner-pro'); ?>' +
+                            '</a>'
+                        );
+                    } else {
+                        $message.removeClass('notice-info notice-warning').addClass('notice-success');
+                        $message.html('<p>' + data.message + '</p>');
+                        $actions.html('');
+                    }
+                } else {
+                    $message.removeClass('notice-success notice-warning').addClass('notice-error');
+                    $message.html('<p>' + response.data.message + '</p>');
+                    $actions.html('');
+                }
+            },
+            error: function() {
+                $spinner.removeClass('is-active');
+                $button.prop('disabled', false);
+                $result.show();
+                $message.removeClass('notice-success notice-warning').addClass('notice-error');
+                $message.html('<p><?php esc_html_e('Verbindungsfehler. Bitte versuchen Sie es erneut.', 'immobilien-rechner-pro'); ?></p>');
+                $actions.html('');
+            }
+        });
+    });
+});
+</script>

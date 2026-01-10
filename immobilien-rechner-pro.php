@@ -1,17 +1,19 @@
 <?php
 /**
  * Plugin Name: Immobilien Rechner Pro
- * Plugin URI: https://example.com/immobilien-rechner-pro
- * Description: Professional real estate calculator for rental value estimation and sell vs. rent comparison. White-label solution for real estate agents.
- * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://example.com
+ * Plugin URI: https://github.com/AImitSK/immobilien-rechner-pro
+ * Description: Professionelles WordPress-Plugin für Mietwertberechnung und Verkaufen-vs-Vermieten-Vergleich. White-Label-Lösung für Immobilienmakler.
+ * Version: 1.1.0
+ * Author: Stefan Kühne
+ * Author URI: https://sk-online-marketing.de
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: immobilien-rechner-pro
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.0
+ * GitHub Plugin URI: AImitSK/immobilien-rechner-pro
+ * GitHub Branch: main
  */
 
 // Prevent direct access
@@ -20,7 +22,8 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('IRP_VERSION', '1.0.0');
+define('IRP_VERSION', '1.1.0');
+define('IRP_GITHUB_REPO', 'AImitSK/immobilien-rechner-pro');
 define('IRP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('IRP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('IRP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -53,6 +56,7 @@ final class Immobilien_Rechner_Pro {
         require_once IRP_PLUGIN_DIR . 'includes/class-calculator.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-leads.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-recaptcha.php';
+        require_once IRP_PLUGIN_DIR . 'includes/class-github-updater.php';
         require_once IRP_PLUGIN_DIR . 'admin/class-admin.php';
     }
     
@@ -76,7 +80,8 @@ final class Immobilien_Rechner_Pro {
         new IRP_Assets();
         new IRP_Shortcode();
         new IRP_Rest_API();
-        
+        new IRP_GitHub_Updater();
+
         if (is_admin()) {
             new IRP_Admin();
         }
