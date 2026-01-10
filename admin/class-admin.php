@@ -113,7 +113,10 @@ class IRP_Admin {
         return $sanitized;
     }
 
-    public function sanitize_price_matrix(array $input): array {
+    public function sanitize_price_matrix($input) {
+        if (!is_array($input)) {
+            $input = [];
+        }
         $sanitized = [];
 
         // Cities (new structure)
@@ -182,7 +185,10 @@ class IRP_Admin {
         return $sanitized;
     }
     
-    public function sanitize_settings(array $input): array {
+    public function sanitize_settings($input) {
+        if (!is_array($input)) {
+            $input = [];
+        }
         $sanitized = [];
         
         $sanitized['primary_color'] = sanitize_hex_color($input['primary_color'] ?? '#2563eb');
