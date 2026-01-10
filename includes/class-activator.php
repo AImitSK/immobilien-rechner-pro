@@ -56,6 +56,23 @@ class IRP_Activator {
         if (!in_array('email_sent_at', $columns)) {
             $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN email_sent_at datetime DEFAULT NULL AFTER email_sent");
         }
+
+        // Propstack integration fields
+        if (!in_array('propstack_id', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN propstack_id bigint(20) unsigned DEFAULT NULL AFTER email_sent_at");
+        }
+
+        if (!in_array('propstack_synced', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN propstack_synced tinyint(1) NOT NULL DEFAULT 0 AFTER propstack_id");
+        }
+
+        if (!in_array('propstack_error', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN propstack_error text DEFAULT NULL AFTER propstack_synced");
+        }
+
+        if (!in_array('propstack_synced_at', $columns)) {
+            $wpdb->query("ALTER TABLE {$leads_table} ADD COLUMN propstack_synced_at datetime DEFAULT NULL AFTER propstack_error");
+        }
     }
     
     private static function create_tables(): void {
@@ -86,6 +103,10 @@ class IRP_Activator {
             completed_at datetime DEFAULT NULL,
             email_sent tinyint(1) NOT NULL DEFAULT 0,
             email_sent_at datetime DEFAULT NULL,
+            propstack_id bigint(20) unsigned DEFAULT NULL,
+            propstack_synced tinyint(1) NOT NULL DEFAULT 0,
+            propstack_error text DEFAULT NULL,
+            propstack_synced_at datetime DEFAULT NULL,
             PRIMARY KEY (id),
             KEY email (email),
             KEY mode (mode),

@@ -457,6 +457,14 @@ class IRP_Rest_API {
         // Schedule result email to lead (sent after response via shutdown function)
         IRP_Email::schedule_after_response($lead_id);
 
+        // Sync lead to Propstack CRM
+        if (IRP_Propstack::is_enabled()) {
+            $propstack_result = IRP_Propstack::sync_lead($lead_id);
+            if (is_wp_error($propstack_result)) {
+                error_log('[IRP] Propstack sync failed: ' . $propstack_result->get_error_message());
+            }
+        }
+
         // Get updated lead with calculation data
         $updated_lead = $leads->get($lead_id);
 

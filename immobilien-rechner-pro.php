@@ -3,7 +3,7 @@
  * Plugin Name: Immobilien Rechner Pro
  * Plugin URI: https://github.com/AImitSK/immobilien-rechner-pro
  * Description: Professionelles WordPress-Plugin für Mietwertberechnung und Verkaufen-vs-Vermieten-Vergleich. White-Label-Lösung für Immobilienmakler.
- * Version: 1.2.2
+ * Version: 1.3.0
  * Author: Stefan Kühne
  * Author URI: https://sk-online-marketing.de
  * License: GPL v2 or later
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('IRP_VERSION', '1.2.2');
+define('IRP_VERSION', '1.3.0');
 define('IRP_GITHUB_REPO', 'AImitSK/immobilien-rechner-pro');
 define('IRP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('IRP_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -59,6 +59,7 @@ final class Immobilien_Rechner_Pro {
         require_once IRP_PLUGIN_DIR . 'includes/class-email.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-pdf-generator.php';
         require_once IRP_PLUGIN_DIR . 'includes/class-github-updater.php';
+        require_once IRP_PLUGIN_DIR . 'includes/class-propstack.php';
         require_once IRP_PLUGIN_DIR . 'admin/class-admin.php';
     }
     
