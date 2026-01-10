@@ -119,7 +119,7 @@ class IRP_GitHub_Updater {
                     'banners' => [],
                     'requires' => '6.0',
                     'tested' => get_bloginfo('version'),
-                    'requires_php' => '8.0',
+                    'requires_php' => '7.4',
                 ];
             }
         }
@@ -134,7 +134,7 @@ class IRP_GitHub_Updater {
         // Check for zip asset in release assets
         if (!empty($release->assets)) {
             foreach ($release->assets as $asset) {
-                if (str_ends_with($asset->name, '.zip')) {
+                if (substr($asset->name, -4) === '.zip') {
                     return $asset->browser_download_url;
                 }
             }
@@ -172,7 +172,7 @@ class IRP_GitHub_Updater {
             'homepage' => "https://github.com/{$this->github_repo}",
             'requires' => '6.0',
             'tested' => get_bloginfo('version'),
-            'requires_php' => '8.0',
+            'requires_php' => '7.4',
             'downloaded' => 0,
             'last_updated' => $release->published_at ?? '',
             'sections' => [
