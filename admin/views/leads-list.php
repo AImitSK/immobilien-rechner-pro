@@ -50,6 +50,9 @@ if (!defined('ABSPATH')) {
                     <th class="column-email-sent" title="<?php esc_attr_e('PDF-E-Mail versendet', 'immobilien-rechner-pro'); ?>">
                         <span class="dashicons dashicons-email-alt"></span>
                     </th>
+                    <th class="column-propstack" title="<?php esc_attr_e('Propstack CRM Sync', 'immobilien-rechner-pro'); ?>">
+                        <span class="dashicons dashicons-cloud-upload"></span>
+                    </th>
                     <th class="column-name"><?php esc_html_e('Name', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-email"><?php esc_html_e('E-Mail', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-phone"><?php esc_html_e('Telefon', 'immobilien-rechner-pro'); ?></th>
@@ -79,6 +82,23 @@ if (!defined('ABSPATH')) {
                                 <span class="dashicons dashicons-minus" style="color: #dba617;" title="<?php esc_attr_e('Nicht gesendet', 'immobilien-rechner-pro'); ?>"></span>
                             <?php else : ?>
                                 <span class="dashicons dashicons-minus" style="color: #ccc;" title="<?php esc_attr_e('Lead unvollständig', 'immobilien-rechner-pro'); ?>"></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="column-propstack">
+                            <?php
+                            $propstack_status = IRP_Propstack::get_sync_status($lead);
+                            ?>
+                            <?php if ($propstack_status['status'] === 'synced') : ?>
+                                <span class="dashicons dashicons-yes-alt" style="color: #00a32a;" title="<?php echo esc_attr($propstack_status['label']); ?>"></span>
+                            <?php elseif ($propstack_status['status'] === 'error') : ?>
+                                <span class="dashicons dashicons-warning" style="color: #d63638; cursor: pointer;"
+                                      title="<?php echo esc_attr($propstack_status['label']); ?>"
+                                      data-lead-id="<?php echo esc_attr($lead->id); ?>"
+                                      class="propstack-retry-trigger"></span>
+                            <?php elseif ($propstack_status['status'] === 'disabled') : ?>
+                                <span class="dashicons dashicons-minus" style="color: #ccc;" title="<?php echo esc_attr($propstack_status['label']); ?>"></span>
+                            <?php else : ?>
+                                <span class="dashicons dashicons-clock" style="color: #dba617;" title="<?php echo esc_attr($propstack_status['label']); ?>"></span>
                             <?php endif; ?>
                         </td>
                         <td class="column-name">
@@ -168,6 +188,7 @@ if (!defined('ABSPATH')) {
 
 <script>
 jQuery(function($) {
+    // CSV Export
     $('.irp-export-btn').on('click', function() {
         var params = new URLSearchParams(window.location.search);
         var form = $('<form method="post" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>">');
@@ -176,5 +197,60 @@ jQuery(function($) {
         form.append('<input type="hidden" name="mode" value="' + (params.get('mode') || '') + '">');
         form.appendTo('body').submit().remove();
     });
+
+    // Propstack Retry
+    $('.propstack-retry-trigger').on('click', function() {
+        var $icon = $(this);
+        var leadId = $icon.data('lead-id');
+
+        if (!confirm('<?php echo esc_js(__('Lead erneut zu Propstack senden?', 'immobilien-rechner-pro')); ?>')) {
+            return;
+        }
+
+        // Show loading
+        $icon.removeClass('dashicons-warning').addClass('dashicons-update spin');
+
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'irp_propstack_sync_lead',
+                nonce: irpAdmin.nonce,
+                lead_id: leadId
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Change to success icon
+                    $icon.removeClass('dashicons-update spin')
+                         .addClass('dashicons-yes-alt')
+                         .css('color', '#00a32a')
+                         .attr('title', response.data.message)
+                         .off('click');
+                } else {
+                    // Change back to error icon
+                    $icon.removeClass('dashicons-update spin')
+                         .addClass('dashicons-warning')
+                         .attr('title', response.data.message);
+                    alert(response.data.message);
+                }
+            },
+            error: function() {
+                $icon.removeClass('dashicons-update spin').addClass('dashicons-warning');
+                alert('<?php echo esc_js(__('Verbindungsfehler', 'immobilien-rechner-pro')); ?>');
+            }
+        });
+    });
 });
 </script>
+<style>
+.dashicons.spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+.column-propstack {
+    width: 40px;
+    text-align: center;
+}
+</style>

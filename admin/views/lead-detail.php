@@ -114,6 +114,50 @@ $type_labels = [
                     </tr>
                 </table>
             </div>
+
+            <?php
+            $propstack_status = IRP_Propstack::get_sync_status($lead);
+            ?>
+            <div class="irp-panel">
+                <h3>
+                    <span class="dashicons dashicons-cloud-upload"></span>
+                    <?php esc_html_e('Propstack CRM', 'immobilien-rechner-pro'); ?>
+                </h3>
+                <table class="irp-detail-table">
+                    <tr>
+                        <th><?php esc_html_e('Status', 'immobilien-rechner-pro'); ?></th>
+                        <td>
+                            <span class="<?php echo esc_attr($propstack_status['class']); ?>">
+                                <?php echo esc_html($propstack_status['icon'] . ' ' . $propstack_status['label']); ?>
+                            </span>
+                        </td>
+                    </tr>
+                    <?php if (!empty($lead->propstack_id)) : ?>
+                    <tr>
+                        <th><?php esc_html_e('Propstack ID', 'immobilien-rechner-pro'); ?></th>
+                        <td><?php echo esc_html($lead->propstack_id); ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if (!empty($lead->propstack_synced_at)) : ?>
+                    <tr>
+                        <th><?php esc_html_e('Synchronisiert am', 'immobilien-rechner-pro'); ?></th>
+                        <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($lead->propstack_synced_at))); ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if ($propstack_status['status'] === 'error') : ?>
+                    <tr>
+                        <th><?php esc_html_e('Aktion', 'immobilien-rechner-pro'); ?></th>
+                        <td>
+                            <button type="button" class="button button-secondary" id="propstack-retry-btn" data-lead-id="<?php echo esc_attr($lead->id); ?>">
+                                <span class="dashicons dashicons-update"></span>
+                                <?php esc_html_e('Erneut versuchen', 'immobilien-rechner-pro'); ?>
+                            </button>
+                            <span id="propstack-retry-result"></span>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
         </div>
 
         <?php if ($lead->calculation_data) : ?>
@@ -136,3 +180,57 @@ $type_labels = [
         </div>
     </div>
 </div>
+
+<script>
+jQuery(function($) {
+    $('#propstack-retry-btn').on('click', function() {
+        var $btn = $(this);
+        var $result = $('#propstack-retry-result');
+        var leadId = $btn.data('lead-id');
+
+        $btn.prop('disabled', true);
+        $btn.find('.dashicons').addClass('spin');
+        $result.html('<span class="spinner is-active" style="float: none;"></span>');
+
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'irp_propstack_sync_lead',
+                nonce: irpAdmin.nonce,
+                lead_id: leadId
+            },
+            success: function(response) {
+                if (response.success) {
+                    $result.html('<span style="color: #00a32a;">' + response.data.message + '</span>');
+                    // Reload page to show updated status
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    $result.html('<span style="color: #d63638;">' + response.data.message + '</span>');
+                    $btn.prop('disabled', false);
+                    $btn.find('.dashicons').removeClass('spin');
+                }
+            },
+            error: function() {
+                $result.html('<span style="color: #d63638;"><?php echo esc_js(__('Verbindungsfehler', 'immobilien-rechner-pro')); ?></span>');
+                $btn.prop('disabled', false);
+                $btn.find('.dashicons').removeClass('spin');
+            }
+        });
+    });
+});
+</script>
+<style>
+.dashicons.spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+.irp-status-success { color: #00a32a; }
+.irp-status-error { color: #d63638; }
+.irp-status-pending { color: #dba617; }
+.irp-status-disabled { color: #8c8f94; }
+</style>

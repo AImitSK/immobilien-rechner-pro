@@ -15,6 +15,9 @@ class IRP_Admin {
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
         add_action('wp_ajax_irp_export_leads', [$this, 'ajax_export_leads']);
         add_action('wp_ajax_irp_send_test_email', [$this, 'ajax_send_test_email']);
+        add_action('wp_ajax_irp_propstack_test', [$this, 'ajax_propstack_test']);
+        add_action('wp_ajax_irp_propstack_save', [$this, 'ajax_propstack_save']);
+        add_action('wp_ajax_irp_propstack_sync_lead', [$this, 'ajax_propstack_sync_lead']);
     }
     
     public function add_admin_menu(): void {
@@ -71,6 +74,15 @@ class IRP_Admin {
             'manage_options',
             'irp-settings',
             [$this, 'render_settings']
+        );
+
+        add_submenu_page(
+            'immobilien-rechner',
+            __('Integrationen', 'immobilien-rechner-pro'),
+            __('Integrationen', 'immobilien-rechner-pro'),
+            'manage_options',
+            'irp-integrations',
+            [$this, 'render_integrations']
         );
     }
     
@@ -516,5 +528,103 @@ class IRP_Admin {
                 'description' => "Beste Verkehrsanbindung\nExklusive Nachbarschaft\nTop-Infrastruktur und Freizeitmöglichkeiten\nBesondere Lagevorteile (Seenähe, Altstadt, Villenviertel)",
             ],
         ];
+    }
+
+    /**
+     * Render integrations page
+     */
+    public function render_integrations(): void {
+        $propstack_settings = get_option('irp_propstack_settings', []);
+        $matrix = get_option('irp_price_matrix', []);
+        $cities = $matrix['cities'] ?? [];
+
+        include IRP_PLUGIN_DIR . 'admin/views/integrations.php';
+    }
+
+    /**
+     * Test Propstack connection via AJAX
+     */
+    public function ajax_propstack_test(): void {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+        }
+
+        check_ajax_referer('irp_admin_nonce', 'nonce');
+
+        $api_key = sanitize_text_field($_POST['api_key'] ?? '');
+
+        $result = IRP_Propstack::test_connection($api_key);
+
+        if ($result['success']) {
+            wp_send_json_success([
+                'message' => $result['message'],
+                'brokers' => $result['brokers'] ?? [],
+            ]);
+        } else {
+            wp_send_json_error(['message' => $result['message']]);
+        }
+    }
+
+    /**
+     * Save Propstack settings via AJAX
+     */
+    public function ajax_propstack_save(): void {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+        }
+
+        check_ajax_referer('irp_admin_nonce', 'nonce');
+
+        // Get existing settings to preserve values not being updated
+        $existing = get_option('irp_propstack_settings', []);
+
+        $settings = [
+            'enabled' => !empty($_POST['enabled']),
+            'api_key' => sanitize_text_field($_POST['api_key'] ?? $existing['api_key'] ?? ''),
+            'city_broker_mapping' => $existing['city_broker_mapping'] ?? [],
+            'newsletter_broker_id' => sanitize_text_field($_POST['newsletter_broker_id'] ?? $existing['newsletter_broker_id'] ?? ''),
+            'sync_newsletter_only' => !empty($_POST['sync_newsletter_only']),
+        ];
+
+        // Process broker mapping
+        if (!empty($_POST['broker_mapping']) && is_array($_POST['broker_mapping'])) {
+            $settings['city_broker_mapping'] = [];
+            foreach ($_POST['broker_mapping'] as $city_id => $broker_id) {
+                if (!empty($broker_id)) {
+                    $settings['city_broker_mapping'][sanitize_key($city_id)] = (int) $broker_id;
+                }
+            }
+        }
+
+        update_option('irp_propstack_settings', $settings);
+
+        wp_send_json_success(['message' => __('Einstellungen wurden gespeichert.', 'immobilien-rechner-pro')]);
+    }
+
+    /**
+     * Sync a single lead to Propstack via AJAX
+     */
+    public function ajax_propstack_sync_lead(): void {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+        }
+
+        check_ajax_referer('irp_admin_nonce', 'nonce');
+
+        $lead_id = (int) ($_POST['lead_id'] ?? 0);
+        if (!$lead_id) {
+            wp_send_json_error(['message' => __('Ungültige Lead-ID.', 'immobilien-rechner-pro')]);
+        }
+
+        $result = IRP_Propstack::sync_lead($lead_id);
+
+        if ($result['success']) {
+            wp_send_json_success([
+                'message' => $result['message'],
+                'propstack_id' => $result['propstack_id'] ?? null,
+            ]);
+        } else {
+            wp_send_json_error(['message' => $result['message']]);
+        }
     }
 }
