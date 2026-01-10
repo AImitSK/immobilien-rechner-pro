@@ -18,8 +18,11 @@ class IRP_Leads {
     
     /**
      * Create a new lead
+     *
+     * @param array $data Lead data
+     * @return int|\WP_Error Lead ID on success, WP_Error on failure
      */
-    public function create(array $data): int|\WP_Error {
+    public function create(array $data) {
         global $wpdb;
         
         // Validate email
@@ -56,8 +59,11 @@ class IRP_Leads {
 
     /**
      * Create a partial lead (property data only, no contact info)
+     *
+     * @param array $data Lead data
+     * @return int|\WP_Error Lead ID on success, WP_Error on failure
      */
-    public function create_partial(array $data): int|\WP_Error {
+    public function create_partial(array $data) {
         global $wpdb;
 
         error_log('[IRP Leads] create_partial called');
@@ -105,8 +111,12 @@ class IRP_Leads {
 
     /**
      * Complete a partial lead (add contact info)
+     *
+     * @param int $lead_id Lead ID
+     * @param array $data Contact data
+     * @return bool|\WP_Error True on success, WP_Error on failure
      */
-    public function complete(int $lead_id, array $data): bool|\WP_Error {
+    public function complete(int $lead_id, array $data) {
         global $wpdb;
 
         // Validate email

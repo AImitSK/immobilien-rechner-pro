@@ -11,7 +11,7 @@
  * Text Domain: immobilien-rechner-pro
  * Domain Path: /languages
  * Requires at least: 6.0
- * Requires PHP: 8.0
+ * Requires PHP: 7.4
  * GitHub Plugin URI: AImitSK/immobilien-rechner-pro
  * GitHub Branch: main
  */
