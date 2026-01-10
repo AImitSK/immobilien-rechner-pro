@@ -147,9 +147,8 @@ class IRP_Propstack {
      * @return array|WP_Error List of brokers or error
      */
     public static function get_brokers() {
-        // Check if we should use mock data (no API key set)
         if (empty(self::get_api_key())) {
-            return self::get_mock_brokers();
+            return [];
         }
 
         $result = self::api_request('/brokers');
@@ -176,30 +175,13 @@ class IRP_Propstack {
     }
 
     /**
-     * Get mock brokers for testing without API key
-     *
-     * @return array
-     */
-    private static function get_mock_brokers(): array {
-        return [
-            ['id' => 1, 'name' => 'Max Mustermann (Demo)', 'email' => 'max@demo.de'],
-            ['id' => 2, 'name' => 'Anna Schmidt (Demo)', 'email' => 'anna@demo.de'],
-            ['id' => 3, 'name' => 'Tom Weber (Demo)', 'email' => 'tom@demo.de'],
-            ['id' => 4, 'name' => 'Lisa Müller (Demo)', 'email' => 'lisa@demo.de'],
-        ];
-    }
-
-    /**
      * Get contact sources from Propstack
      *
      * @return array|WP_Error List of contact sources or error
      */
     public static function get_contact_sources() {
         if (empty(self::get_api_key())) {
-            return [
-                ['id' => 1, 'name' => 'Website (Demo)'],
-                ['id' => 2, 'name' => 'Immobilien-Rechner (Demo)'],
-            ];
+            return [];
         }
 
         $result = self::api_request('/contact_sources');

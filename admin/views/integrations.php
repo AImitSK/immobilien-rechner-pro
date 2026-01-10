@@ -115,15 +115,6 @@ $is_connected = !empty($api_key) && !empty($brokers);
                     </button>
                 </p>
 
-                <!-- Demo Mode Notice -->
-                <?php if (empty($api_key)): ?>
-                <div class="notice notice-info" style="margin-top: 20px;">
-                    <p>
-                        <strong><?php esc_html_e('Demo-Modus:', 'immobilien-rechner-pro'); ?></strong>
-                        <?php esc_html_e('Ohne API Key werden Demo-Daten verwendet. Die Makler-Zuweisung kann trotzdem konfiguriert werden.', 'immobilien-rechner-pro'); ?>
-                    </p>
-                </div>
-                <?php endif; ?>
             </div>
 
         <?php elseif ($active_tab === 'broker-mapping'): ?>
@@ -199,14 +190,6 @@ $is_connected = !empty($api_key) && !empty($brokers);
                         </button>
                     </p>
 
-                    <?php if (empty($api_key)): ?>
-                    <div class="notice notice-info" style="margin-top: 20px;">
-                        <p>
-                            <span class="dashicons dashicons-info"></span>
-                            <?php esc_html_e('Demo-Modus: Es werden Test-Makler angezeigt. Verbinden Sie Propstack für echte Daten.', 'immobilien-rechner-pro'); ?>
-                        </p>
-                    </div>
-                    <?php endif; ?>
                 <?php endif; ?>
             </div>
 
