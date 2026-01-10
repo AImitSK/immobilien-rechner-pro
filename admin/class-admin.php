@@ -98,17 +98,20 @@ class IRP_Admin {
      * @return array Sanitized data
      */
     public function sanitize_email_settings($input) {
-        if (!is_array($input)) {
-            $input = [];
+        // If no input or empty, return existing settings (prevents overwriting from other tabs)
+        if (!is_array($input) || empty($input)) {
+            return get_option('irp_email_settings', []);
         }
 
+        // Merge with existing settings
+        $existing = get_option('irp_email_settings', []);
         $sanitized = [];
 
-        $sanitized['enabled'] = !empty($input['enabled']);
-        $sanitized['sender_name'] = sanitize_text_field($input['sender_name'] ?? '');
-        $sanitized['sender_email'] = sanitize_email($input['sender_email'] ?? '');
-        $sanitized['subject'] = sanitize_text_field($input['subject'] ?? 'Ihre Immobilienbewertung - {property_type} in {city}');
-        $sanitized['email_content'] = wp_kses_post($input['email_content'] ?? '');
+        $sanitized['enabled'] = isset($input['enabled']) ? !empty($input['enabled']) : ($existing['enabled'] ?? false);
+        $sanitized['sender_name'] = isset($input['sender_name']) ? sanitize_text_field($input['sender_name']) : ($existing['sender_name'] ?? '');
+        $sanitized['sender_email'] = isset($input['sender_email']) ? sanitize_email($input['sender_email']) : ($existing['sender_email'] ?? '');
+        $sanitized['subject'] = isset($input['subject']) ? sanitize_text_field($input['subject']) : ($existing['subject'] ?? 'Ihre Immobilienbewertung - {property_type} in {city}');
+        $sanitized['email_content'] = isset($input['email_content']) ? wp_kses_post($input['email_content']) : ($existing['email_content'] ?? '');
 
         return $sanitized;
     }
@@ -186,43 +189,96 @@ class IRP_Admin {
     }
     
     public function sanitize_settings($input) {
-        if (!is_array($input)) {
-            $input = [];
+        // If no input or empty, return existing settings (prevents overwriting from other tabs)
+        if (!is_array($input) || empty($input)) {
+            return get_option('irp_settings', []);
         }
-        $sanitized = [];
-        
-        $sanitized['primary_color'] = sanitize_hex_color($input['primary_color'] ?? '#2563eb');
-        $sanitized['secondary_color'] = sanitize_hex_color($input['secondary_color'] ?? '#1e40af');
 
-        // Branding fields
-        $sanitized['company_name'] = sanitize_text_field($input['company_name'] ?? '');
-        $sanitized['company_name_2'] = sanitize_text_field($input['company_name_2'] ?? '');
-        $sanitized['company_name_3'] = sanitize_text_field($input['company_name_3'] ?? '');
-        $sanitized['company_logo'] = esc_url_raw($input['company_logo'] ?? '');
-        $sanitized['company_logo_width'] = max(50, min(300, (int) ($input['company_logo_width'] ?? 150)));
-        $sanitized['company_street'] = sanitize_text_field($input['company_street'] ?? '');
-        $sanitized['company_zip'] = sanitize_text_field($input['company_zip'] ?? '');
-        $sanitized['company_city'] = sanitize_text_field($input['company_city'] ?? '');
-        $sanitized['company_phone'] = sanitize_text_field($input['company_phone'] ?? '');
-        $sanitized['company_email'] = sanitize_email($input['company_email'] ?? get_option('admin_email'));
-        $sanitized['default_maintenance_rate'] = (float) ($input['default_maintenance_rate'] ?? 1.5);
-        $sanitized['default_vacancy_rate'] = (float) ($input['default_vacancy_rate'] ?? 3);
-        $sanitized['default_broker_commission'] = (float) ($input['default_broker_commission'] ?? 3.57);
-        $sanitized['enable_pdf_export'] = !empty($input['enable_pdf_export']);
-        $sanitized['require_consent'] = !empty($input['require_consent']);
-        $sanitized['privacy_policy_url'] = esc_url_raw($input['privacy_policy_url'] ?? '');
+        // Merge with existing settings
+        $existing = get_option('irp_settings', []);
+        $sanitized = $existing; // Start with existing values
+
+        // Only update fields that were actually submitted
+        if (isset($input['primary_color'])) {
+            $sanitized['primary_color'] = sanitize_hex_color($input['primary_color']) ?: '#2563eb';
+        }
+        if (isset($input['secondary_color'])) {
+            $sanitized['secondary_color'] = sanitize_hex_color($input['secondary_color']) ?: '#1e40af';
+        }
+
+        // Branding fields - only update if submitted
+        if (array_key_exists('company_name', $input)) {
+            $sanitized['company_name'] = sanitize_text_field($input['company_name']);
+        }
+        if (array_key_exists('company_name_2', $input)) {
+            $sanitized['company_name_2'] = sanitize_text_field($input['company_name_2']);
+        }
+        if (array_key_exists('company_name_3', $input)) {
+            $sanitized['company_name_3'] = sanitize_text_field($input['company_name_3']);
+        }
+        if (array_key_exists('company_logo', $input)) {
+            $sanitized['company_logo'] = esc_url_raw($input['company_logo']);
+        }
+        if (array_key_exists('company_logo_width', $input)) {
+            $sanitized['company_logo_width'] = max(50, min(300, (int) $input['company_logo_width']));
+        }
+        if (array_key_exists('company_street', $input)) {
+            $sanitized['company_street'] = sanitize_text_field($input['company_street']);
+        }
+        if (array_key_exists('company_zip', $input)) {
+            $sanitized['company_zip'] = sanitize_text_field($input['company_zip']);
+        }
+        if (array_key_exists('company_city', $input)) {
+            $sanitized['company_city'] = sanitize_text_field($input['company_city']);
+        }
+        if (array_key_exists('company_phone', $input)) {
+            $sanitized['company_phone'] = sanitize_text_field($input['company_phone']);
+        }
+        if (array_key_exists('company_email', $input)) {
+            $sanitized['company_email'] = sanitize_email($input['company_email']);
+        }
+
+        // Calculator defaults - only update if submitted
+        if (array_key_exists('default_maintenance_rate', $input)) {
+            $sanitized['default_maintenance_rate'] = (float) $input['default_maintenance_rate'];
+        }
+        if (array_key_exists('default_vacancy_rate', $input)) {
+            $sanitized['default_vacancy_rate'] = (float) $input['default_vacancy_rate'];
+        }
+        if (array_key_exists('default_broker_commission', $input)) {
+            $sanitized['default_broker_commission'] = (float) $input['default_broker_commission'];
+        }
+        if (array_key_exists('calculator_max_width', $input)) {
+            $sanitized['calculator_max_width'] = max(680, min(1200, (int) $input['calculator_max_width']));
+        }
+
+        // Checkboxes need special handling - only process if form section was submitted
+        // We detect this by checking if any field from that section exists
+        if (array_key_exists('primary_color', $input) || array_key_exists('calculator_max_width', $input)) {
+            // General tab was submitted
+            $sanitized['enable_pdf_export'] = !empty($input['enable_pdf_export']);
+            $sanitized['require_consent'] = !empty($input['require_consent']);
+        }
+        if (array_key_exists('privacy_policy_url', $input)) {
+            $sanitized['privacy_policy_url'] = esc_url_raw($input['privacy_policy_url']);
+        }
 
         // Google Maps settings
-        $sanitized['google_maps_api_key'] = sanitize_text_field($input['google_maps_api_key'] ?? '');
-        $sanitized['show_map_in_location_step'] = !empty($input['show_map_in_location_step']);
-
-        // Display settings
-        $sanitized['calculator_max_width'] = max(680, min(1200, (int) ($input['calculator_max_width'] ?? 680)));
+        if (array_key_exists('google_maps_api_key', $input)) {
+            $sanitized['google_maps_api_key'] = sanitize_text_field($input['google_maps_api_key']);
+            $sanitized['show_map_in_location_step'] = !empty($input['show_map_in_location_step']);
+        }
 
         // reCAPTCHA settings
-        $sanitized['recaptcha_site_key'] = sanitize_text_field($input['recaptcha_site_key'] ?? '');
-        $sanitized['recaptcha_secret_key'] = sanitize_text_field($input['recaptcha_secret_key'] ?? '');
-        $sanitized['recaptcha_threshold'] = max(0, min(1, (float) ($input['recaptcha_threshold'] ?? 0.5)));
+        if (array_key_exists('recaptcha_site_key', $input)) {
+            $sanitized['recaptcha_site_key'] = sanitize_text_field($input['recaptcha_site_key']);
+        }
+        if (array_key_exists('recaptcha_secret_key', $input)) {
+            $sanitized['recaptcha_secret_key'] = sanitize_text_field($input['recaptcha_secret_key']);
+        }
+        if (array_key_exists('recaptcha_threshold', $input)) {
+            $sanitized['recaptcha_threshold'] = max(0, min(1, (float) $input['recaptcha_threshold']));
+        }
 
         return $sanitized;
     }
