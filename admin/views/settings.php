@@ -350,7 +350,12 @@ $email_settings = get_option('irp_email_settings', []);
                                 'textarea_rows' => 10,
                                 'media_buttons' => false,
                                 'teeny' => true,
-                                'quicktags' => false,
+                                'quicktags' => true,
+                                'tinymce' => [
+                                    'entity_encoding' => 'raw',
+                                    'entities' => '',
+                                    'verify_html' => false,
+                                ],
                             ]);
                             ?>
                             <p class="description" style="margin-top: 10px;">

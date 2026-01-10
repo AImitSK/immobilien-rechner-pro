@@ -308,25 +308,19 @@ class IRP_Email {
             'result_value' => self::format_rent($result),
         ];
 
-        // Use regex to handle various placeholder formats (including HTML-wrapped ones)
-        // Matches {name}, { name }, <span>{name}</span>, etc.
+        // First: Decode HTML entities that wp_editor might have created
+        // &#123; = { and &#125; = }
+        $template = str_replace(['&#123;', '&#125;'], ['{', '}'], $template);
+        $template = str_replace(['&lcub;', '&rcub;'], ['{', '}'], $template);
+        $template = html_entity_decode($template, ENT_QUOTES, 'UTF-8');
+
+        // Replace placeholders
         foreach ($values as $key => $value) {
-            // Standard replacement
+            // Standard replacement {placeholder}
             $template = str_replace('{' . $key . '}', $value, $template);
 
-            // Also try with HTML tags that wp_editor might insert
-            $template = preg_replace(
-                '/<[^>]*>?\s*\{\s*' . preg_quote($key, '/') . '\s*\}\s*<\/[^>]*>?/i',
-                $value,
-                $template
-            );
-
-            // Handle cases where only the braces have tags around them
-            $template = preg_replace(
-                '/\{\s*' . preg_quote($key, '/') . '\s*\}/i',
-                $value,
-                $template
-            );
+            // With spaces { placeholder }
+            $template = preg_replace('/\{\s*' . preg_quote($key, '/') . '\s*\}/i', $value, $template);
         }
 
         return $template;
