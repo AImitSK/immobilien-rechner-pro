@@ -50,8 +50,7 @@ if (!defined('ABSPATH')) {
         }
 
         .page {
-            padding: 25px 40px 20px 40px;
-            position: relative;
+            padding: 25px 40px 70px 40px;
         }
 
         /* Header with Logo */
@@ -217,14 +216,17 @@ if (!defined('ABSPATH')) {
 
         /* Footer */
         .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: #f8fafc;
             border-top: 1px solid #e5e7eb;
-            padding: 15px 0;
-            margin: 20px -40px 0 -40px;
+            padding: 10px 40px;
             text-align: center;
             font-size: 8pt;
             color: #6b7280;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .footer-company {
@@ -323,9 +325,10 @@ if (!defined('ABSPATH')) {
             <strong>Wichtiger Hinweis</strong>
             <?php echo esc_html($disclaimer); ?>
         </div>
+    </div>
 
-        <!-- Footer -->
-        <div class="footer">
+    <!-- Footer (outside .page for fixed positioning) -->
+    <div class="footer">
         <div class="footer-company">
             <?php echo esc_html($company_name); ?>
             <?php if (!empty($company_name_2)) : ?>
@@ -352,7 +355,6 @@ if (!defined('ABSPATH')) {
         </div>
         <div class="footer-date">
             Erstellt am <?php echo esc_html($date); ?>
-        </div>
         </div>
     </div>
 </body>
