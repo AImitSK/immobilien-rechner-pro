@@ -269,6 +269,7 @@ export default function App({ config }) {
                                 results={results}
                                 onStartOver={handleStartOver}
                                 showBrokerNotice={true}
+                                leadId={leadId}
                             />
                         </motion.div>
                     )}

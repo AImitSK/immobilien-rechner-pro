@@ -3,12 +3,13 @@
  * Using ApexCharts for beautiful visualizations
  */
 
-import { useMemo } from '@wordpress/element';
+import { useMemo, useEffect, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
 import Chart from 'react-apexcharts';
 
 import RentalGauge from './RentalGauge';
+import { trackCompleteLead } from '../utils/tracking';
 
 export default function ResultsDisplay({
     mode,
@@ -16,8 +17,23 @@ export default function ResultsDisplay({
     results,
     onStartOver,
     showBrokerNotice = false,
+    leadId = null,
 }) {
     const settings = window.irpSettings?.settings || {};
+    const hasTracked = useRef(false);
+
+    // Track complete lead conversion when results are displayed
+    useEffect(() => {
+        if (!hasTracked.current && showBrokerNotice) {
+            hasTracked.current = true;
+            trackCompleteLead({
+                mode: mode,
+                city: formData?.city_name || '',
+                propertyType: formData?.property_type || '',
+                leadId: leadId,
+            });
+        }
+    }, [mode, formData, leadId, showBrokerNotice]);
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('de-DE', {
