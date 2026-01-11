@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
 import apiFetch from '@wordpress/api-fetch';
+import { trackCompleteLead } from '../../utils/tracking';
 
 export default function ContactFormStep({ leadId, onComplete, onBack }) {
     const settings = window.irpSettings?.settings || {};
@@ -125,6 +126,11 @@ export default function ContactFormStep({ leadId, onComplete, onBack }) {
             });
 
             if (response.success) {
+                // Track complete lead conversion
+                trackCompleteLead({
+                    leadId: leadId,
+                });
+
                 onComplete(response.calculation_data);
             } else {
                 setSubmitError(response.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));

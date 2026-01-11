@@ -11,6 +11,7 @@ Professionelles WordPress-Plugin für Mietwertberechnung und Verkaufen-vs-Vermie
 - **Lead-Generierung**: Erfassung und Verwaltung von Leads mit E-Mail-Benachrichtigungen
 - **E-Mail mit PDF**: Automatischer Versand einer professionellen Immobilienbewertung als PDF an Leads
 - **Propstack CRM Integration**: Automatische Lead-Synchronisation mit Makler-Zuweisung nach Stadt
+- **Google Ads Conversion Tracking**: Zwei Conversions (Anfrage gestartet/abgeschlossen) + DataLayer Events für GTM
 - **White-Label-Ready**: Vollständig anpassbares Branding (Farben, Logo, Firmeninfo, mehrzeilige Signatur)
 - **reCAPTCHA v3**: Spam-Schutz für Lead-Formulare
 - **GitHub Auto-Updater**: Automatische Updates direkt von GitHub Releases
@@ -188,6 +189,12 @@ Einstellungen in 5 Tabs organisiert:
 - API Key für Karten und Autocomplete
 - Karte im Lage-Step anzeigen
 
+#### Tab: Tracking
+- Google Ads Conversion-ID (Format: AW-XXXXXXXXX)
+- Conversion-Label für "Anfrage gestartet" (Berechnung durchgeführt)
+- Conversion-Label für "Anfrage abgeschlossen" (Kontaktformular gesendet)
+- DataLayer Events für Google Tag Manager (automatisch)
+
 ---
 
 ## E-Mail & PDF Feature
@@ -276,6 +283,10 @@ immobilien-rechner-pro/
 │   ├── php-font-lib/
 │   └── php-svg-lib/
 ├── src/                           # React-Source (Entwicklung)
+│   ├── components/               # React-Komponenten
+│   └── utils/
+│       ├── debug.js              # Debug-Funktionen
+│       └── tracking.js           # Google Ads Tracking
 ├── build/                         # Kompiliertes React (Produktion)
 └── languages/                     # Übersetzungen
 ```
@@ -327,6 +338,12 @@ immobilien-rechner-pro/
 ---
 
 ## Changelog
+
+### Version 1.4.0
+- Google Ads Conversion Tracking
+- Neuer Settings-Tab "Tracking"
+- Zwei Conversion-Events: Anfrage gestartet / Anfrage abgeschlossen
+- DataLayer Events für Google Tag Manager (`irp_partial_lead`, `irp_complete_lead`)
 
 ### Version 1.3.0
 - Propstack CRM Integration

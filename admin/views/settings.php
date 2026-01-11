@@ -29,6 +29,9 @@ $email_settings = get_option('irp_email_settings', []);
         <a href="?page=irp-settings&tab=maps" class="nav-tab <?php echo $active_tab === 'maps' ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e('Google Maps', 'immobilien-rechner-pro'); ?>
         </a>
+        <a href="?page=irp-settings&tab=tracking" class="nav-tab <?php echo $active_tab === 'tracking' ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e('Tracking', 'immobilien-rechner-pro'); ?>
+        </a>
     </nav>
 
     <form method="post" action="options.php">
@@ -495,6 +498,94 @@ $email_settings = get_option('irp_email_settings', []);
                     <li><?php esc_html_e('API-Key erstellen und hier einfügen', 'immobilien-rechner-pro'); ?></li>
                 </ol>
                 <p><a href="https://console.cloud.google.com/apis" target="_blank" rel="noopener">console.cloud.google.com</a></p>
+            </div>
+
+        <?php elseif ($active_tab === 'tracking') : ?>
+            <!-- TAB: Tracking -->
+            <div class="irp-settings-section">
+                <h2><?php esc_html_e('Google Ads Conversion Tracking', 'immobilien-rechner-pro'); ?></h2>
+                <p class="description">
+                    <?php esc_html_e('Tracken Sie Conversions in Google Ads, wenn Nutzer den Rechner verwenden.', 'immobilien-rechner-pro'); ?>
+                </p>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="gads_conversion_id"><?php esc_html_e('Conversion-ID', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="gads_conversion_id" name="irp_settings[gads_conversion_id]"
+                                   value="<?php echo esc_attr($settings['gads_conversion_id'] ?? ''); ?>" class="regular-text"
+                                   placeholder="AW-123456789">
+                            <p class="description"><?php esc_html_e('Die Conversion-ID aus Google Ads (Format: AW-XXXXXXXXX).', 'immobilien-rechner-pro'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="gads_partial_label"><?php esc_html_e('Label: Anfrage gestartet', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="gads_partial_label" name="irp_settings[gads_partial_label]"
+                                   value="<?php echo esc_attr($settings['gads_partial_label'] ?? ''); ?>" class="regular-text"
+                                   placeholder="AbCdEfGhIjKl">
+                            <p class="description"><?php esc_html_e('Conversion-Label für "Anfrage gestartet" (Berechnung durchgeführt, aber noch keine Kontaktdaten).', 'immobilien-rechner-pro'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="gads_complete_label"><?php esc_html_e('Label: Anfrage abgeschlossen', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="gads_complete_label" name="irp_settings[gads_complete_label]"
+                                   value="<?php echo esc_attr($settings['gads_complete_label'] ?? ''); ?>" class="regular-text"
+                                   placeholder="MnOpQrStUvWx">
+                            <p class="description"><?php esc_html_e('Conversion-Label für "Anfrage abgeschlossen" (Kontaktformular ausgefüllt).', 'immobilien-rechner-pro'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="irp-info-box">
+                <h4><?php esc_html_e('So richten Sie Google Ads Conversions ein:', 'immobilien-rechner-pro'); ?></h4>
+                <ol>
+                    <li><?php esc_html_e('In Google Ads: Ziele → Conversions → Neue Conversion-Aktion', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Typ "Website" wählen und manuell einrichten', 'immobilien-rechner-pro'); ?></li>
+                    <li><?php esc_html_e('Zwei Conversions erstellen:', 'immobilien-rechner-pro'); ?>
+                        <ul>
+                            <li><strong><?php esc_html_e('Anfrage gestartet', 'immobilien-rechner-pro'); ?></strong> - <?php esc_html_e('Kategorie: "Angebot anfordern"', 'immobilien-rechner-pro'); ?></li>
+                            <li><strong><?php esc_html_e('Anfrage abgeschlossen', 'immobilien-rechner-pro'); ?></strong> - <?php esc_html_e('Kategorie: "Lead-Formular senden"', 'immobilien-rechner-pro'); ?></li>
+                        </ul>
+                    </li>
+                    <li><?php esc_html_e('Conversion-ID und Labels hier eintragen', 'immobilien-rechner-pro'); ?></li>
+                </ol>
+            </div>
+
+            <div class="irp-settings-section">
+                <h2><?php esc_html_e('Google Tag Manager (Optional)', 'immobilien-rechner-pro'); ?></h2>
+                <p class="description">
+                    <?php esc_html_e('Zusätzlich zu den Google Ads Conversions werden automatisch DataLayer-Events gefeuert:', 'immobilien-rechner-pro'); ?>
+                </p>
+                <table class="widefat" style="max-width: 600px; margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Event', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Auslöser', 'immobilien-rechner-pro'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>irp_partial_lead</code></td>
+                            <td><?php esc_html_e('Berechnung durchgeführt', 'immobilien-rechner-pro'); ?></td>
+                        </tr>
+                        <tr>
+                            <td><code>irp_complete_lead</code></td>
+                            <td><?php esc_html_e('Kontaktformular abgeschickt', 'immobilien-rechner-pro'); ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="description" style="margin-top: 10px;">
+                    <?php esc_html_e('Diese Events können im Google Tag Manager als Trigger verwendet werden.', 'immobilien-rechner-pro'); ?>
+                </p>
             </div>
 
         <?php endif; ?>

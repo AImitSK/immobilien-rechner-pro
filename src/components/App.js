@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import apiFetch from '@wordpress/api-fetch';
 
 import { irpDebug } from '../utils/debug';
+import { trackPartialLead } from '../utils/tracking';
 import ModeSelector from './ModeSelector';
 import RentalCalculator from './RentalCalculator';
 import ComparisonCalculator from './ComparisonCalculator';
@@ -86,6 +87,13 @@ export default function App({ config }) {
             if (response.success) {
                 irpDebug('Setting leadId:', response.lead_id);
                 setLeadId(response.lead_id);
+
+                // Track partial lead conversion
+                trackPartialLead({
+                    mode: mode,
+                    city: data.city_name || '',
+                    propertyType: data.property_type || '',
+                });
             } else {
                 irpDebug('API error:', response.message);
                 setPendingError(response.message || __('Ein Fehler ist aufgetreten.', 'immobilien-rechner-pro'));

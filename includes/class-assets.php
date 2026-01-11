@@ -88,6 +88,9 @@ class IRP_Assets {
                 'showMapInLocationStep' => !empty($settings['show_map_in_location_step']),
                 'calculatorMaxWidth' => (int) ($settings['calculator_max_width'] ?? 680),
                 'recaptchaSiteKey' => $settings['recaptcha_site_key'] ?? '',
+                'gadsConversionId' => $settings['gads_conversion_id'] ?? '',
+                'gadsPartialLabel' => $settings['gads_partial_label'] ?? '',
+                'gadsCompleteLabel' => $settings['gads_complete_label'] ?? '',
             ],
             'locationRatings' => $location_ratings,
             'i18n' => [

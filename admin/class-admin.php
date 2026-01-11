@@ -292,6 +292,17 @@ class IRP_Admin {
             $sanitized['recaptcha_threshold'] = max(0, min(1, (float) $input['recaptcha_threshold']));
         }
 
+        // Google Ads Tracking settings
+        if (array_key_exists('gads_conversion_id', $input)) {
+            $sanitized['gads_conversion_id'] = sanitize_text_field($input['gads_conversion_id']);
+        }
+        if (array_key_exists('gads_partial_label', $input)) {
+            $sanitized['gads_partial_label'] = sanitize_text_field($input['gads_partial_label']);
+        }
+        if (array_key_exists('gads_complete_label', $input)) {
+            $sanitized['gads_complete_label'] = sanitize_text_field($input['gads_complete_label']);
+        }
+
         return $sanitized;
     }
     
