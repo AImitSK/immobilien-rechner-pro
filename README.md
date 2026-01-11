@@ -339,6 +339,10 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.4.1
+- Fix: Complete Lead Tracking wird jetzt auf der Results-Seite gefeuert
+- Behebt Timing-Probleme mit GTM Event-Verarbeitung
+
 ### Version 1.4.0
 - Google Ads Conversion Tracking
 - Neuer Settings-Tab "Tracking"
