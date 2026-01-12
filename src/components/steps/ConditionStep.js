@@ -4,37 +4,34 @@
 
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
-import {
-    SparklesIcon,
-    WrenchScrewdriverIcon,
-    HandThumbUpIcon,
-    WrenchIcon,
-} from '@heroicons/react/24/solid';
+
+// Get plugin URL from WordPress localized settings
+const pluginUrl = window.irpSettings?.pluginUrl || '';
 
 const CONDITIONS = [
     {
         id: 'new',
         label: __('Neubau / Erstbezug', 'immobilien-rechner-pro'),
         description: __('Noch nie bewohnt, neu gebaut', 'immobilien-rechner-pro'),
-        Icon: SparklesIcon,
+        icon: `${pluginUrl}assets/images/neubau.svg`,
     },
     {
         id: 'renovated',
         label: __('Kürzlich renoviert', 'immobilien-rechner-pro'),
         description: __('In den letzten 5 Jahren modernisiert', 'immobilien-rechner-pro'),
-        Icon: WrenchScrewdriverIcon,
+        icon: `${pluginUrl}assets/images/renoviert.svg`,
     },
     {
         id: 'good',
         label: __('Guter Zustand', 'immobilien-rechner-pro'),
         description: __('Gut gepflegt, bezugsfertig', 'immobilien-rechner-pro'),
-        Icon: HandThumbUpIcon,
+        icon: `${pluginUrl}assets/images/gut.svg`,
     },
     {
         id: 'needs_renovation',
         label: __('Renovierungsbedürftig', 'immobilien-rechner-pro'),
         description: __('Erfordert Modernisierung oder Reparaturen', 'immobilien-rechner-pro'),
-        Icon: WrenchIcon,
+        icon: `${pluginUrl}assets/images/reparaturen.svg`,
     },
 ];
 
@@ -48,25 +45,26 @@ export default function ConditionStep({ data, onChange }) {
             <h3>{__('In welchem Zustand ist Ihre Immobilie?', 'immobilien-rechner-pro')}</h3>
 
             <div className="irp-condition-grid">
-                {CONDITIONS.map((condition) => {
-                    const IconComponent = condition.Icon;
-                    return (
-                        <motion.button
-                            key={condition.id}
-                            type="button"
-                            className={`irp-condition-card ${data.condition === condition.id ? 'is-selected' : ''}`}
-                            onClick={() => handleSelect(condition.id)}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <span className="irp-condition-icon">
-                                <IconComponent className="irp-heroicon" />
-                            </span>
-                            <span className="irp-condition-label">{condition.label}</span>
-                            <span className="irp-condition-description">{condition.description}</span>
-                        </motion.button>
-                    );
-                })}
+                {CONDITIONS.map((condition) => (
+                    <motion.button
+                        key={condition.id}
+                        type="button"
+                        className={`irp-condition-card ${data.condition === condition.id ? 'is-selected' : ''}`}
+                        onClick={() => handleSelect(condition.id)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        <span className="irp-condition-icon">
+                            <img
+                                src={condition.icon}
+                                alt={condition.label}
+                                className="irp-condition-icon-img"
+                            />
+                        </span>
+                        <span className="irp-condition-label">{condition.label}</span>
+                        <span className="irp-condition-description">{condition.description}</span>
+                    </motion.button>
+                ))}
             </div>
         </div>
     );

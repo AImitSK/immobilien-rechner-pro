@@ -484,18 +484,16 @@ select {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 80px;
+    height: 80px;
     margin-bottom: 12px;
-    background: var(--irp-bg-secondary);
-    border-radius: 50%;
-    color: var(--irp-primary);
     transition: all var(--irp-transition);
-}
 
-.irp-condition-card.is-selected .irp-condition-icon {
-    background: var(--irp-primary);
-    color: white;
+    .irp-condition-icon-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 }
 
 .irp-condition-label {
