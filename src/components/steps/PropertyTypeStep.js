@@ -5,17 +5,18 @@
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
 
+// Get plugin URL from WordPress localized settings
+const pluginUrl = window.irpSettings?.pluginUrl || '';
+
 const PROPERTY_TYPES = [
     {
         id: 'apartment',
         icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-                <line x1="15" y1="3" x2="15" y2="21" />
-                <line x1="3" y1="9" x2="21" y2="9" />
-                <line x1="3" y1="15" x2="21" y2="15" />
-            </svg>
+            <img
+                src={`${pluginUrl}assets/images/wohnung.svg`}
+                alt="Wohnung"
+                className="irp-type-icon-img"
+            />
         ),
         label: __('Wohnung', 'immobilien-rechner-pro'),
         description: __('Wohnung in einem Mehrfamilienhaus', 'immobilien-rechner-pro'),
@@ -23,10 +24,11 @@ const PROPERTY_TYPES = [
     {
         id: 'house',
         icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+            <img
+                src={`${pluginUrl}assets/images/haus.svg`}
+                alt="Haus"
+                className="irp-type-icon-img"
+            />
         ),
         label: __('Haus', 'immobilien-rechner-pro'),
         description: __('Einfamilienhaus oder Doppelhaushälfte', 'immobilien-rechner-pro'),
@@ -34,10 +36,11 @@ const PROPERTY_TYPES = [
     {
         id: 'commercial',
         icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="2" y="7" width="20" height="14" rx="2" />
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-            </svg>
+            <img
+                src={`${pluginUrl}assets/images/gewerbe.svg`}
+                alt="Gewerbe"
+                className="irp-type-icon-img"
+            />
         ),
         label: __('Gewerbe', 'immobilien-rechner-pro'),
         description: __('Büro, Einzelhandel oder Mischnutzung', 'immobilien-rechner-pro'),
