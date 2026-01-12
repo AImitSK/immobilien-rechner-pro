@@ -4,32 +4,23 @@
 
 import { __ } from '@wordpress/i18n';
 import { motion } from 'framer-motion';
-import {
-    SunIcon,
-    HomeModernIcon,
-    ArrowsUpDownIcon,
-    TruckIcon,
-    ArchiveBoxIcon,
-    FireIcon,
-    KeyIcon,
-    UserIcon,
-    CheckIcon,
-    Squares2X2Icon,
-    SparklesIcon,
-} from '@heroicons/react/24/solid';
+import { CheckIcon } from '@heroicons/react/24/solid';
+
+// Get plugin URL from WordPress localized settings
+const pluginUrl = window.irpSettings?.pluginUrl || '';
 
 const FEATURES = [
-    { id: 'balcony', label: __('Balkon', 'immobilien-rechner-pro'), Icon: Squares2X2Icon },
-    { id: 'terrace', label: __('Terrasse', 'immobilien-rechner-pro'), Icon: SunIcon },
-    { id: 'garden', label: __('Garten', 'immobilien-rechner-pro'), Icon: SparklesIcon },
-    { id: 'elevator', label: __('Aufzug', 'immobilien-rechner-pro'), Icon: ArrowsUpDownIcon },
-    { id: 'parking', label: __('Stellplatz', 'immobilien-rechner-pro'), Icon: TruckIcon },
-    { id: 'garage', label: __('Garage', 'immobilien-rechner-pro'), Icon: HomeModernIcon },
-    { id: 'cellar', label: __('Keller', 'immobilien-rechner-pro'), Icon: ArchiveBoxIcon },
-    { id: 'fitted_kitchen', label: __('Einbauküche', 'immobilien-rechner-pro'), Icon: FireIcon },
-    { id: 'floor_heating', label: __('Fußbodenheizung', 'immobilien-rechner-pro'), Icon: FireIcon },
-    { id: 'guest_toilet', label: __('Gäste-WC', 'immobilien-rechner-pro'), Icon: KeyIcon },
-    { id: 'barrier_free', label: __('Barrierefrei', 'immobilien-rechner-pro'), Icon: UserIcon },
+    { id: 'balcony', label: __('Balkon', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/balkon.svg` },
+    { id: 'terrace', label: __('Terrasse', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/terrasse.svg` },
+    { id: 'garden', label: __('Garten', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/garte.svg` },
+    { id: 'elevator', label: __('Aufzug', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/aufzug.svg` },
+    { id: 'parking', label: __('Stellplatz', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/stellplatz.svg` },
+    { id: 'garage', label: __('Garage', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/garage.svg` },
+    { id: 'cellar', label: __('Keller', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/keller.svg` },
+    { id: 'fitted_kitchen', label: __('Einbauküche', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/kueche.svg` },
+    { id: 'floor_heating', label: __('Fußbodenheizung', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/fussbodenheizung.svg` },
+    { id: 'guest_toilet', label: __('Gäste-WC', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/wc.svg` },
+    { id: 'barrier_free', label: __('Barrierefrei', 'immobilien-rechner-pro'), icon: `${pluginUrl}assets/images/barrierefrei.svg` },
 ];
 
 export default function FeaturesStep({ data, onChange }) {
@@ -54,7 +45,6 @@ export default function FeaturesStep({ data, onChange }) {
             <div className="irp-features-grid">
                 {FEATURES.map((feature) => {
                     const isSelected = selectedFeatures.includes(feature.id);
-                    const IconComponent = feature.Icon;
 
                     return (
                         <motion.button
@@ -66,7 +56,11 @@ export default function FeaturesStep({ data, onChange }) {
                             whileTap={{ scale: 0.95 }}
                         >
                             <span className="irp-feature-icon">
-                                <IconComponent className="irp-heroicon-sm" />
+                                <img
+                                    src={feature.icon}
+                                    alt={feature.label}
+                                    className="irp-feature-icon-img"
+                                />
                             </span>
                             <span className="irp-feature-label">{feature.label}</span>
                             {isSelected && (
