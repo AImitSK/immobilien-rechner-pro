@@ -339,6 +339,13 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.0
+- Neu: Konfigurierbare Baualters-Multiplikatoren im Admin unter "Matrix & Daten → Multiplikatoren"
+- Neu: 7 branchenübliche Baualtersklassen (Altbau bis 1945, Nachkriegsbau, 60er/70er, 80er, 90er, 2000er, Neubau ab 2015)
+- Geändert: Zustandsoption "Neubau / Erstbezug" zu "Neubau / Kernsaniert" umbenannt
+- Geändert: Währungsbeträge werden jetzt mit 2 Dezimalstellen angezeigt (z.B. 7,20 € statt 7 €)
+- Entfernt: Multiplikator-Anzeige bei der Lage-Bewertung im Frontend ausgeblendet
+
 ### Version 1.4.2
 - Fix: Lead-Löschen-Button in Detail-Ansicht funktioniert jetzt
 - Neu: Mehrfachauswahl und Bulk-Delete in Lead-Tabelle

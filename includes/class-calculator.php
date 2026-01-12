@@ -38,6 +38,16 @@ class IRP_Calculator {
         'barrier_free' => 0.30,
     ];
 
+    private array $default_age_multipliers = [
+        'before_1946' => ['name' => 'Altbau (bis 1945)', 'multiplier' => 1.05, 'min_year' => null, 'max_year' => 1945],
+        '1946_1959' => ['name' => 'Nachkriegsbau (1946-1959)', 'multiplier' => 0.95, 'min_year' => 1946, 'max_year' => 1959],
+        '1960_1979' => ['name' => '60er/70er Jahre (1960-1979)', 'multiplier' => 0.90, 'min_year' => 1960, 'max_year' => 1979],
+        '1980_1989' => ['name' => '80er Jahre (1980-1989)', 'multiplier' => 0.95, 'min_year' => 1980, 'max_year' => 1989],
+        '1990_1999' => ['name' => '90er Jahre (1990-1999)', 'multiplier' => 1.00, 'min_year' => 1990, 'max_year' => 1999],
+        '2000_2014' => ['name' => '2000er Jahre (2000-2014)', 'multiplier' => 1.05, 'min_year' => 2000, 'max_year' => 2014],
+        'from_2015' => ['name' => 'Neubau (ab 2015)', 'multiplier' => 1.10, 'min_year' => 2015, 'max_year' => null],
+    ];
+
     public function __construct() {
         $this->load_matrix();
     }
@@ -65,6 +75,9 @@ class IRP_Calculator {
             'appreciation_rate' => (float) ($saved_matrix['appreciation_rate'] ?? 2.0),
             'rent_increase_rate' => (float) ($saved_matrix['rent_increase_rate'] ?? 2.0),
             'location_ratings' => $saved_matrix['location_ratings'] ?? $this->get_default_location_ratings(),
+            'age_multipliers' => !empty($saved_matrix['age_multipliers'])
+                ? $saved_matrix['age_multipliers']
+                : $this->default_age_multipliers,
         ];
     }
 
@@ -127,6 +140,53 @@ class IRP_Calculator {
      */
     private function get_feature_premiums(): array {
         return $this->matrix['feature_premiums'];
+    }
+
+    /**
+     * Get age multipliers
+     */
+    public function get_age_multipliers(): array {
+        return $this->matrix['age_multipliers'];
+    }
+
+    /**
+     * Get age multiplier for a specific year
+     */
+    public function get_age_multiplier_for_year(?int $year_built): array {
+        $age_multipliers = $this->get_age_multipliers();
+
+        if ($year_built === null) {
+            // Default to 90er Jahre (neutral) if no year provided
+            return [
+                'key' => '1990_1999',
+                'name' => $age_multipliers['1990_1999']['name'] ?? '90er Jahre (1990-1999)',
+                'multiplier' => (float) ($age_multipliers['1990_1999']['multiplier'] ?? 1.00),
+            ];
+        }
+
+        foreach ($age_multipliers as $key => $data) {
+            $min_year = $data['min_year'] ?? null;
+            $max_year = $data['max_year'] ?? null;
+
+            // Check if year falls within this range
+            $above_min = ($min_year === null) || ($year_built >= $min_year);
+            $below_max = ($max_year === null) || ($year_built <= $max_year);
+
+            if ($above_min && $below_max) {
+                return [
+                    'key' => $key,
+                    'name' => $data['name'] ?? $key,
+                    'multiplier' => (float) ($data['multiplier'] ?? 1.00),
+                ];
+            }
+        }
+
+        // Fallback to neutral if no match found
+        return [
+            'key' => 'unknown',
+            'name' => __('Unbekannt', 'immobilien-rechner-pro'),
+            'multiplier' => 1.00,
+        ];
     }
 
     private const REFERENCE_SIZE = 70.0; // Reference apartment size in m²
@@ -197,23 +257,10 @@ class IRP_Calculator {
             }
         }
 
-        // Age adjustment (buildings from 1960-1980 often less desirable)
-        if ($year_built) {
-            if ($year_built >= 2015) {
-                $price_per_sqm *= 1.10;
-            } elseif ($year_built >= 2000) {
-                $price_per_sqm *= 1.05;
-            } elseif ($year_built >= 1990) {
-                $price_per_sqm *= 1.00;
-            } elseif ($year_built >= 1970) {
-                $price_per_sqm *= 0.95;
-            } elseif ($year_built >= 1950) {
-                $price_per_sqm *= 0.90;
-            } else {
-                // Pre-war buildings can be desirable (Altbau)
-                $price_per_sqm *= 1.05;
-            }
-        }
+        // Age adjustment based on configurable age multipliers
+        $age_data = $this->get_age_multiplier_for_year($year_built);
+        $age_multiplier = $age_data['multiplier'];
+        $price_per_sqm *= $age_multiplier;
 
         // Calculate monthly rent
         $monthly_rent = $size * $price_per_sqm;
@@ -251,6 +298,9 @@ class IRP_Calculator {
                 'location_impact' => $location_multiplier,
                 'condition_impact' => $condition_multipliers[$condition] ?? 1.00,
                 'type_impact' => $type_multipliers[$property_type] ?? 1.00,
+                'age_class' => $age_data['key'],
+                'age_class_name' => $age_data['name'],
+                'age_impact' => $age_multiplier,
                 'features_count' => count($features),
             ],
             'calculation_date' => current_time('mysql'),

@@ -11,8 +11,8 @@ const pluginUrl = window.irpSettings?.pluginUrl || '';
 const CONDITIONS = [
     {
         id: 'new',
-        label: __('Neubau / Erstbezug', 'immobilien-rechner-pro'),
-        description: __('Noch nie bewohnt, neu gebaut', 'immobilien-rechner-pro'),
+        label: __('Neubau / Kernsaniert', 'immobilien-rechner-pro'),
+        description: __('Neu gebaut oder vollständig saniert', 'immobilien-rechner-pro'),
         icon: `${pluginUrl}assets/images/neubau.svg`,
     },
     {

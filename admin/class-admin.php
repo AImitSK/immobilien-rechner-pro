@@ -197,6 +197,20 @@ class IRP_Admin {
             $sanitized['location_ratings'] = $this->get_default_location_ratings();
         }
 
+        // Age multipliers (Baualtersklassen)
+        if (isset($input['age_multipliers']) && is_array($input['age_multipliers'])) {
+            $sanitized['age_multipliers'] = [];
+            foreach ($input['age_multipliers'] as $key => $data) {
+                $sanitized_key = sanitize_key($key);
+                $sanitized['age_multipliers'][$sanitized_key] = [
+                    'name' => sanitize_text_field($data['name'] ?? ''),
+                    'multiplier' => max(0.5, min(2.0, (float) ($data['multiplier'] ?? 1.0))),
+                    'min_year' => !empty($data['min_year']) ? (int) $data['min_year'] : null,
+                    'max_year' => !empty($data['max_year']) ? (int) $data['max_year'] : null,
+                ];
+            }
+        }
+
         return $sanitized;
     }
     

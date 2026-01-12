@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 $condition_labels = [
-    'new' => __('Neubau', 'immobilien-rechner-pro'),
+    'new' => __('Neubau / Kernsaniert', 'immobilien-rechner-pro'),
     'renovated' => __('Renoviert', 'immobilien-rechner-pro'),
     'good' => __('Guter Zustand', 'immobilien-rechner-pro'),
     'needs_renovation' => __('Renovierungsbedürftig', 'immobilien-rechner-pro'),
@@ -33,6 +33,19 @@ $feature_labels = [
     'guest_toilet' => __('Gäste-WC', 'immobilien-rechner-pro'),
     'barrier_free' => __('Barrierefrei', 'immobilien-rechner-pro'),
 ];
+
+$default_age_multipliers = [
+    'before_1946' => ['name' => __('Altbau (bis 1945)', 'immobilien-rechner-pro'), 'multiplier' => 1.05, 'min_year' => null, 'max_year' => 1945],
+    '1946_1959' => ['name' => __('Nachkriegsbau (1946-1959)', 'immobilien-rechner-pro'), 'multiplier' => 0.95, 'min_year' => 1946, 'max_year' => 1959],
+    '1960_1979' => ['name' => __('60er/70er Jahre (1960-1979)', 'immobilien-rechner-pro'), 'multiplier' => 0.90, 'min_year' => 1960, 'max_year' => 1979],
+    '1980_1989' => ['name' => __('80er Jahre (1980-1989)', 'immobilien-rechner-pro'), 'multiplier' => 0.95, 'min_year' => 1980, 'max_year' => 1989],
+    '1990_1999' => ['name' => __('90er Jahre (1990-1999)', 'immobilien-rechner-pro'), 'multiplier' => 1.00, 'min_year' => 1990, 'max_year' => 1999],
+    '2000_2014' => ['name' => __('2000er Jahre (2000-2014)', 'immobilien-rechner-pro'), 'multiplier' => 1.05, 'min_year' => 2000, 'max_year' => 2014],
+    'from_2015' => ['name' => __('Neubau (ab 2015)', 'immobilien-rechner-pro'), 'multiplier' => 1.10, 'min_year' => 2015, 'max_year' => null],
+];
+
+// Get age multipliers from matrix (with defaults)
+$age_multipliers = $matrix['age_multipliers'] ?? $default_age_multipliers;
 
 $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'cities';
 
@@ -432,6 +445,80 @@ $location_ratings = $matrix['location_ratings'] ?? $admin->get_default_location_
                     </tbody>
                 </table>
             </div>
+
+            <div class="irp-settings-section">
+                <h2><?php esc_html_e('Baualters-Multiplikatoren', 'immobilien-rechner-pro'); ?></h2>
+                <p class="description">
+                    <?php esc_html_e('Diese Faktoren werden basierend auf dem Baujahr der Immobilie angewendet. Die Einteilung entspricht den typischen Baualtersklassen deutscher Mietspiegel.', 'immobilien-rechner-pro'); ?>
+                </p>
+
+                <table class="widefat irp-data-table">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Baualtersklasse', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Zeitraum', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Multiplikator', 'immobilien-rechner-pro'); ?></th>
+                            <th><?php esc_html_e('Auswirkung', 'immobilien-rechner-pro'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($age_multipliers as $key => $data) :
+                            $multiplier = (float) ($data['multiplier'] ?? 1.00);
+                            $impact = ($multiplier - 1) * 100;
+                            $min_year = $data['min_year'] ?? null;
+                            $max_year = $data['max_year'] ?? null;
+
+                            // Format time range
+                            if ($min_year === null) {
+                                $time_range = sprintf(__('bis %d', 'immobilien-rechner-pro'), $max_year);
+                            } elseif ($max_year === null) {
+                                $time_range = sprintf(__('ab %d', 'immobilien-rechner-pro'), $min_year);
+                            } else {
+                                $time_range = $min_year . ' - ' . $max_year;
+                            }
+                        ?>
+                            <tr>
+                                <td><strong><?php echo esc_html($data['name'] ?? $key); ?></strong></td>
+                                <td><?php echo esc_html($time_range); ?></td>
+                                <td>
+                                    <input type="number"
+                                           name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][multiplier]"
+                                           value="<?php echo esc_attr($multiplier); ?>"
+                                           step="0.01"
+                                           min="0.5"
+                                           max="2"
+                                           class="small-text">
+                                    <!-- Hidden fields to preserve name and year ranges -->
+                                    <input type="hidden"
+                                           name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][name]"
+                                           value="<?php echo esc_attr($data['name'] ?? ''); ?>">
+                                    <input type="hidden"
+                                           name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][min_year]"
+                                           value="<?php echo esc_attr($min_year ?? ''); ?>">
+                                    <input type="hidden"
+                                           name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][max_year]"
+                                           value="<?php echo esc_attr($max_year ?? ''); ?>">
+                                </td>
+                                <td>
+                                    <span class="<?php echo $impact >= 0 ? 'irp-positive' : 'irp-negative'; ?>">
+                                        <?php echo ($impact >= 0 ? '+' : '') . number_format($impact, 0) . '%'; ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <div class="irp-info-box">
+                    <h4><?php esc_html_e('Hinweise zu Baualtersklassen:', 'immobilien-rechner-pro'); ?></h4>
+                    <ul>
+                        <li><?php esc_html_e('Altbauten (bis 1945) sind oft aufgrund von Charme (hohe Decken, Stuck) beliebt und können einen Aufschlag rechtfertigen.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Bauten der 60er/70er Jahre haben oft niedrigere Standards und werden typischerweise mit Abschlägen bewertet.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Die 90er Jahre (1990-1999) dienen als Referenz mit Faktor 1.00.', 'immobilien-rechner-pro'); ?></li>
+                        <li><?php esc_html_e('Neubauten profitieren von modernen Energiestandards und Ausstattung.', 'immobilien-rechner-pro'); ?></li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <!-- Tab: Ausstattung -->
@@ -561,6 +648,12 @@ $location_ratings = $matrix['location_ratings'] ?? $admin->get_default_location_
             <?php endforeach; ?>
             <?php foreach ($matrix['type_multipliers'] ?? [] as $key => $mult) : ?>
                 <input type="hidden" name="irp_price_matrix[type_multipliers][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($mult); ?>">
+            <?php endforeach; ?>
+            <?php foreach ($age_multipliers as $key => $data) : ?>
+                <input type="hidden" name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][name]" value="<?php echo esc_attr($data['name'] ?? ''); ?>">
+                <input type="hidden" name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][multiplier]" value="<?php echo esc_attr($data['multiplier'] ?? 1.0); ?>">
+                <input type="hidden" name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][min_year]" value="<?php echo esc_attr($data['min_year'] ?? ''); ?>">
+                <input type="hidden" name="irp_price_matrix[age_multipliers][<?php echo esc_attr($key); ?>][max_year]" value="<?php echo esc_attr($data['max_year'] ?? ''); ?>">
             <?php endforeach; ?>
         <?php endif; ?>
 

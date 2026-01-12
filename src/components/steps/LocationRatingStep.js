@@ -227,20 +227,6 @@ export default function LocationRatingStep({ data, onChange }) {
                         ))}
                     </ul>
                 )}
-
-                {currentRatingData.multiplier && (
-                    <div className="irp-rating-impact">
-                        {currentRatingData.multiplier >= 1 ? (
-                            <span className="irp-impact-positive">
-                                +{Math.round((currentRatingData.multiplier - 1) * 100)}% {__('auf den Basispreis', 'immobilien-rechner-pro')}
-                            </span>
-                        ) : (
-                            <span className="irp-impact-negative">
-                                {Math.round((currentRatingData.multiplier - 1) * 100)}% {__('auf den Basispreis', 'immobilien-rechner-pro')}
-                            </span>
-                        )}
-                    </div>
-                )}
             </div>
         </div>
     );
