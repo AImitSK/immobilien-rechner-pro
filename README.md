@@ -339,6 +339,11 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.4.2
+- Fix: Lead-Löschen-Button in Detail-Ansicht funktioniert jetzt
+- Neu: Mehrfachauswahl und Bulk-Delete in Lead-Tabelle
+- Objekt-Spalte aus Lead-Tabelle entfernt (Platzersparnis)
+
 ### Version 1.4.1
 - Fix: Complete Lead Tracking wird jetzt auf der Results-Seite gefeuert
 - Behebt Timing-Probleme mit GTM Event-Verarbeitung

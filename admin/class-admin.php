@@ -367,18 +367,42 @@ class IRP_Admin {
     
     public function render_leads(): void {
         $leads_manager = new IRP_Leads();
-        
+
+        // Handle single delete action (from detail view)
+        if (isset($_POST['action']) && $_POST['action'] === 'delete_lead' && wp_verify_nonce($_POST['_wpnonce'], 'irp_delete_lead')) {
+            $leads_manager->delete((int) $_POST['lead_id']);
+            wp_redirect(admin_url('admin.php?page=irp-leads&deleted=1'));
+            exit;
+        }
+
+        // Handle bulk delete action
+        if (isset($_POST['action']) && $_POST['action'] === 'bulk_delete' && wp_verify_nonce($_POST['_wpnonce'], 'irp_bulk_delete_leads')) {
+            $lead_ids = array_map('intval', $_POST['lead_ids'] ?? []);
+            $deleted = 0;
+            foreach ($lead_ids as $lead_id) {
+                if ($leads_manager->delete($lead_id)) {
+                    $deleted++;
+                }
+            }
+            wp_redirect(admin_url('admin.php?page=irp-leads&deleted=' . $deleted));
+            exit;
+        }
+
+        // Show success message after delete
+        if (isset($_GET['deleted'])) {
+            $count = (int) $_GET['deleted'];
+            if ($count === 1) {
+                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Lead wurde gelöscht.', 'immobilien-rechner-pro') . '</p></div>';
+            } elseif ($count > 1) {
+                echo '<div class="notice notice-success is-dismissible"><p>' . sprintf(esc_html__('%d Leads wurden gelöscht.', 'immobilien-rechner-pro'), $count) . '</p></div>';
+            }
+        }
+
         // Handle single lead view
         if (isset($_GET['lead'])) {
             $lead = $leads_manager->get((int) $_GET['lead']);
             include IRP_PLUGIN_DIR . 'admin/views/lead-detail.php';
             return;
-        }
-        
-        // Handle delete action
-        if (isset($_POST['action']) && $_POST['action'] === 'delete_lead' && wp_verify_nonce($_POST['_wpnonce'], 'irp_delete_lead')) {
-            $leads_manager->delete((int) $_POST['lead_id']);
-            echo '<div class="notice notice-success"><p>' . esc_html__('Lead deleted.', 'immobilien-rechner-pro') . '</p></div>';
         }
         
         // Get filtered leads

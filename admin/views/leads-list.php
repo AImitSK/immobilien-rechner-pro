@@ -32,10 +32,17 @@ if (!defined('ABSPATH')) {
             <button type="submit" class="button"><?php esc_html_e('Filtern', 'immobilien-rechner-pro'); ?></button>
         </form>
 
-        <button type="button" class="button irp-export-btn">
-            <span class="dashicons dashicons-download"></span>
-            <?php esc_html_e('CSV exportieren', 'immobilien-rechner-pro'); ?>
-        </button>
+        <div class="irp-toolbar-actions">
+            <button type="button" class="button irp-delete-selected-btn" style="display: none;">
+                <span class="dashicons dashicons-trash"></span>
+                <?php esc_html_e('Ausgewählte löschen', 'immobilien-rechner-pro'); ?>
+                <span class="irp-selected-count"></span>
+            </button>
+            <button type="button" class="button irp-export-btn">
+                <span class="dashicons dashicons-download"></span>
+                <?php esc_html_e('CSV exportieren', 'immobilien-rechner-pro'); ?>
+            </button>
+        </div>
     </div>
 
     <?php if (empty($leads['items'])) : ?>
@@ -43,9 +50,17 @@ if (!defined('ABSPATH')) {
             <p><?php esc_html_e('Keine Leads gefunden.', 'immobilien-rechner-pro'); ?></p>
         </div>
     <?php else : ?>
+        <form id="irp-bulk-delete-form" method="post">
+            <?php wp_nonce_field('irp_bulk_delete_leads'); ?>
+            <input type="hidden" name="action" value="bulk_delete">
+        </form>
+
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
+                    <th class="column-cb check-column">
+                        <input type="checkbox" id="cb-select-all" title="<?php esc_attr_e('Alle auswählen', 'immobilien-rechner-pro'); ?>">
+                    </th>
                     <th class="column-status"><?php esc_html_e('Status', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-email-sent" title="<?php esc_attr_e('PDF-E-Mail versendet', 'immobilien-rechner-pro'); ?>">
                         <span class="dashicons dashicons-email-alt"></span>
@@ -57,7 +72,6 @@ if (!defined('ABSPATH')) {
                     <th class="column-email"><?php esc_html_e('E-Mail', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-phone"><?php esc_html_e('Telefon', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-mode"><?php esc_html_e('Modus', 'immobilien-rechner-pro'); ?></th>
-                    <th class="column-property"><?php esc_html_e('Objekt', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-date"><?php esc_html_e('Datum', 'immobilien-rechner-pro'); ?></th>
                     <th class="column-actions"><?php esc_html_e('Aktionen', 'immobilien-rechner-pro'); ?></th>
                 </tr>
@@ -70,6 +84,9 @@ if (!defined('ABSPATH')) {
                         : __('Unvollständig', 'immobilien-rechner-pro');
                 ?>
                     <tr>
+                        <td class="column-cb check-column">
+                            <input type="checkbox" class="irp-lead-checkbox" value="<?php echo esc_attr($lead->id); ?>">
+                        </td>
                         <td class="column-status">
                             <span class="irp-status-badge irp-status-<?php echo esc_attr($status); ?>">
                                 <?php echo esc_html($status_label); ?>
@@ -125,26 +142,6 @@ if (!defined('ABSPATH')) {
                                 <?php echo $lead->mode === 'rental' ? esc_html__('Mietwert', 'immobilien-rechner-pro') : esc_html__('Vergleich', 'immobilien-rechner-pro'); ?>
                             </span>
                         </td>
-                        <td class="column-property">
-                            <?php
-                            $type_labels = [
-                                'apartment' => __('Wohnung', 'immobilien-rechner-pro'),
-                                'house' => __('Haus', 'immobilien-rechner-pro'),
-                                'commercial' => __('Gewerbe', 'immobilien-rechner-pro'),
-                            ];
-                            $property_info = [];
-                            if ($lead->property_type) {
-                                $property_info[] = $type_labels[$lead->property_type] ?? ucfirst($lead->property_type);
-                            }
-                            if ($lead->property_size) {
-                                $property_info[] = $lead->property_size . ' m²';
-                            }
-                            if ($lead->zip_code) {
-                                $property_info[] = $lead->zip_code;
-                            }
-                            echo esc_html(implode(', ', $property_info) ?: '—');
-                            ?>
-                        </td>
                         <td class="column-date">
                             <?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($lead->created_at))); ?>
                         </td>
@@ -188,6 +185,54 @@ if (!defined('ABSPATH')) {
 
 <script>
 jQuery(function($) {
+    // Checkbox handling
+    var $selectAll = $('#cb-select-all');
+    var $checkboxes = $('.irp-lead-checkbox');
+    var $deleteBtn = $('.irp-delete-selected-btn');
+    var $selectedCount = $('.irp-selected-count');
+
+    function updateDeleteButton() {
+        var count = $checkboxes.filter(':checked').length;
+        if (count > 0) {
+            $deleteBtn.show();
+            $selectedCount.text('(' + count + ')');
+        } else {
+            $deleteBtn.hide();
+        }
+    }
+
+    $selectAll.on('change', function() {
+        $checkboxes.prop('checked', this.checked);
+        updateDeleteButton();
+    });
+
+    $checkboxes.on('change', function() {
+        var allChecked = $checkboxes.length === $checkboxes.filter(':checked').length;
+        $selectAll.prop('checked', allChecked);
+        updateDeleteButton();
+    });
+
+    // Bulk delete
+    $deleteBtn.on('click', function() {
+        var $checked = $checkboxes.filter(':checked');
+        var count = $checked.length;
+
+        if (count === 0) return;
+
+        var message = count === 1
+            ? '<?php echo esc_js(__('Möchten Sie diesen Lead wirklich löschen?', 'immobilien-rechner-pro')); ?>'
+            : '<?php echo esc_js(__('Möchten Sie diese %d Leads wirklich löschen?', 'immobilien-rechner-pro')); ?>'.replace('%d', count);
+
+        if (!confirm(message)) return;
+
+        // Add selected IDs to the form and submit
+        var $form = $('#irp-bulk-delete-form');
+        $checked.each(function() {
+            $form.append('<input type="hidden" name="lead_ids[]" value="' + $(this).val() + '">');
+        });
+        $form.submit();
+    });
+
     // CSV Export
     $('.irp-export-btn').on('click', function() {
         var params = new URLSearchParams(window.location.search);
@@ -249,8 +294,39 @@ jQuery(function($) {
 @keyframes spin {
     100% { transform: rotate(360deg); }
 }
+.column-cb {
+    width: 30px;
+    padding: 8px 10px !important;
+}
 .column-propstack {
     width: 40px;
     text-align: center;
+}
+.irp-leads-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.irp-toolbar-actions {
+    display: flex;
+    gap: 8px;
+}
+.irp-delete-selected-btn {
+    color: #b32d2e;
+    border-color: #b32d2e;
+}
+.irp-delete-selected-btn:hover {
+    background: #b32d2e;
+    color: #fff;
+    border-color: #b32d2e;
+}
+.irp-delete-selected-btn .dashicons {
+    margin-right: 3px;
+}
+.irp-selected-count {
+    margin-left: 3px;
 }
 </style>
