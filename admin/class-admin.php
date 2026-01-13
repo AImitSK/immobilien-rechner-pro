@@ -419,18 +419,33 @@ class IRP_Admin {
             // DEBUG: Show raw Propstack data from DB
             global $wpdb;
             $table = $wpdb->prefix . 'irp_leads';
+            $requested_id = (int) $_GET['lead'];
             $debug_data = $wpdb->get_row($wpdb->prepare(
                 "SELECT id, propstack_id, propstack_synced, propstack_error, propstack_synced_at FROM {$table} WHERE id = %d",
-                (int) $_GET['lead']
+                $requested_id
             ));
+
+            // Check if table exists and get all lead IDs
+            $all_ids = $wpdb->get_col("SELECT id FROM {$table} ORDER BY id DESC LIMIT 10");
+            $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$table}'");
+
             echo '<div class="notice notice-warning" style="padding: 15px; margin: 20px 0; background: #fff3cd; border-left: 4px solid #856404;">';
             echo '<strong>🐛 DEBUG - Propstack DB-Werte (direkt aus DB):</strong><br>';
             echo '<pre style="background: #f8f9fa; padding: 10px; margin-top: 10px; overflow-x: auto;">';
-            echo 'Lead ID: ' . esc_html($debug_data->id ?? 'NULL') . "\n";
+            echo 'Requested Lead ID: ' . $requested_id . "\n";
+            echo 'Table: ' . esc_html($table) . "\n";
+            echo 'Table exists: ' . ($table_exists ? 'JA' : 'NEIN') . "\n";
+            echo 'Last 10 Lead IDs in DB: ' . implode(', ', $all_ids) . "\n";
+            echo 'Lead object ID: ' . esc_html($lead->id ?? 'NULL') . "\n";
+            echo "---\n";
+            echo 'DB Result Lead ID: ' . esc_html($debug_data->id ?? 'NULL') . "\n";
             echo 'propstack_id: ' . esc_html($debug_data->propstack_id ?? 'NULL') . ' (Typ: ' . gettype($debug_data->propstack_id ?? null) . ")\n";
             echo 'propstack_synced: ' . esc_html($debug_data->propstack_synced ?? 'NULL') . "\n";
             echo 'propstack_error: ' . esc_html($debug_data->propstack_error ?? 'NULL') . "\n";
             echo 'propstack_synced_at: ' . esc_html($debug_data->propstack_synced_at ?? 'NULL') . "\n";
+            if ($wpdb->last_error) {
+                echo "DB Error: " . esc_html($wpdb->last_error) . "\n";
+            }
             echo '</pre>';
             echo '<p style="margin: 10px 0 0; font-size: 12px; color: #666;">Diese Debug-Box später entfernen!</p>';
             echo '</div>';
