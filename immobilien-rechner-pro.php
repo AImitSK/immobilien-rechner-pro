@@ -3,7 +3,7 @@
  * Plugin Name: Immobilien Rechner Pro
  * Plugin URI: https://github.com/AImitSK/immobilien-rechner-pro
  * Description: Professionelles WordPress-Plugin für Mietwertberechnung und Verkaufen-vs-Vermieten-Vergleich. White-Label-Lösung für Immobilienmakler.
- * Version: 1.5.7
+ * Version: 1.5.8
  * Author: Stefan Kühne
  * Author URI: https://sk-online-marketing.de
  * License: GPL v2 or later
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('IRP_VERSION', '1.5.7');
+define('IRP_VERSION', '1.5.8');
 define('IRP_GITHUB_REPO', 'AImitSK/immobilien-rechner-pro');
 define('IRP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('IRP_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -66,9 +66,22 @@ final class Immobilien_Rechner_Pro {
     private function init_hooks(): void {
         register_activation_hook(__FILE__, ['IRP_Activator', 'activate']);
         register_deactivation_hook(__FILE__, ['IRP_Deactivator', 'deactivate']);
-        
+
         add_action('init', [$this, 'load_textdomain']);
         add_action('init', [$this, 'init_classes']);
+
+        // Check for DB upgrades on admin init (handles plugin updates)
+        add_action('admin_init', [$this, 'maybe_upgrade_db']);
+    }
+
+    /**
+     * Check if DB upgrade is needed and run it
+     */
+    public function maybe_upgrade_db(): void {
+        $db_version = get_option('irp_db_version', '1.0.0');
+        if (version_compare($db_version, IRP_VERSION, '<')) {
+            IRP_Activator::activate();
+        }
     }
     
     public function load_textdomain(): void {

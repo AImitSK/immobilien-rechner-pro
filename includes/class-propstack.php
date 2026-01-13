@@ -318,18 +318,24 @@ class IRP_Propstack {
         }
         $updated_description .= $new_inquiry;
 
-        // Update contact
-        $result = self::api_request('/contacts/' . $contact_id, 'PUT', [
+        // Build update data - always update description and phone
+        $update_data = [
             'client' => [
                 'description' => $updated_description,
             ],
-        ]);
+        ];
+
+        // Update phone number if provided (in case it was missing before)
+        if (!empty($lead_data['phone'])) {
+            $update_data['client']['home_cell'] = $lead_data['phone'];
+        }
+
+        // Update contact
+        $result = self::api_request('/contacts/' . $contact_id, 'PUT', $update_data);
 
         if (is_wp_error($result)) {
             return $result;
         }
-
-        error_log('[IRP Propstack] Updated existing contact ' . $contact_id . ' with new inquiry');
 
         return $contact_id;
     }
@@ -555,14 +561,13 @@ class IRP_Propstack {
         // Validate propstack_id
         $propstack_id_int = (int) $propstack_id;
         if ($propstack_id_int <= 0) {
-            error_log('[IRP Propstack] Invalid propstack_id received: ' . var_export($propstack_id, true));
             return new \WP_Error('invalid_id', __('Ungültige Propstack-ID erhalten.', 'immobilien-rechner-pro'));
         }
 
-        // Save success - use wpdb->update for reliability
+        // Save success
         $synced_at = current_time('mysql');
 
-        $update_result = $wpdb->update(
+        $wpdb->update(
             $table,
             [
                 'propstack_id' => $propstack_id_int,
@@ -574,12 +579,6 @@ class IRP_Propstack {
             ['%d', '%d', '%s', '%s'],
             ['%d']
         );
-
-        if ($update_result === false) {
-            error_log('[IRP Propstack] DB Update failed: ' . $wpdb->last_error);
-        } else {
-            error_log('[IRP Propstack] Synced lead ' . $lead_id . ' to Propstack ID ' . $propstack_id_int);
-        }
 
         // Send newsletter DOI if consent given
         $settings = self::get_settings();

@@ -339,6 +339,12 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.8
+- Fix: Telefonnummer wird jetzt auch bei bestehenden Kontakten aktualisiert
+- Fix: Automatisches DB-Upgrade bei Plugin-Updates (nicht nur bei Aktivierung)
+- Fix: Fehlende Propstack-Spalten werden automatisch hinzugefügt
+- Entfernt: Debug-Box aus Lead-Detail-Ansicht
+
 ### Version 1.5.7
 - Fix: Telefonnummer wird jetzt korrekt an Propstack übertragen (verwendet `home_cell` statt `phone`)
 - Fix: Propstack-Status liest jetzt direkt aus DB statt aus gecachtem Lead-Objekt
