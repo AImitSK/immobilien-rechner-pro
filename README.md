@@ -339,6 +339,10 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.3
+- Neu: "Jetzt synchronisieren" Button für ausstehende Leads in der Detail-Ansicht
+- Fix: Propstack-Sync kann jetzt manuell ausgelöst werden (nicht nur bei Fehlern)
+
 ### Version 1.5.2
 - Neu: Google Maps Autocomplete auf gewählte Stadt eingeschränkt (nur Adressen in der konfigurierten Stadt)
 - Neu: Eingegebene Adresse wird im PDF angezeigt (Standort zeigt jetzt Stadt + Straße)
