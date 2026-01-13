@@ -339,6 +339,11 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.7
+- Fix: Telefonnummer wird jetzt korrekt an Propstack übertragen (verwendet `home_cell` statt `phone`)
+- Fix: Propstack-Status liest jetzt direkt aus DB statt aus gecachtem Lead-Objekt
+- Debug: Temporäre Debug-Box in Lead-Detail-Ansicht für Propstack-Werte
+
 ### Version 1.5.6
 - Fix: Vollständige Kontaktdaten werden jetzt abgerufen (inkl. Beschreibung) bevor Update
 - Fix: DB-Update verwendet jetzt direktes SQL für mehr Zuverlässigkeit

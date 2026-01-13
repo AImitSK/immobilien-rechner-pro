@@ -234,10 +234,11 @@ class IRP_Propstack {
         $broker_id = self::get_broker_for_city($lead_data['city_id'] ?? '');
 
         // Build contact data
+        // Note: Propstack uses 'home_cell' for mobile numbers, not 'phone'
         $contact_data = [
             'client' => [
                 'email' => $email,
-                'phone' => $lead_data['phone'] ?? '',
+                'home_cell' => $lead_data['phone'] ?? '',
                 'broker_id' => $broker_id,
                 'description' => self::build_description($lead_data),
             ],
@@ -551,21 +552,33 @@ class IRP_Propstack {
             return $propstack_id;
         }
 
-        // Save success using direct query
+        // Validate propstack_id
         $propstack_id_int = (int) $propstack_id;
+        if ($propstack_id_int <= 0) {
+            error_log('[IRP Propstack] Invalid propstack_id received: ' . var_export($propstack_id, true));
+            return new \WP_Error('invalid_id', __('Ungültige Propstack-ID erhalten.', 'immobilien-rechner-pro'));
+        }
+
+        // Save success - use wpdb->update for reliability
         $synced_at = current_time('mysql');
 
-        $sql = $wpdb->prepare(
-            "UPDATE {$table} SET propstack_id = %d, propstack_synced = 1, propstack_error = '', propstack_synced_at = %s WHERE id = %d",
-            $propstack_id_int,
-            $synced_at,
-            $lead_id
+        $update_result = $wpdb->update(
+            $table,
+            [
+                'propstack_id' => $propstack_id_int,
+                'propstack_synced' => 1,
+                'propstack_error' => '',
+                'propstack_synced_at' => $synced_at,
+            ],
+            ['id' => $lead_id],
+            ['%d', '%d', '%s', '%s'],
+            ['%d']
         );
 
-        $update_result = $wpdb->query($sql);
-
         if ($update_result === false) {
-            error_log('[IRP Propstack] DB Update failed for lead ' . $lead_id . ': ' . $wpdb->last_error);
+            error_log('[IRP Propstack] DB Update failed: ' . $wpdb->last_error);
+        } else {
+            error_log('[IRP Propstack] Synced lead ' . $lead_id . ' to Propstack ID ' . $propstack_id_int);
         }
 
         // Send newsletter DOI if consent given
@@ -621,25 +634,42 @@ class IRP_Propstack {
             ];
         }
 
-        if (!empty($lead->propstack_id)) {
-            return [
-                'status' => 'synced',
-                'label' => sprintf(__('Synchronisiert (ID: %d)', 'immobilien-rechner-pro'), $lead->propstack_id),
-                'class' => 'irp-status-success',
-                'icon' => '✅',
-            ];
-        }
+        // Always fetch fresh data from DB to avoid cache issues
+        global $wpdb;
+        $table = $wpdb->prefix . 'irp_leads';
+        $fresh_data = $wpdb->get_row($wpdb->prepare(
+            "SELECT propstack_id, propstack_synced, propstack_error, status FROM {$table} WHERE id = %d",
+            $lead->id
+        ));
 
-        if (!empty($lead->propstack_error)) {
+        if (!$fresh_data) {
             return [
                 'status' => 'error',
-                'label' => $lead->propstack_error,
+                'label' => __('Lead nicht gefunden', 'immobilien-rechner-pro'),
                 'class' => 'irp-status-error',
                 'icon' => '❌',
             ];
         }
 
-        if ($lead->status === 'partial') {
+        if (!empty($fresh_data->propstack_id)) {
+            return [
+                'status' => 'synced',
+                'label' => sprintf(__('Synchronisiert (ID: %d)', 'immobilien-rechner-pro'), $fresh_data->propstack_id),
+                'class' => 'irp-status-success',
+                'icon' => '✅',
+            ];
+        }
+
+        if (!empty($fresh_data->propstack_error)) {
+            return [
+                'status' => 'error',
+                'label' => $fresh_data->propstack_error,
+                'class' => 'irp-status-error',
+                'icon' => '❌',
+            ];
+        }
+
+        if ($fresh_data->status === 'partial') {
             return [
                 'status' => 'pending',
                 'label' => __('Wartet auf Kontaktdaten', 'immobilien-rechner-pro'),

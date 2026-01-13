@@ -415,6 +415,26 @@ class IRP_Admin {
         // Handle single lead view
         if (isset($_GET['lead'])) {
             $lead = $leads_manager->get((int) $_GET['lead']);
+
+            // DEBUG: Show raw Propstack data from DB
+            global $wpdb;
+            $table = $wpdb->prefix . 'irp_leads';
+            $debug_data = $wpdb->get_row($wpdb->prepare(
+                "SELECT id, propstack_id, propstack_synced, propstack_error, propstack_synced_at FROM {$table} WHERE id = %d",
+                (int) $_GET['lead']
+            ));
+            echo '<div class="notice notice-warning" style="padding: 15px; margin: 20px 0; background: #fff3cd; border-left: 4px solid #856404;">';
+            echo '<strong>🐛 DEBUG - Propstack DB-Werte (direkt aus DB):</strong><br>';
+            echo '<pre style="background: #f8f9fa; padding: 10px; margin-top: 10px; overflow-x: auto;">';
+            echo 'Lead ID: ' . esc_html($debug_data->id ?? 'NULL') . "\n";
+            echo 'propstack_id: ' . esc_html($debug_data->propstack_id ?? 'NULL') . ' (Typ: ' . gettype($debug_data->propstack_id ?? null) . ")\n";
+            echo 'propstack_synced: ' . esc_html($debug_data->propstack_synced ?? 'NULL') . "\n";
+            echo 'propstack_error: ' . esc_html($debug_data->propstack_error ?? 'NULL') . "\n";
+            echo 'propstack_synced_at: ' . esc_html($debug_data->propstack_synced_at ?? 'NULL') . "\n";
+            echo '</pre>';
+            echo '<p style="margin: 10px 0 0; font-size: 12px; color: #666;">Diese Debug-Box später entfernen!</p>';
+            echo '</div>';
+
             include IRP_PLUGIN_DIR . 'admin/views/lead-detail.php';
             return;
         }
