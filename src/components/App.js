@@ -75,6 +75,7 @@ export default function App({ config }) {
                     property_size: parseFloat(data.size),
                     city_id: data.city_id || '',
                     city_name: data.city_name || '',
+                    address: data.address || '',
                     condition: data.condition,
                     location_rating: data.location_rating || 3,
                     features: data.features || [],

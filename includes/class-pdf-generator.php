@@ -102,6 +102,7 @@ class IRP_PDF_Generator {
             'property_type' => self::translate_type(isset($calc['property_type']) ? $calc['property_type'] : ''),
             'property_size' => isset($calc['size']) ? $calc['size'] : '',
             'city_name' => isset($calc['city_name']) ? $calc['city_name'] : '',
+            'address' => isset($calc['address']) ? $calc['address'] : '',
             'condition' => self::translate_condition(isset($calc['condition']) ? $calc['condition'] : ''),
             'location_rating' => isset($calc['location_rating']) ? (int) $calc['location_rating'] : 3,
             'monthly_rent' => self::format_currency(self::get_rent_value($result)),
@@ -429,7 +430,7 @@ class IRP_PDF_Generator {
         <table>
             <tr><td>Objekttyp</td><td>' . esc_html($vars['property_type']) . '</td></tr>
             <tr><td>Wohnfläche</td><td>' . esc_html($vars['property_size']) . ' m²</td></tr>
-            <tr><td>Standort</td><td>' . esc_html($vars['city_name']) . '</td></tr>
+            <tr><td>Standort</td><td>' . esc_html($vars['city_name']) . (!empty($vars['address']) ? ', ' . esc_html($vars['address']) : '') . '</td></tr>
             <tr><td>Zustand</td><td>' . esc_html($vars['condition']) . '</td></tr>
             <tr><td>Lagebewertung</td><td>' . $vars['location_rating'] . ' von 5</td></tr>
         </table>

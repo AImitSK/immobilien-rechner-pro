@@ -339,6 +339,12 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.2
+- Neu: Google Maps Autocomplete auf gewählte Stadt eingeschränkt (nur Adressen in der konfigurierten Stadt)
+- Neu: Eingegebene Adresse wird im PDF angezeigt (Standort zeigt jetzt Stadt + Straße)
+- Verbesserung: Placeholder im Adressfeld zeigt "Straße und Hausnummer in [Stadt]..."
+- Verbesserung: Karte wird automatisch auf die gewählte Stadt zentriert
+
 ### Version 1.5.1
 - Fix: Propstack API-Authentifizierung korrigiert (X-API-KEY Header statt Bearer Token)
 - Fix: Verbindungstest funktioniert jetzt auch vor dem Speichern des API-Keys

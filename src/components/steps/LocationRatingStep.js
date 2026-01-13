@@ -65,51 +65,87 @@ export default function LocationRatingStep({ data, onChange }) {
         };
     }, [showMap]);
 
+    // Get city name for autocomplete restriction
+    const cityName = data.city_name || '';
+
     // Initialize Places Autocomplete
     useEffect(() => {
         if (!showMap || !window.google?.maps?.places || !autocompleteRef.current) return;
         if (autocompleteRef.current._autocomplete) return; // Already initialized
 
-        const autocomplete = new window.google.maps.places.Autocomplete(
-            autocompleteRef.current,
-            {
+        // Use Geocoder to get city bounds for better autocomplete restriction
+        const geocoder = new window.google.maps.Geocoder();
+
+        const initAutocomplete = (bounds) => {
+            const autocompleteOptions = {
                 types: ['address'],
                 componentRestrictions: { country: 'de' },
+            };
+
+            // If we have city bounds, use them to bias the search
+            if (bounds) {
+                autocompleteOptions.bounds = bounds;
+                autocompleteOptions.strictBounds = true;
             }
-        );
 
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
+            const autocomplete = new window.google.maps.places.Autocomplete(
+                autocompleteRef.current,
+                autocompleteOptions
+            );
 
-            if (place.geometry?.location) {
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
 
-                onChange({
-                    address: place.formatted_address || '',
-                    address_lat: lat,
-                    address_lng: lng,
-                });
+                if (place.geometry?.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
 
-                // Update map
-                if (mapInstanceRef.current) {
-                    mapInstanceRef.current.setCenter({ lat, lng });
-                    mapInstanceRef.current.setZoom(15);
+                    onChange({
+                        address: place.formatted_address || '',
+                        address_lat: lat,
+                        address_lng: lng,
+                    });
 
-                    if (markerRef.current) {
-                        markerRef.current.setPosition({ lat, lng });
-                    } else {
-                        markerRef.current = new window.google.maps.Marker({
-                            position: { lat, lng },
-                            map: mapInstanceRef.current,
-                        });
+                    // Update map
+                    if (mapInstanceRef.current) {
+                        mapInstanceRef.current.setCenter({ lat, lng });
+                        mapInstanceRef.current.setZoom(15);
+
+                        if (markerRef.current) {
+                            markerRef.current.setPosition({ lat, lng });
+                        } else {
+                            markerRef.current = new window.google.maps.Marker({
+                                position: { lat, lng },
+                                map: mapInstanceRef.current,
+                            });
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        autocompleteRef.current._autocomplete = autocomplete;
-    }, [mapLoaded, showMap]);
+            autocompleteRef.current._autocomplete = autocomplete;
+        };
+
+        // If we have a city name, geocode it to get bounds
+        if (cityName) {
+            geocoder.geocode({ address: cityName + ', Deutschland' }, (results, status) => {
+                if (status === 'OK' && results[0]?.geometry?.viewport) {
+                    initAutocomplete(results[0].geometry.viewport);
+
+                    // Also center the map on the city
+                    if (mapInstanceRef.current && !data.address_lat) {
+                        mapInstanceRef.current.setCenter(results[0].geometry.location);
+                        mapInstanceRef.current.setZoom(12);
+                    }
+                } else {
+                    // Fallback: init without bounds
+                    initAutocomplete(null);
+                }
+            });
+        } else {
+            initAutocomplete(null);
+        }
+    }, [mapLoaded, showMap, cityName]);
 
     // Handle rating change
     const handleRatingChange = useCallback((rating) => {
@@ -152,8 +188,10 @@ export default function LocationRatingStep({ data, onChange }) {
                     value={data.address || ''}
                     onChange={handleAddressChange}
                     placeholder={showMap
-                        ? __('Adresse eingeben...', 'immobilien-rechner-pro')
-                        : __('z.B. Musterstraße 123, 80331 München', 'immobilien-rechner-pro')
+                        ? (cityName
+                            ? __('Straße und Hausnummer in ', 'immobilien-rechner-pro') + cityName + '...'
+                            : __('Adresse eingeben...', 'immobilien-rechner-pro'))
+                        : __('z.B. Musterstraße 123', 'immobilien-rechner-pro')
                     }
                     autoComplete="off"
                 />

@@ -290,7 +290,7 @@ if (!defined('ABSPATH')) {
                 </tr>
                 <tr>
                     <td>Standort</td>
-                    <td><?php echo esc_html($city_name); ?></td>
+                    <td><?php echo esc_html($city_name); ?><?php if (!empty($address)) : ?>, <?php echo esc_html($address); ?><?php endif; ?></td>
                 </tr>
                 <tr>
                     <td>Zustand</td>
