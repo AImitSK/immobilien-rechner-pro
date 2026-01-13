@@ -75,10 +75,11 @@ class IRP_Propstack {
      * @param string $endpoint API endpoint (e.g., '/brokers')
      * @param string $method HTTP method
      * @param array|null $data Request data for POST/PUT
+     * @param string|null $override_api_key Optional API key to use instead of saved one
      * @return array|WP_Error Response data or error
      */
-    private static function api_request(string $endpoint, string $method = 'GET', ?array $data = null) {
-        $api_key = self::get_api_key();
+    private static function api_request(string $endpoint, string $method = 'GET', ?array $data = null, ?string $override_api_key = null) {
+        $api_key = $override_api_key ?? self::get_api_key();
 
         if (empty($api_key)) {
             return new \WP_Error('no_api_key', __('Kein API-Key konfiguriert.', 'immobilien-rechner-pro'));
@@ -90,7 +91,7 @@ class IRP_Propstack {
             'method' => $method,
             'timeout' => 30,
             'headers' => [
-                'Authorization' => 'Bearer ' . $api_key,
+                'X-API-KEY' => $api_key,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ],
@@ -112,8 +113,13 @@ class IRP_Propstack {
         $decoded = json_decode($body, true);
 
         if ($status_code >= 400) {
-            $error_message = $decoded['message'] ?? $decoded['error'] ?? __('Unbekannter API-Fehler', 'immobilien-rechner-pro');
-            error_log('[IRP Propstack] API Error ' . $status_code . ': ' . $error_message);
+            // Propstack returns errors as array: {"errors": ["Not Authenticated"]}
+            if (!empty($decoded['errors']) && is_array($decoded['errors'])) {
+                $error_message = implode(', ', $decoded['errors']);
+            } else {
+                $error_message = $decoded['message'] ?? $decoded['error'] ?? __('Unbekannter API-Fehler', 'immobilien-rechner-pro');
+            }
+            error_log('[IRP Propstack] API Error ' . $status_code . ': ' . $error_message . ' | Response: ' . $body);
             return new \WP_Error('api_error', $error_message, ['status' => $status_code]);
         }
 
@@ -123,10 +129,11 @@ class IRP_Propstack {
     /**
      * Test API connection
      *
+     * @param string|null $api_key Optional API key to test (uses saved key if not provided)
      * @return array ['success' => bool, 'message' => string]
      */
-    public static function test_connection(): array {
-        $result = self::api_request('/brokers');
+    public static function test_connection(?string $api_key = null): array {
+        $result = self::api_request('/brokers', 'GET', null, $api_key);
 
         if (is_wp_error($result)) {
             return [

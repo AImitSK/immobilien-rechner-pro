@@ -339,6 +339,10 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.1
+- Fix: Propstack API-Authentifizierung korrigiert (X-API-KEY Header statt Bearer Token)
+- Fix: Verbindungstest funktioniert jetzt auch vor dem Speichern des API-Keys
+
 ### Version 1.5.0
 - Neu: Konfigurierbare Baualters-Multiplikatoren im Admin unter "Matrix & Daten → Multiplikatoren"
 - Neu: 7 branchenübliche Baualtersklassen (Altbau bis 1945, Nachkriegsbau, 60er/70er, 80er, 90er, 2000er, Neubau ab 2015)
