@@ -339,6 +339,10 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.6
+- Fix: Vollständige Kontaktdaten werden jetzt abgerufen (inkl. Beschreibung) bevor Update
+- Fix: DB-Update verwendet jetzt direktes SQL für mehr Zuverlässigkeit
+
 ### Version 1.5.5
 - Neu: Bei existierenden Kontakten wird die neue Anfrage zur Beschreibung hinzugefügt (keine Duplikate)
 - Fix: Propstack Sync speichert jetzt propstack_id korrekt in der Datenbank

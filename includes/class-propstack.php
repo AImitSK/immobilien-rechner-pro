@@ -281,8 +281,17 @@ class IRP_Propstack {
             return null;
         }
 
-        // API returns array of contacts
-        if (is_array($result) && !empty($result[0])) {
+        // API returns array of contacts (but without full data like description)
+        if (is_array($result) && !empty($result[0]['id'])) {
+            // Fetch full contact data including description
+            $contact_id = $result[0]['id'];
+            $full_contact = self::api_request('/contacts/' . $contact_id);
+
+            if (!is_wp_error($full_contact)) {
+                return $full_contact;
+            }
+
+            // Fallback to basic data if full fetch fails
             return $result[0];
         }
 
@@ -542,25 +551,22 @@ class IRP_Propstack {
             return $propstack_id;
         }
 
-        // Save success
-        $update_result = $wpdb->update(
-            $table,
-            [
-                'propstack_id' => (int) $propstack_id,
-                'propstack_synced' => 1,
-                'propstack_error' => '',
-                'propstack_synced_at' => current_time('mysql'),
-            ],
-            ['id' => $lead_id],
-            ['%d', '%d', '%s', '%s'],
-            ['%d']
+        // Save success using direct query
+        $propstack_id_int = (int) $propstack_id;
+        $synced_at = current_time('mysql');
+
+        $sql = $wpdb->prepare(
+            "UPDATE {$table} SET propstack_id = %d, propstack_synced = 1, propstack_error = '', propstack_synced_at = %s WHERE id = %d",
+            $propstack_id_int,
+            $synced_at,
+            $lead_id
         );
+
+        $update_result = $wpdb->query($sql);
 
         if ($update_result === false) {
             error_log('[IRP Propstack] DB Update failed for lead ' . $lead_id . ': ' . $wpdb->last_error);
         }
-
-        error_log('[IRP Propstack] Lead ' . $lead_id . ' synced successfully. Propstack ID: ' . $propstack_id . ' | DB Update: ' . var_export($update_result, true));
 
         // Send newsletter DOI if consent given
         $settings = self::get_settings();
