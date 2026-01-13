@@ -144,13 +144,15 @@ $type_labels = [
                         <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($lead->propstack_synced_at))); ?></td>
                     </tr>
                     <?php endif; ?>
-                    <?php if ($propstack_status['status'] === 'error') : ?>
+                    <?php if ($propstack_status['status'] === 'error' || ($propstack_status['status'] === 'pending' && !empty($lead->email))) : ?>
                     <tr>
                         <th><?php esc_html_e('Aktion', 'immobilien-rechner-pro'); ?></th>
                         <td>
                             <button type="button" class="button button-secondary" id="propstack-retry-btn" data-lead-id="<?php echo esc_attr($lead->id); ?>">
                                 <span class="dashicons dashicons-update"></span>
-                                <?php esc_html_e('Erneut versuchen', 'immobilien-rechner-pro'); ?>
+                                <?php echo $propstack_status['status'] === 'error'
+                                    ? esc_html__('Erneut versuchen', 'immobilien-rechner-pro')
+                                    : esc_html__('Jetzt synchronisieren', 'immobilien-rechner-pro'); ?>
                             </button>
                             <span id="propstack-retry-result"></span>
                         </td>
