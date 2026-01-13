@@ -429,6 +429,9 @@ class IRP_Admin {
             $all_ids = $wpdb->get_col("SELECT id FROM {$table} ORDER BY id DESC LIMIT 10");
             $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$table}'");
 
+            // Check which columns exist
+            $columns = $wpdb->get_col("DESCRIBE {$table}", 0);
+
             echo '<div class="notice notice-warning" style="padding: 15px; margin: 20px 0; background: #fff3cd; border-left: 4px solid #856404;">';
             echo '<strong>🐛 DEBUG - Propstack DB-Werte (direkt aus DB):</strong><br>';
             echo '<pre style="background: #f8f9fa; padding: 10px; margin-top: 10px; overflow-x: auto;">';
@@ -437,6 +440,9 @@ class IRP_Admin {
             echo 'Table exists: ' . ($table_exists ? 'JA' : 'NEIN') . "\n";
             echo 'Last 10 Lead IDs in DB: ' . implode(', ', $all_ids) . "\n";
             echo 'Lead object ID: ' . esc_html($lead->id ?? 'NULL') . "\n";
+            echo "---\n";
+            echo 'Spalten in Tabelle: ' . implode(', ', $columns) . "\n";
+            echo 'propstack_id Spalte existiert: ' . (in_array('propstack_id', $columns) ? 'JA' : 'NEIN') . "\n";
             echo "---\n";
             echo 'DB Result Lead ID: ' . esc_html($debug_data->id ?? 'NULL') . "\n";
             echo 'propstack_id: ' . esc_html($debug_data->propstack_id ?? 'NULL') . ' (Typ: ' . gettype($debug_data->propstack_id ?? null) . ")\n";
