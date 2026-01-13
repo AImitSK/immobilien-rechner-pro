@@ -9,11 +9,26 @@ if (!defined('ABSPATH')) {
 
 $active_tab = sanitize_key($_GET['tab'] ?? 'connection');
 
+// Get API key and enabled status
+$api_key = $propstack_settings['api_key'] ?? '';
+$is_enabled = !empty($propstack_settings['enabled']);
+
 // Get brokers from cache or API
 $cached_brokers = get_transient('irp_propstack_brokers');
 $brokers = $cached_brokers ? $cached_brokers : [];
-$api_key = $propstack_settings['api_key'] ?? '';
-$is_connected = !empty($api_key) && !empty($brokers);
+
+// If no cached brokers but API key exists, try to fetch them
+if (empty($brokers) && !empty($api_key)) {
+    $brokers = IRP_Propstack::get_brokers();
+    if (!is_wp_error($brokers) && !empty($brokers)) {
+        set_transient('irp_propstack_brokers', $brokers, HOUR_IN_SECONDS);
+    } else {
+        $brokers = [];
+    }
+}
+
+// Connected = API key exists AND enabled AND we can fetch brokers (or have them cached)
+$is_connected = !empty($api_key) && $is_enabled && !empty($brokers);
 ?>
 
 <div class="wrap irp-admin-wrap">

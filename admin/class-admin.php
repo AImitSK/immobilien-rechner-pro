@@ -667,13 +667,16 @@ class IRP_Admin {
 
         $result = IRP_Propstack::sync_lead($lead_id);
 
-        if ($result['success']) {
-            wp_send_json_success([
-                'message' => $result['message'],
-                'propstack_id' => $result['propstack_id'] ?? null,
-            ]);
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
         } else {
-            wp_send_json_error(['message' => $result['message']]);
+            // Get updated lead to return propstack_id
+            $leads = new IRP_Leads();
+            $updated_lead = $leads->get($lead_id);
+            wp_send_json_success([
+                'message' => __('Erfolgreich synchronisiert!', 'immobilien-rechner-pro'),
+                'propstack_id' => $updated_lead->propstack_id ?? null,
+            ]);
         }
     }
 }

@@ -339,6 +339,9 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.4
+- Fix: AJAX-Handler für manuellen Propstack-Sync korrigiert (behandelt jetzt WP_Error korrekt)
+
 ### Version 1.5.3
 - Neu: "Jetzt synchronisieren" Button für ausstehende Leads in der Detail-Ansicht
 - Fix: Propstack-Sync kann jetzt manuell ausgelöst werden (nicht nur bei Fehlern)
