@@ -339,6 +339,12 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.5.5
+- Neu: Bei existierenden Kontakten wird die neue Anfrage zur Beschreibung hinzugefügt (keine Duplikate)
+- Fix: Propstack Sync speichert jetzt propstack_id korrekt in der Datenbank
+- Fix: NULL-Wert bei propstack_error durch leeren String ersetzt
+- Verbesserung: Besseres Logging bei DB-Update Fehlern
+
 ### Version 1.5.4
 - Fix: AJAX-Handler für manuellen Propstack-Sync korrigiert (behandelt jetzt WP_Error korrekt)
 

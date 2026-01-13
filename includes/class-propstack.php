@@ -220,6 +220,15 @@ class IRP_Propstack {
      */
     public static function create_contact(array $lead_data) {
         $settings = self::get_settings();
+        $email = $lead_data['email'] ?? '';
+
+        // Check if contact already exists
+        $existing_contact = self::find_contact_by_email($email);
+
+        if ($existing_contact) {
+            // Update existing contact - append new inquiry to description
+            return self::update_contact_description($existing_contact, $lead_data);
+        }
 
         // Determine broker ID based on city mapping
         $broker_id = self::get_broker_for_city($lead_data['city_id'] ?? '');
@@ -227,7 +236,7 @@ class IRP_Propstack {
         // Build contact data
         $contact_data = [
             'client' => [
-                'email' => $lead_data['email'] ?? '',
+                'email' => $email,
                 'phone' => $lead_data['phone'] ?? '',
                 'broker_id' => $broker_id,
                 'description' => self::build_description($lead_data),
@@ -253,6 +262,66 @@ class IRP_Propstack {
 
         // Return the contact ID
         return $result['id'] ?? $result['data']['id'] ?? 0;
+    }
+
+    /**
+     * Find contact by email
+     *
+     * @param string $email Email address
+     * @return array|null Contact data or null if not found
+     */
+    private static function find_contact_by_email(string $email): ?array {
+        if (empty($email)) {
+            return null;
+        }
+
+        $result = self::api_request('/contacts?email=' . urlencode($email));
+
+        if (is_wp_error($result)) {
+            return null;
+        }
+
+        // API returns array of contacts
+        if (is_array($result) && !empty($result[0])) {
+            return $result[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * Update contact description with new inquiry
+     *
+     * @param array $existing_contact Existing contact data
+     * @param array $lead_data New lead data
+     * @return int|WP_Error Propstack contact ID or error
+     */
+    private static function update_contact_description(array $existing_contact, array $lead_data) {
+        $contact_id = $existing_contact['id'];
+        $old_description = $existing_contact['description'] ?? '';
+        $new_inquiry = self::build_description($lead_data);
+
+        // Append new inquiry to existing description
+        $updated_description = $old_description;
+        if (!empty($old_description)) {
+            $updated_description .= "\n\n" . str_repeat('-', 40) . "\n\n";
+        }
+        $updated_description .= $new_inquiry;
+
+        // Update contact
+        $result = self::api_request('/contacts/' . $contact_id, 'PUT', [
+            'client' => [
+                'description' => $updated_description,
+            ],
+        ]);
+
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        error_log('[IRP Propstack] Updated existing contact ' . $contact_id . ' with new inquiry');
+
+        return $contact_id;
     }
 
     /**
@@ -474,12 +543,12 @@ class IRP_Propstack {
         }
 
         // Save success
-        $wpdb->update(
+        $update_result = $wpdb->update(
             $table,
             [
-                'propstack_id' => $propstack_id,
+                'propstack_id' => (int) $propstack_id,
                 'propstack_synced' => 1,
-                'propstack_error' => null,
+                'propstack_error' => '',
                 'propstack_synced_at' => current_time('mysql'),
             ],
             ['id' => $lead_id],
@@ -487,7 +556,11 @@ class IRP_Propstack {
             ['%d']
         );
 
-        error_log('[IRP Propstack] Lead ' . $lead_id . ' synced successfully. Propstack ID: ' . $propstack_id);
+        if ($update_result === false) {
+            error_log('[IRP Propstack] DB Update failed for lead ' . $lead_id . ': ' . $wpdb->last_error);
+        }
+
+        error_log('[IRP Propstack] Lead ' . $lead_id . ' synced successfully. Propstack ID: ' . $propstack_id . ' | DB Update: ' . var_export($update_result, true));
 
         // Send newsletter DOI if consent given
         $settings = self::get_settings();
