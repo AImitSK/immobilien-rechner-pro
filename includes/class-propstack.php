@@ -36,6 +36,10 @@ class IRP_Propstack {
             'newsletter_enabled' => false,
             'newsletter_snippet_id' => null,
             'newsletter_broker_id' => null,
+            'activity_enabled' => false,
+            'activity_type_id' => null,
+            'activity_create_task' => false,
+            'activity_task_due_days' => 1,
         ]);
     }
 
@@ -210,6 +214,182 @@ class IRP_Propstack {
         }
 
         return $sources;
+    }
+
+    /**
+     * Get activity types from Propstack
+     *
+     * @return array|WP_Error List of activity types or error
+     */
+    public static function get_activity_types() {
+        if (empty(self::get_api_key())) {
+            return [];
+        }
+
+        $result = self::api_request('/activity_types');
+
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        $types = [];
+        $data = $result['data'] ?? $result;
+
+        if (is_array($data)) {
+            foreach ($data as $type) {
+                $types[] = [
+                    'id' => $type['id'] ?? 0,
+                    'name' => $type['name'] ?? '',
+                ];
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * Create activity/task in Propstack
+     *
+     * @param int $contact_id Propstack contact ID
+     * @param array $lead_data Lead data
+     * @param int|null $broker_id Broker ID (optional)
+     * @return int|WP_Error Activity ID or error
+     */
+    public static function create_activity(int $contact_id, array $lead_data, ?int $broker_id = null) {
+        $settings = self::get_settings();
+
+        if (empty($settings['activity_enabled'])) {
+            return new \WP_Error('activity_disabled', __('Aktivitäten-Erstellung ist nicht aktiviert.', 'immobilien-rechner-pro'));
+        }
+
+        if (empty($settings['activity_type_id'])) {
+            return new \WP_Error('no_activity_type', __('Kein Aktivitätstyp konfiguriert.', 'immobilien-rechner-pro'));
+        }
+
+        // Build activity title
+        $mode = $lead_data['mode'] ?? 'rental';
+        $mode_label = $mode === 'rental' ? 'Mietwertberechnung' : 'Verkaufen vs. Vermieten';
+        $title = 'Anfrage über Immobilien-Rechner Pro - ' . $mode_label;
+
+        // Build activity body (HTML)
+        $body = self::build_activity_body($lead_data);
+
+        // Build task data
+        $task_data = [
+            'task' => [
+                'title' => $title,
+                'note_type_id' => (int) $settings['activity_type_id'],
+                'client_ids' => [$contact_id],
+                'body' => $body,
+            ],
+        ];
+
+        // Add broker if provided
+        if ($broker_id) {
+            $task_data['task']['broker_id'] = $broker_id;
+        }
+
+        // Create as reminder/task if enabled
+        if (!empty($settings['activity_create_task'])) {
+            $task_data['task']['is_reminder'] = true;
+            $task_data['task']['done'] = false;
+
+            // Calculate due date
+            $due_days = (int) ($settings['activity_task_due_days'] ?? 1);
+            $due_date = new \DateTime('now', new \DateTimeZone('Europe/Berlin'));
+            $due_date->modify('+' . $due_days . ' weekday');
+            $due_date->setTime(9, 0, 0);
+            $task_data['task']['due_date'] = $due_date->format('c');
+        }
+
+        // Make API request
+        $result = self::api_request('/tasks', 'POST', $task_data);
+
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        return $result['id'] ?? 0;
+    }
+
+    /**
+     * Build HTML body for activity
+     *
+     * @param array $lead_data Lead data
+     * @return string HTML body
+     */
+    private static function build_activity_body(array $lead_data): string {
+        $calc = $lead_data['calculation_data'] ?? [];
+        $result = $calc['result'] ?? [];
+
+        $html = '<div style="font-family: Arial, sans-serif;">';
+        $html .= '<h3 style="color: #333; margin-bottom: 15px;">Anfrage über Immobilien-Rechner Pro</h3>';
+
+        // Contact info
+        $html .= '<p><strong>Kontakt:</strong> ' . esc_html($lead_data['name'] ?? '') . '</p>';
+        if (!empty($lead_data['email'])) {
+            $html .= '<p><strong>E-Mail:</strong> ' . esc_html($lead_data['email']) . '</p>';
+        }
+        if (!empty($lead_data['phone'])) {
+            $html .= '<p><strong>Telefon:</strong> ' . esc_html($lead_data['phone']) . '</p>';
+        }
+
+        $html .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">';
+        $html .= '<h4 style="color: #555;">Berechnungsergebnis</h4>';
+
+        // Mode
+        $mode = $lead_data['mode'] ?? 'rental';
+        $html .= '<p><strong>Modus:</strong> ' . ($mode === 'rental' ? 'Mietwertberechnung' : 'Verkaufen vs. Vermieten') . '</p>';
+
+        // Property type
+        $types = ['apartment' => 'Wohnung', 'house' => 'Haus', 'commercial' => 'Gewerbe'];
+        $property_type = $calc['property_type'] ?? '';
+        if ($property_type) {
+            $html .= '<p><strong>Objekttyp:</strong> ' . ($types[$property_type] ?? $property_type) . '</p>';
+        }
+
+        // Size
+        $size = $calc['size'] ?? $lead_data['property_size'] ?? '';
+        if ($size) {
+            $html .= '<p><strong>Größe:</strong> ' . esc_html($size) . ' m²</p>';
+        }
+
+        // City
+        $city = $calc['city_name'] ?? $lead_data['property_location'] ?? '';
+        if ($city) {
+            $html .= '<p><strong>Stadt:</strong> ' . esc_html($city) . '</p>';
+        }
+
+        // Condition
+        $conditions = [
+            'new' => 'Neubau',
+            'renovated' => 'Renoviert',
+            'good' => 'Gut',
+            'needs_renovation' => 'Renovierungsbedürftig',
+        ];
+        $condition = $calc['condition'] ?? '';
+        if ($condition) {
+            $html .= '<p><strong>Zustand:</strong> ' . ($conditions[$condition] ?? $condition) . '</p>';
+        }
+
+        // Results
+        $html .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">';
+        $html .= '<h4 style="color: #555;">Ergebnis</h4>';
+
+        if (isset($result['monthly_rent'])) {
+            $rent = $result['monthly_rent']['estimate'] ?? $result['monthly_rent'];
+            if (is_numeric($rent)) {
+                $html .= '<p><strong>Geschätzte Miete:</strong> ' . number_format($rent, 0, ',', '.') . ' €/Monat</p>';
+            }
+        }
+
+        if (isset($result['price_per_sqm'])) {
+            $html .= '<p><strong>Preis pro m²:</strong> ' . number_format($result['price_per_sqm'], 2, ',', '.') . ' €</p>';
+        }
+
+        $html .= '</div>';
+
+        return $html;
     }
 
     /**
@@ -580,8 +760,17 @@ class IRP_Propstack {
             ['%d']
         );
 
-        // Send newsletter DOI if consent given
+        // Create activity in Propstack if enabled
         $settings = self::get_settings();
+        if (!empty($settings['activity_enabled'])) {
+            $broker_id = self::get_broker_for_city($lead_data['city_id'] ?? '');
+            $activity_result = self::create_activity($propstack_id_int, $lead_data, $broker_id);
+            if (is_wp_error($activity_result)) {
+                error_log('[IRP Propstack] Activity creation failed: ' . $activity_result->get_error_message());
+            }
+        }
+
+        // Send newsletter DOI if consent given
         if (!empty($settings['newsletter_enabled']) && !empty($lead->newsletter_consent)) {
             $doi_result = self::send_newsletter_doi($propstack_id, $lead->email);
             if (is_wp_error($doi_result)) {

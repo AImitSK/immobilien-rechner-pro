@@ -18,6 +18,7 @@ class IRP_Admin {
         add_action('wp_ajax_irp_propstack_test', [$this, 'ajax_propstack_test']);
         add_action('wp_ajax_irp_propstack_save', [$this, 'ajax_propstack_save']);
         add_action('wp_ajax_irp_propstack_sync_lead', [$this, 'ajax_propstack_sync_lead']);
+        add_action('wp_ajax_irp_propstack_refresh_activity_types', [$this, 'ajax_propstack_refresh_activity_types']);
     }
     
     public function add_admin_menu(): void {
@@ -633,6 +634,11 @@ class IRP_Admin {
             'city_broker_mapping' => $existing['city_broker_mapping'] ?? [],
             'newsletter_broker_id' => sanitize_text_field($_POST['newsletter_broker_id'] ?? $existing['newsletter_broker_id'] ?? ''),
             'sync_newsletter_only' => !empty($_POST['sync_newsletter_only']),
+            // Activity settings - preserve existing if not in POST
+            'activity_enabled' => isset($_POST['activity_enabled']) ? !empty($_POST['activity_enabled']) : ($existing['activity_enabled'] ?? false),
+            'activity_type_id' => isset($_POST['activity_type_id']) ? (int) $_POST['activity_type_id'] : ($existing['activity_type_id'] ?? null),
+            'activity_create_task' => isset($_POST['activity_create_task']) ? !empty($_POST['activity_create_task']) : ($existing['activity_create_task'] ?? false),
+            'activity_task_due_days' => isset($_POST['activity_task_due_days']) ? max(1, (int) $_POST['activity_task_due_days']) : ($existing['activity_task_due_days'] ?? 1),
         ];
 
         // Process broker mapping
@@ -648,6 +654,35 @@ class IRP_Admin {
         update_option('irp_propstack_settings', $settings);
 
         wp_send_json_success(['message' => __('Einstellungen wurden gespeichert.', 'immobilien-rechner-pro')]);
+    }
+
+    /**
+     * Refresh activity types from Propstack via AJAX
+     */
+    public function ajax_propstack_refresh_activity_types(): void {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+        }
+
+        check_ajax_referer('irp_admin_nonce', 'nonce');
+
+        $activity_types = IRP_Propstack::get_activity_types();
+
+        if (is_wp_error($activity_types)) {
+            wp_send_json_error(['message' => $activity_types->get_error_message()]);
+        }
+
+        if (empty($activity_types)) {
+            wp_send_json_error(['message' => __('Keine Aktivitätstypen gefunden.', 'immobilien-rechner-pro')]);
+        }
+
+        // Cache the activity types
+        set_transient('irp_propstack_activity_types', $activity_types, HOUR_IN_SECONDS);
+
+        wp_send_json_success([
+            'message' => sprintf(__('%d Aktivitätstypen geladen.', 'immobilien-rechner-pro'), count($activity_types)),
+            'types' => $activity_types,
+        ]);
     }
 
     /**

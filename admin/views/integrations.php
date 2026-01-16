@@ -44,6 +44,10 @@ $is_connected = !empty($api_key) && $is_enabled && !empty($brokers);
            class="nav-tab <?php echo $active_tab === 'broker-mapping' ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e('Makler-Zuweisung', 'immobilien-rechner-pro'); ?>
         </a>
+        <a href="<?php echo esc_url(add_query_arg('tab', 'activities')); ?>"
+           class="nav-tab <?php echo $active_tab === 'activities' ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e('Aktivitäten', 'immobilien-rechner-pro'); ?>
+        </a>
         <a href="<?php echo esc_url(add_query_arg('tab', 'newsletter')); ?>"
            class="nav-tab <?php echo $active_tab === 'newsletter' ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e('Newsletter', 'immobilien-rechner-pro'); ?>
@@ -206,6 +210,127 @@ $is_connected = !empty($api_key) && $is_enabled && !empty($brokers);
                     </p>
 
                 <?php endif; ?>
+            </div>
+
+        <?php elseif ($active_tab === 'activities'): ?>
+            <!-- Activities Tab -->
+            <div id="activities-settings">
+                <h2><?php esc_html_e('Aktivitäten-Einstellungen', 'immobilien-rechner-pro'); ?></h2>
+                <p class="description">
+                    <?php esc_html_e('Konfigurieren Sie, ob bei neuen Leads automatisch eine Aktivität in Propstack erstellt werden soll. Aktivitäten erscheinen unter dem Tab "Aktivitäten" im Kontakt und lösen Benachrichtigungen aus.', 'immobilien-rechner-pro'); ?>
+                </p>
+
+                <?php
+                // Get activity types
+                $cached_activity_types = get_transient('irp_propstack_activity_types');
+                $activity_types = $cached_activity_types ? $cached_activity_types : [];
+
+                if (empty($activity_types) && !empty($api_key)) {
+                    $activity_types = IRP_Propstack::get_activity_types();
+                    if (!is_wp_error($activity_types) && !empty($activity_types)) {
+                        set_transient('irp_propstack_activity_types', $activity_types, HOUR_IN_SECONDS);
+                    } else {
+                        $activity_types = [];
+                    }
+                }
+
+                $activity_enabled = $propstack_settings['activity_enabled'] ?? false;
+                $activity_type_id = $propstack_settings['activity_type_id'] ?? '';
+                $activity_create_task = $propstack_settings['activity_create_task'] ?? false;
+                $activity_task_due_days = $propstack_settings['activity_task_due_days'] ?? 1;
+                ?>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="activity_enabled"><?php esc_html_e('Aktivitäten aktivieren', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <label>
+                                <input type="checkbox"
+                                       id="activity_enabled"
+                                       name="activity_enabled"
+                                       value="1"
+                                       <?php checked($activity_enabled); ?>>
+                                <?php esc_html_e('Bei neuen Leads automatisch eine Aktivität erstellen', 'immobilien-rechner-pro'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Die Aktivität erscheint im Kontakt unter "Aktivitäten" statt nur in der "Historie".', 'immobilien-rechner-pro'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="activity_type_id"><?php esc_html_e('Aktivitätstyp', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <?php if (empty($activity_types)): ?>
+                                <p class="description" style="color: #dc3545;">
+                                    <?php esc_html_e('Keine Aktivitätstypen gefunden. Bitte stellen Sie sicher, dass die API-Verbindung funktioniert.', 'immobilien-rechner-pro'); ?>
+                                </p>
+                                <button type="button" class="button" id="refresh-activity-types">
+                                    <span class="dashicons dashicons-update" style="vertical-align: middle;"></span>
+                                    <?php esc_html_e('Aktivitätstypen laden', 'immobilien-rechner-pro'); ?>
+                                </button>
+                            <?php else: ?>
+                                <select id="activity_type_id" name="activity_type_id" style="width: 100%; max-width: 400px;">
+                                    <option value=""><?php esc_html_e('-- Aktivitätstyp wählen --', 'immobilien-rechner-pro'); ?></option>
+                                    <?php foreach ($activity_types as $type): ?>
+                                        <option value="<?php echo esc_attr($type['id']); ?>"
+                                                <?php selected($activity_type_id, $type['id']); ?>>
+                                            <?php echo esc_html($type['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="description">
+                                    <?php esc_html_e('Wählen Sie den Typ der Aktivität (z.B. "Anfrage", "Notiz", etc.).', 'immobilien-rechner-pro'); ?>
+                                </p>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="activity_create_task"><?php esc_html_e('Als Aufgabe erstellen', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <label>
+                                <input type="checkbox"
+                                       id="activity_create_task"
+                                       name="activity_create_task"
+                                       value="1"
+                                       <?php checked($activity_create_task); ?>>
+                                <?php esc_html_e('Aktivität als offene Aufgabe mit Fälligkeitsdatum erstellen', 'immobilien-rechner-pro'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Wenn aktiviert, wird die Aktivität als Aufgabe erstellt, die erledigt werden muss.', 'immobilien-rechner-pro'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr id="task-due-days-row" style="<?php echo $activity_create_task ? '' : 'display: none;'; ?>">
+                        <th scope="row">
+                            <label for="activity_task_due_days"><?php esc_html_e('Fälligkeit (Werktage)', 'immobilien-rechner-pro'); ?></label>
+                        </th>
+                        <td>
+                            <input type="number"
+                                   id="activity_task_due_days"
+                                   name="activity_task_due_days"
+                                   value="<?php echo esc_attr($activity_task_due_days); ?>"
+                                   min="1"
+                                   max="30"
+                                   style="width: 80px;">
+                            <span><?php esc_html_e('Werktage nach Erstellung', 'immobilien-rechner-pro'); ?></span>
+                            <p class="description">
+                                <?php esc_html_e('Die Aufgabe wird um 9:00 Uhr am entsprechenden Werktag fällig.', 'immobilien-rechner-pro'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="submit">
+                    <button type="button" class="button button-primary" id="save-activity-settings">
+                        <?php esc_html_e('Speichern', 'immobilien-rechner-pro'); ?>
+                    </button>
+                </p>
             </div>
 
         <?php elseif ($active_tab === 'newsletter'): ?>
@@ -442,6 +567,77 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 $button.prop('disabled', false).text('<?php esc_html_e('Speichern', 'immobilien-rechner-pro'); ?>');
+            }
+        });
+    });
+
+    // Toggle task due days visibility
+    $('#activity_create_task').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#task-due-days-row').show();
+        } else {
+            $('#task-due-days-row').hide();
+        }
+    });
+
+    // Save activity settings
+    $('#save-activity-settings').on('click', function() {
+        var $button = $(this);
+        $button.prop('disabled', true).text('<?php esc_html_e('Speichern...', 'immobilien-rechner-pro'); ?>');
+
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'irp_propstack_save',
+                nonce: irpAdmin.nonce,
+                enabled: true,
+                api_key: '<?php echo esc_js($api_key); ?>',
+                activity_enabled: $('#activity_enabled').is(':checked') ? 1 : 0,
+                activity_type_id: $('#activity_type_id').val(),
+                activity_create_task: $('#activity_create_task').is(':checked') ? 1 : 0,
+                activity_task_due_days: $('#activity_task_due_days').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.data.message);
+                } else {
+                    alert(response.data.message);
+                }
+            },
+            error: function() {
+                alert('<?php esc_html_e('Fehler beim Speichern.', 'immobilien-rechner-pro'); ?>');
+            },
+            complete: function() {
+                $button.prop('disabled', false).text('<?php esc_html_e('Speichern', 'immobilien-rechner-pro'); ?>');
+            }
+        });
+    });
+
+    // Refresh activity types
+    $('#refresh-activity-types').on('click', function() {
+        var $button = $(this);
+        $button.prop('disabled', true);
+
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'irp_propstack_refresh_activity_types',
+                nonce: irpAdmin.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert(response.data.message || '<?php esc_html_e('Fehler beim Laden der Aktivitätstypen.', 'immobilien-rechner-pro'); ?>');
+                }
+            },
+            error: function() {
+                alert('<?php esc_html_e('Verbindungsfehler', 'immobilien-rechner-pro'); ?>');
+            },
+            complete: function() {
+                $button.prop('disabled', false);
             }
         });
     });
