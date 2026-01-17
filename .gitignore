@@ -39,5 +39,5 @@ yarn-error.log*
 .claude/
 nul
 
-# Local documentation
-docs/
+# Temp files
+tmpclaude-*
