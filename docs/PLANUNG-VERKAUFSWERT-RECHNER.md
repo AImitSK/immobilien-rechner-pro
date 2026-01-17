@@ -15,39 +15,207 @@ Erweiterung des Immobilien-Rechner-Pro um einen neuen Modus zur Berechnung des I
 
 ---
 
-## 1. Frontend: Steps (React)
+## 1. Frontend: Steps (React) - OPTIMIERT auf 8 Steps
 
-### Step-Reihenfolge
+### Step-Reihenfolge (Conversion-optimiert)
 
 | # | Step | Komponente | Beschreibung |
 |---|------|------------|--------------|
-| 1 | Immobilientyp | `SalePropertyTypeStep.js` | Grundstück / Wohnung / Haus |
-| 2 | Haustyp | `HouseTypeStep.js` | Nur bei "Haus": EFH, MFH, DHH, Reihenhaus, Bungalow |
-| 3 | Größe | `SaleSizeStep.js` | Grundstücksgröße + Wohnfläche |
-| 4 | Baujahr | `BuildYearStep.js` | Baujahr + letzte Modernisierung |
-| 5 | Ausstattung Außen | `ExteriorFeaturesStep.js` | Balkon, Garage, Garten, Solar, Stellplatz, Terrasse |
-| 6 | Ausstattung Innen | `InteriorFeaturesStep.js` | Aufzug, Dachboden, EBK, Kamin, Parkett, Keller |
-| 7 | Qualität | `QualityStep.js` | Einfach / Normal / Gehoben / Luxuriös |
-| 8 | Lage | `LocationRatingStep.js` | **Besteht bereits** - wiederverwenden |
-| 9 | Nutzung | `UsageStep.js` | Eigennutzung / Leerstand / Vermietung |
-| 10 | Verkaufsziel | `SalePurposeStep.js` | Verkauf/Kauf + Zeitrahmen |
-| 11 | Adresse | `AddressStep.js` | PLZ, Stadt, Straße (für Genauigkeit) |
-| 12 | Kontakt | `ContactStep.js` | **Besteht bereits** - wiederverwenden |
-| 13 | Ergebnis | `SaleResultsDisplay.js` | Verkaufspreis-Anzeige |
+| 1 | Immobilientyp | `SalePropertyTypeStep.js` | Grundstück / Wohnung / Haus + Haustyp (bei Haus) |
+| 2 | Größe & Baujahr | `SaleSizeStep.js` | Grundstück + Wohnfläche + Baujahr + Modernisierung |
+| 3 | Ausstattung | `SaleFeaturesStep.js` | Außen + Innen kombiniert auf einer Seite |
+| 4 | Qualität & Lage | `SaleQualityLocationStep.js` | Qualität + Lagefaktor (bestehend wiederverwenden) |
+| 5 | Adresse | `AddressStep.js` | PLZ, Stadt, Straße mit Google Maps Autocomplete |
+| 6 | Nutzung & Ziel | `SalePurposeStep.js` | Nutzung + Verkauf/Kauf + Zeitrahmen kombiniert |
+| 7 | Kontakt | `ContactStep.js` | **Besteht bereits** - wiederverwenden |
+| 8 | Ergebnis | `SaleResultsDisplay.js` | Verkaufspreis-Anzeige |
 
-### Bedingte Steps
+**Vorteil:** Nur 6 Klicks bis zum Kontaktformular (statt 11), bessere Conversion-Rate.
+
+### Bedingte Logik
 
 ```
-Immobilientyp = "Grundstück" → Überspringe: Haustyp, Wohnfläche, Baujahr, Innenausstattung, Qualität
-Immobilientyp = "Wohnung"    → Überspringe: Haustyp, Grundstücksgröße
-Immobilientyp = "Haus"       → Alle Steps
+Immobilientyp = "Grundstück" → Überspringe: Wohnfläche, Baujahr, Innenausstattung, Qualität
+Immobilientyp = "Wohnung"    → Vergleichswertverfahren (keine Grundstücksgröße, kein Haustyp)
+Immobilientyp = "Haus"       → Sachwertverfahren mit allen Feldern
 ```
 
 ---
 
-## 2. Ergebnisausgabe (SaleResultsDisplay.js)
+## 2. Berechnungsverfahren (WICHTIG)
 
-### Anzuzeigende Werte
+### Zwei unterschiedliche Verfahren je nach Immobilientyp
+
+#### A) Wohnungen: Vergleichswertverfahren (einfach)
+
+```php
+// Wohnungen: Reiner Preis pro m² Wohnfläche
+$price = $living_space * $city_data['apartment_price_per_sqm']
+       * $quality_factor
+       * $modernization_factor
+       * $location_factor
+       * $market_adjustment_factor
+       + $features_value;
+```
+
+**Begründung:** Bei Wohnungen ist der Bodenwertanteil bereits im m²-Preis enthalten (über Miteigentumsanteil). Eine getrennte Boden-/Gebäudeberechnung ist methodisch falsch.
+
+#### B) Häuser: Sachwertverfahren (erweitert)
+
+```php
+// Häuser: Bodenwert + Gebäudewert + Ausstattung + Marktanpassung
+$land_value = $land_size * $city_data['land_price_per_sqm'];
+
+$building_value = $living_space * $city_data['building_price_per_sqm']
+                * $house_type_factor
+                * $quality_factor
+                * $effective_age_factor  // NEU: Berücksichtigt Modernisierung
+                * $location_factor;
+
+$total_before_market = $land_value + $building_value + $features_value;
+
+// Marktanpassungsfaktor anwenden
+$price = $total_before_market * $city_data['market_adjustment_factor'];
+```
+
+#### C) Grundstücke: Nur Bodenwert
+
+```php
+// Grundstücke: Reiner Bodenwert
+$price = $land_size * $city_data['land_price_per_sqm']
+       * $location_factor
+       * $market_adjustment_factor;
+```
+
+---
+
+## 3. Alter + Modernisierung = Fiktives Baujahr (ImmoWertV-konform)
+
+### Problem mit einfacher Multiplikation
+
+```php
+// FALSCH: Doppelte Bestrafung/Belohnung
+$age_factor = 0.60;           // 40 Jahre alt = 40% Abzug
+$modernization_factor = 1.10; // Kürzlich modernisiert = 10% Zuschlag
+$result = 0.60 * 1.10 = 0.66; // Ergibt keinen Sinn bei Kernsanierung
+```
+
+### Lösung: Fiktives Baujahr berechnen
+
+```php
+/**
+ * Berechnet das effektive Baujahr unter Berücksichtigung von Modernisierungen
+ * Angelehnt an ImmoWertV / Sachwertrichtlinie
+ */
+private function calculate_effective_build_year(int $original_year, string $modernization): int {
+    $current_year = (int) date('Y');
+
+    // Modernisierung verschiebt das fiktive Baujahr nach vorne
+    $year_shift = match($modernization) {
+        '1-3_years' => 15,      // Kernsanierung: 15 Jahre jünger
+        '4-9_years' => 10,      // Große Modernisierung: 10 Jahre jünger
+        '10-15_years' => 5,     // Mittlere Modernisierung: 5 Jahre jünger
+        'over_15_years' => 0,   // Alte Modernisierung: kein Effekt
+        'never' => 0,           // Nie modernisiert
+        default => 0,
+    };
+
+    $effective_year = $original_year + $year_shift;
+
+    // Nicht neuer als aktuelles Jahr
+    return min($effective_year, $current_year);
+}
+
+private function calculate_age_factor(int $original_year, string $modernization, array $settings): float {
+    $effective_year = $this->calculate_effective_build_year($original_year, $modernization);
+    $effective_age = $settings['base_year'] - $effective_year;
+
+    // 1% Abschlag pro Jahr, max 40%
+    $depreciation = min(
+        $effective_age * $settings['rate_per_year'],
+        $settings['max_depreciation']
+    );
+
+    return max(0.60, 1 - $depreciation);
+}
+```
+
+### Beispiele
+
+| Baujahr | Modernisierung | Fiktives Baujahr | Effektives Alter | Faktor |
+|---------|----------------|------------------|------------------|--------|
+| 1980 | Nie | 1980 | 45 Jahre | 0.60 (max) |
+| 1980 | Vor 1-3 Jahren | 1995 | 30 Jahre | 0.70 |
+| 1980 | Vor 4-9 Jahren | 1990 | 35 Jahre | 0.65 |
+| 2010 | Nie | 2010 | 15 Jahre | 0.85 |
+| 2020 | Nie | 2020 | 5 Jahre | 0.95 |
+
+---
+
+## 4. Marktanpassungsfaktor (Regional)
+
+### Problem
+
+Der reine Sachwert (Boden + Gebäude) entspricht selten dem tatsächlichen Marktwert:
+- In Boom-Städten (München, Berlin): Marktpreis >> Sachwert
+- In ländlichen Regionen: Marktpreis << Sachwert
+
+### Lösung: Neues Feld in der Städte-Matrix
+
+```php
+'cities' => [
+    [
+        'id' => 'bad_oeynhausen',
+        'name' => 'Bad Oeynhausen',
+
+        // Bestehende Felder
+        'base_price' => 8.50,
+        'size_degression' => 0.20,
+        'sale_factor' => 25,
+
+        // NEU für Verkaufswert
+        'land_price_per_sqm' => 180,
+        'building_price_per_sqm' => 2800,
+        'apartment_price_per_sqm' => 2500,    // NEU: Für Vergleichswert Wohnungen
+        'market_adjustment_factor' => 1.05,   // NEU: Marktanpassung (0.8 - 1.4)
+    ],
+    [
+        'id' => 'munich',
+        'name' => 'München',
+        'land_price_per_sqm' => 1800,
+        'building_price_per_sqm' => 3500,
+        'apartment_price_per_sqm' => 8500,
+        'market_adjustment_factor' => 1.35,   // Boom-Stadt: +35%
+    ],
+    [
+        'id' => 'rural_example',
+        'name' => 'Ländliche Region',
+        'land_price_per_sqm' => 50,
+        'building_price_per_sqm' => 2200,
+        'apartment_price_per_sqm' => 1800,
+        'market_adjustment_factor' => 0.85,   // Schwacher Markt: -15%
+    ],
+]
+```
+
+### Admin-UI für Marktanpassung
+
+```
+Marktanpassungsfaktor: [====|====] 1.05
+                       0.8       1.4
+
+Hinweis: Passt den berechneten Sachwert an die lokale Marktlage an.
+- Unter 1.0: Käufermarkt / ländliche Region
+- Über 1.0: Verkäufermarkt / Boom-Region
+```
+
+---
+
+## 5. Ergebnisausgabe (SaleResultsDisplay.js)
+
+### Anzeige je nach Immobilientyp
+
+#### Für Häuser (Sachwertverfahren)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -61,158 +229,82 @@ Immobilientyp = "Haus"       → Alle Steps
 │                                                         │
 │  ─────────────────────────────────────────              │
 │                                                         │
-│  Preisberechnung basiert auf:                           │
-│  • Grundstück: 500 m² × 180 €/m² = 90.000 €            │
-│  • Gebäudewert: 120 m² × 2.800 €/m² = 336.000 €        │
-│  • Ausstattung: +12.000 €                               │
-│  • Lagefaktor: ×1.05                                    │
-│  • Zustandsfaktor: ×0.95                                │
+│  Wertermittlung:                                        │
+│  • Grundstückswert: 90.000 €                            │
+│  • Gebäudewert: 295.000 €                               │
+│  • Ausstattung: +17.000 €                               │
+│  • Marktanpassung: ×1.05                                │
 │                                                         │
 │  ─────────────────────────────────────────              │
 │                                                         │
-│  Vergleichswerte in der Region:                         │
-│  • Ø Verkaufspreis EFH: 380.000 €                       │
-│  • Ø Preis/m² Wohnfläche: 3.200 €                       │
-│  • Ø Preis/m² Grundstück: 175 €                         │
+│  Kennzahlen:                                            │
+│  • Preis pro m² Wohnfläche: 3.375 €                     │
+│  • Preis pro m² Grundstück: 180 €                       │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Berechnete Felder
+#### Für Wohnungen (Vergleichswertverfahren)
 
-| Feld | Beschreibung |
-|------|--------------|
-| `price_min` | Untere Preisspanne (-5%) |
-| `price_max` | Obere Preisspanne (+5%) |
-| `price_estimate` | Mittelwert/Schätzpreis |
-| `price_per_sqm_living` | Preis pro m² Wohnfläche |
-| `price_per_sqm_land` | Preis pro m² Grundstück |
-| `land_value` | Anteil Grundstückswert |
-| `building_value` | Anteil Gebäudewert |
-| `features_value` | Anteil Ausstattung |
-| `location_factor` | Angewandter Lagefaktor |
-| `condition_factor` | Angewandter Zustandsfaktor |
-
----
-
-## 3. PDF-Anpassung
-
-### Neues PDF-Template: `pdf-sale-value.php`
-
-**Seite 1: Zusammenfassung**
 ```
-┌─────────────────────────────────────────┐
-│  [LOGO]        IMMOBILIENBEWERTUNG      │
-│                                         │
-│  Objekt: Einfamilienhaus                │
-│  Adresse: Musterstraße 123              │
-│           32547 Bad Oeynhausen          │
-│                                         │
-│  ─────────────────────────────────────  │
-│                                         │
-│  GESCHÄTZTER VERKAUFSWERT               │
-│                                         │
-│      385.000 € - 425.000 €              │
-│                                         │
-│  ─────────────────────────────────────  │
-│                                         │
-│  Objektdaten:                           │
-│  • Grundstück: 500 m²                   │
-│  • Wohnfläche: 120 m²                   │
-│  • Baujahr: 1985                        │
-│  • Modernisierung: vor 4-9 Jahren       │
-│  • Haustyp: Einfamilienhaus             │
-│  • Qualität: Gehoben                    │
-│  • Lage: Sehr gute Lage                 │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
-**Seite 2: Details**
-```
-┌─────────────────────────────────────────┐
-│  WERTERMITTLUNG IM DETAIL               │
-│                                         │
-│  Grundstückswert:                       │
-│  500 m² × 180 €/m² = 90.000 €          │
-│                                         │
-│  Gebäudewert:                           │
-│  120 m² × 2.800 €/m² = 336.000 €       │
-│                                         │
-│  Ausstattungszuschläge:                 │
-│  • Garage: +8.000 €                     │
-│  • Einbauküche: +5.000 €                │
-│  • Garten: +4.000 €                     │
-│                                         │
-│  Faktoren:                              │
-│  • Lagefaktor: ×1.05                    │
-│  • Baujahr/Zustand: ×0.95               │
-│  • Qualität: ×1.10                      │
-│                                         │
-│  ─────────────────────────────────────  │
-│                                         │
-│  HINWEIS                                │
-│  Diese Bewertung dient als Orientierung │
-│  und ersetzt keine professionelle       │
-│  Wertermittlung durch einen Gutachter.  │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
-### PDF-Logik
-
-```php
-// In class-pdf-generator.php
-public function generate($lead) {
-    $mode = $lead->mode;
-
-    if ($mode === 'sale_value') {
-        $template = 'pdf-sale-value.php';
-    } elseif ($mode === 'comparison') {
-        $template = 'pdf-comparison.php';
-    } else {
-        $template = 'pdf-rental.php';  // Default
-    }
-
-    include IRP_PLUGIN_DIR . 'includes/templates/' . $template;
-}
+┌─────────────────────────────────────────────────────────┐
+│  Geschätzter Verkaufswert Ihrer Wohnung                 │
+│                                                         │
+│  ████████████████████████████████████████               │
+│           195.000 € - 215.000 €                         │
+│  ████████████████████████████████████████               │
+│                                                         │
+│  Mittelwert: 205.000 €                                  │
+│                                                         │
+│  ─────────────────────────────────────────              │
+│                                                         │
+│  Basierend auf:                                         │
+│  • 85 m² × 2.400 €/m² Basispreis                        │
+│  • Qualität: Gehoben (+15%)                             │
+│  • Lage: Sehr gut (+10%)                                │
+│  • Ausstattung: +8.000 €                                │
+│                                                         │
+│  ─────────────────────────────────────────              │
+│                                                         │
+│  Vergleich Region:                                      │
+│  • Ø Preis/m² in Bad Oeynhausen: 2.500 €                │
+│  • Ihre Wohnung: 2.412 €/m²                             │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Backend: Matrix & Daten
-
-### Prinzip: Einfach halten
-
-**Strategie:** Bestehende Struktur erweitern, keine komplett neue Matrix.
+## 6. Backend: Matrix & Daten
 
 ### Erweiterung der Stadt-Konfiguration
 
 ```php
-// Bestehend (bleibt)
 'cities' => [
     [
         'id' => 'bad_oeynhausen',
         'name' => 'Bad Oeynhausen',
-        'base_price' => 8.50,           // Mietpreis/m²
-        'size_degression' => 0.20,
-        'sale_factor' => 25,            // Für Vergleichsrechner
 
-        // NEU für Verkaufswert
-        'land_price_per_sqm' => 180,    // Grundstückspreis/m²
-        'building_price_per_sqm' => 2800, // Gebäudepreis/m² (Neubau-Basis)
+        // Bestehend (Mietwert)
+        'base_price' => 8.50,
+        'size_degression' => 0.20,
+        'sale_factor' => 25,
+
+        // NEU (Verkaufswert)
+        'land_price_per_sqm' => 180,          // Bodenrichtwert
+        'building_price_per_sqm' => 2800,     // Normalherstellungskosten Haus
+        'apartment_price_per_sqm' => 2500,    // Vergleichswert Wohnung
+        'market_adjustment_factor' => 1.05,   // Marktanpassung
     ],
 ]
 ```
 
-### Neue Faktoren-Tabellen (eigener Tab im Admin)
-
-**Tab: "Verkaufswert-Faktoren"**
+### Neue Faktoren-Tabellen (Tab: "Verkaufswert-Faktoren")
 
 ```php
 'sale_value_settings' => [
 
-    // Haustyp-Faktoren
+    // Haustyp-Faktoren (nur bei Häusern)
     'house_type_multipliers' => [
         'single_family' => ['name' => 'Einfamilienhaus', 'multiplier' => 1.00],
         'multi_family' => ['name' => 'Mehrfamilienhaus', 'multiplier' => 1.15],
@@ -230,64 +322,46 @@ public function generate($lead) {
         'luxury' => ['name' => 'Luxuriös', 'multiplier' => 1.35],
     ],
 
-    // Modernisierungs-Faktoren
-    'modernization_multipliers' => [
-        '1-3_years' => ['name' => 'Vor 1-3 Jahren', 'multiplier' => 1.10],
-        '4-9_years' => ['name' => 'Vor 4-9 Jahren', 'multiplier' => 1.05],
-        '10-15_years' => ['name' => 'Vor 10-15 Jahren', 'multiplier' => 1.00],
-        'over_15_years' => ['name' => 'Vor mehr als 15 Jahren', 'multiplier' => 0.90],
-        'never' => ['name' => 'Noch nie', 'multiplier' => 0.85],
+    // Modernisierungs-Verschiebung (Jahre)
+    'modernization_year_shift' => [
+        '1-3_years' => ['name' => 'Vor 1-3 Jahren', 'years' => 15],
+        '4-9_years' => ['name' => 'Vor 4-9 Jahren', 'years' => 10],
+        '10-15_years' => ['name' => 'Vor 10-15 Jahren', 'years' => 5],
+        'over_15_years' => ['name' => 'Vor mehr als 15 Jahren', 'years' => 0],
+        'never' => ['name' => 'Noch nie', 'years' => 0],
     ],
 
-    // Altersabschlag (pro Jahr ab Baujahr)
+    // Altersabschlag
     'age_depreciation' => [
-        'rate_per_year' => 0.01,        // 1% pro Jahr
-        'max_depreciation' => 0.40,     // Maximal 40% Abschlag
-        'base_year' => 2025,            // Bezugsjahr
+        'rate_per_year' => 0.01,
+        'max_depreciation' => 0.40,
+        'base_year' => 2025,
     ],
 
     // Ausstattungs-Zuschläge (absolute Werte in €)
-    'exterior_features' => [
-        'balcony' => ['name' => 'Balkon', 'value' => 5000],
-        'garage' => ['name' => 'Garage', 'value' => 15000],
-        'garden' => ['name' => 'Garten', 'value' => 8000],
-        'solar' => ['name' => 'Solaranlage', 'value' => 12000],
-        'parking' => ['name' => 'Stellplatz', 'value' => 8000],
-        'terrace' => ['name' => 'Terrasse', 'value' => 6000],
-    ],
+    'features' => [
+        // Außen
+        'balcony' => ['name' => 'Balkon', 'value' => 5000, 'type' => 'exterior'],
+        'garage' => ['name' => 'Garage', 'value' => 15000, 'type' => 'exterior'],
+        'parking' => ['name' => 'Stellplatz', 'value' => 8000, 'type' => 'exterior'],
+        'garden' => ['name' => 'Garten', 'value' => 8000, 'type' => 'exterior'],
+        'terrace' => ['name' => 'Terrasse', 'value' => 6000, 'type' => 'exterior'],
+        'solar' => ['name' => 'Solaranlage', 'value' => 12000, 'type' => 'exterior'],
 
-    'interior_features' => [
-        'elevator' => ['name' => 'Aufzug', 'value' => 20000],
-        'attic' => ['name' => 'Dachboden', 'value' => 5000],
-        'fitted_kitchen' => ['name' => 'Einbauküche', 'value' => 8000],
-        'fireplace' => ['name' => 'Kamin', 'value' => 6000],
-        'parquet' => ['name' => 'Parkettboden', 'value' => 4000],
-        'cellar' => ['name' => 'Keller', 'value' => 10000],
+        // Innen
+        'elevator' => ['name' => 'Aufzug', 'value' => 20000, 'type' => 'interior'],
+        'fitted_kitchen' => ['name' => 'Einbauküche', 'value' => 8000, 'type' => 'interior'],
+        'fireplace' => ['name' => 'Kamin', 'value' => 6000, 'type' => 'interior'],
+        'parquet' => ['name' => 'Parkettboden', 'value' => 4000, 'type' => 'interior'],
+        'cellar' => ['name' => 'Keller', 'value' => 10000, 'type' => 'interior'],
+        'attic' => ['name' => 'Dachboden', 'value' => 5000, 'type' => 'interior'],
     ],
 ]
 ```
 
-### Admin-UI Struktur
-
-```
-Immo Rechner
-├── Dashboard
-├── Leads
-├── Matrix & Daten
-│   ├── Tab: Städte (bestehend + neue Felder)
-│   ├── Tab: Mietwert-Faktoren (bestehend)
-│   ├── Tab: Verkaufswert-Faktoren (NEU)
-│   └── Tab: Lagefaktoren (bestehend)
-├── Shortcode
-├── Settings
-└── Integrationen
-```
-
 ---
 
-## 5. Berechnungslogik
-
-### Neue Klasse: `class-sale-calculator.php`
+## 7. Berechnungslogik: class-sale-calculator.php
 
 ```php
 class IRP_Sale_Calculator {
@@ -295,197 +369,287 @@ class IRP_Sale_Calculator {
     public function calculate(array $data): array {
         $city_data = $this->get_city_data($data['city_id']);
         $settings = $this->get_sale_settings();
+        $property_type = $data['property_type'];
 
-        // 1. Basiswerte
-        $land_value = $data['land_size'] * $city_data['land_price_per_sqm'];
-        $building_value = $data['living_space'] * $city_data['building_price_per_sqm'];
+        // Unterschiedliche Verfahren je nach Immobilientyp
+        return match($property_type) {
+            'apartment' => $this->calculate_apartment($data, $city_data, $settings),
+            'house' => $this->calculate_house($data, $city_data, $settings),
+            'land' => $this->calculate_land($data, $city_data, $settings),
+            default => $this->calculate_house($data, $city_data, $settings),
+        };
+    }
 
-        // 2. Faktoren anwenden
+    /**
+     * Wohnungen: Vergleichswertverfahren
+     */
+    private function calculate_apartment(array $data, array $city, array $settings): array {
+        $living_space = (float) $data['living_space'];
+
+        // Basis: Preis pro m² für Wohnungen in dieser Stadt
+        $base_value = $living_space * $city['apartment_price_per_sqm'];
+
+        // Faktoren
+        $quality_factor = $settings['quality_multipliers'][$data['quality']]['multiplier'] ?? 1.0;
+        $location_factor = $this->get_location_factor($data['location_rating']);
+        $age_factor = $this->calculate_effective_age_factor($data['build_year'], $data['modernization'], $settings);
+        $market_factor = $city['market_adjustment_factor'] ?? 1.0;
+
+        // Ausstattung
+        $features_value = $this->calculate_features_value($data['features'] ?? [], $settings);
+
+        // Gesamtberechnung
+        $adjusted_value = $base_value * $quality_factor * $location_factor * $age_factor;
+        $total = ($adjusted_value + $features_value) * $market_factor;
+
+        return $this->format_result($total, $living_space, null, $features_value, [
+            'quality' => $quality_factor,
+            'location' => $location_factor,
+            'age' => $age_factor,
+            'market' => $market_factor,
+        ], 'apartment');
+    }
+
+    /**
+     * Häuser: Sachwertverfahren
+     */
+    private function calculate_house(array $data, array $city, array $settings): array {
+        $living_space = (float) $data['living_space'];
+        $land_size = (float) $data['land_size'];
+
+        // Bodenwert
+        $land_value = $land_size * $city['land_price_per_sqm'];
+
+        // Gebäudewert (Basis)
+        $building_base = $living_space * $city['building_price_per_sqm'];
+
+        // Faktoren
         $house_type_factor = $settings['house_type_multipliers'][$data['house_type']]['multiplier'] ?? 1.0;
         $quality_factor = $settings['quality_multipliers'][$data['quality']]['multiplier'] ?? 1.0;
-        $modernization_factor = $settings['modernization_multipliers'][$data['modernization']]['multiplier'] ?? 1.0;
         $location_factor = $this->get_location_factor($data['location_rating']);
-        $age_factor = $this->calculate_age_factor($data['build_year'], $settings);
+        $age_factor = $this->calculate_effective_age_factor($data['build_year'], $data['modernization'], $settings);
+        $market_factor = $city['market_adjustment_factor'] ?? 1.0;
 
-        // 3. Ausstattungswert
-        $features_value = $this->calculate_features_value($data['exterior_features'], $data['interior_features'], $settings);
+        // Gebäudewert mit Faktoren
+        $building_value = $building_base * $house_type_factor * $quality_factor * $age_factor * $location_factor;
 
-        // 4. Gesamtberechnung
-        $building_adjusted = $building_value
-            * $house_type_factor
-            * $quality_factor
-            * $modernization_factor
-            * $age_factor
-            * $location_factor;
+        // Ausstattung
+        $features_value = $this->calculate_features_value($data['features'] ?? [], $settings);
 
-        $total = $land_value + $building_adjusted + $features_value;
+        // Sachwert + Marktanpassung
+        $sachwert = $land_value + $building_value + $features_value;
+        $total = $sachwert * $market_factor;
 
-        // 5. Preisspanne (±5%)
-        return [
-            'price_estimate' => round($total, -3),  // Auf 1000er runden
-            'price_min' => round($total * 0.95, -3),
-            'price_max' => round($total * 1.05, -3),
-            'land_value' => round($land_value, -2),
-            'building_value' => round($building_adjusted, -2),
-            'features_value' => round($features_value, -2),
-            'price_per_sqm_living' => round($total / $data['living_space'], 0),
-            'price_per_sqm_land' => round($land_value / $data['land_size'], 0),
-            'factors' => [
-                'house_type' => $house_type_factor,
-                'quality' => $quality_factor,
-                'modernization' => $modernization_factor,
-                'location' => $location_factor,
-                'age' => $age_factor,
-            ],
-        ];
+        return $this->format_result($total, $living_space, $land_size, $features_value, [
+            'house_type' => $house_type_factor,
+            'quality' => $quality_factor,
+            'location' => $location_factor,
+            'age' => $age_factor,
+            'market' => $market_factor,
+        ], 'house', $land_value, $building_value);
     }
 
-    private function calculate_age_factor(int $build_year, array $settings): float {
-        $age = $settings['age_depreciation']['base_year'] - $build_year;
+    /**
+     * Grundstücke: Nur Bodenwert
+     */
+    private function calculate_land(array $data, array $city, array $settings): array {
+        $land_size = (float) $data['land_size'];
+
+        $land_value = $land_size * $city['land_price_per_sqm'];
+        $location_factor = $this->get_location_factor($data['location_rating']);
+        $market_factor = $city['market_adjustment_factor'] ?? 1.0;
+
+        $total = $land_value * $location_factor * $market_factor;
+
+        return $this->format_result($total, null, $land_size, 0, [
+            'location' => $location_factor,
+            'market' => $market_factor,
+        ], 'land', $land_value, 0);
+    }
+
+    /**
+     * Fiktives Baujahr basierend auf Modernisierung (ImmoWertV)
+     */
+    private function calculate_effective_age_factor(int $build_year, string $modernization, array $settings): float {
+        // Modernisierung verschiebt das Baujahr nach vorne
+        $year_shift = $settings['modernization_year_shift'][$modernization]['years'] ?? 0;
+        $effective_year = min($build_year + $year_shift, (int) date('Y'));
+
+        // Effektives Alter berechnen
+        $effective_age = $settings['age_depreciation']['base_year'] - $effective_year;
+
+        // Abschlag berechnen
         $depreciation = min(
-            $age * $settings['age_depreciation']['rate_per_year'],
+            max(0, $effective_age) * $settings['age_depreciation']['rate_per_year'],
             $settings['age_depreciation']['max_depreciation']
         );
-        return max(0.6, 1 - $depreciation);  // Mindestens 60%
+
+        return max(0.60, 1 - $depreciation);
+    }
+
+    private function format_result(
+        float $total,
+        ?float $living_space,
+        ?float $land_size,
+        float $features_value,
+        array $factors,
+        string $type,
+        float $land_value = 0,
+        float $building_value = 0
+    ): array {
+        $result = [
+            'price_estimate' => round($total, -3),
+            'price_min' => round($total * 0.95, -3),
+            'price_max' => round($total * 1.05, -3),
+            'features_value' => round($features_value, -2),
+            'factors' => $factors,
+            'calculation_type' => $type,
+        ];
+
+        if ($living_space) {
+            $result['price_per_sqm_living'] = round($total / $living_space, 0);
+        }
+        if ($land_size) {
+            $result['price_per_sqm_land'] = round($land_value / $land_size, 0);
+            $result['land_value'] = round($land_value, -2);
+        }
+        if ($building_value > 0) {
+            $result['building_value'] = round($building_value, -2);
+        }
+
+        return $result;
     }
 }
 ```
 
 ---
 
-## 6. Datenbank-Erweiterung
+## 8. PDF-Anpassung
 
-### Neue Felder in `irp_leads`
+### Template: `pdf-sale-value.php`
 
-```sql
-ALTER TABLE {prefix}irp_leads ADD COLUMN house_type VARCHAR(50) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN land_size INT NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN build_year INT NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN modernization VARCHAR(50) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN quality_level VARCHAR(50) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN usage_type VARCHAR(50) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN sale_purpose VARCHAR(50) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN sale_timeframe VARCHAR(50) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN address_street VARCHAR(255) NULL;
-ALTER TABLE {prefix}irp_leads ADD COLUMN address_zip VARCHAR(20) NULL;
-```
-
-### Migration
-
-```php
-// In Aktivierungs-Hook oder Update-Check
-public function maybe_upgrade_database() {
-    $current_version = get_option('irp_db_version', '1.0.0');
-
-    if (version_compare($current_version, '1.6.0', '<')) {
-        $this->upgrade_to_160();
-        update_option('irp_db_version', '1.6.0');
-    }
-}
-```
+Das PDF zeigt je nach Berechnungstyp unterschiedliche Details:
+- **Wohnung:** Vergleichswert-Darstellung
+- **Haus:** Sachwert-Aufschlüsselung (Boden + Gebäude)
+- **Grundstück:** Nur Bodenwert
 
 ---
 
-## 7. Propstack-Integration
+## 9. Adress-Validierung mit Google Maps
 
-### Erweiterte Aktivität für Verkaufswert
+### Bereits implementiert (v1.5.2)
 
-```php
-// Titel
-"Anfrage über Immobilien-Rechner Pro - Verkaufswert-Ermittlung"
+Die Google Maps Autocomplete-Funktion aus dem Mietrechner wird wiederverwendet:
 
-// Body
-"Objekttyp: Einfamilienhaus | Grundstück: 500 m² | Wohnfläche: 120 m² |
-Baujahr: 1985 | Qualität: Gehoben | Lage: Sehr gut |
-Geschätzter Wert: 385.000 - 425.000 Euro | Verkaufsziel: 1-3 Monate"
+```javascript
+// AddressStep.js - Wiederverwendung der bestehenden Logik
+<GooglePlacesAutocomplete
+    apiKey={settings.google_maps_api_key}
+    onSelect={(place) => {
+        setAddress({
+            street: place.street,
+            zip: place.zip,
+            city: place.city,
+            lat: place.lat,
+            lng: place.lng,
+        });
+    }}
+/>
 ```
+
+**Vorteil:** Seriöse Darstellung + Validierung der Adresse.
 
 ---
 
-## 8. Implementierungs-Reihenfolge
+## 10. Implementierungs-Reihenfolge
 
 ### Phase 1: Backend-Grundlagen
 1. [ ] Datenbank-Migration erstellen
-2. [ ] `class-sale-calculator.php` erstellen
-3. [ ] Matrix um Verkaufswert-Felder erweitern
+2. [ ] `class-sale-calculator.php` mit 3 Verfahren erstellen
+3. [ ] Matrix um Verkaufswert-Felder erweitern (inkl. Marktanpassung)
 4. [ ] Admin-Tab "Verkaufswert-Faktoren" erstellen
 
-### Phase 2: Frontend-Steps
-5. [ ] `SalePropertyTypeStep.js` erstellen
-6. [ ] `HouseTypeStep.js` erstellen
-7. [ ] `SaleSizeStep.js` erstellen
-8. [ ] `BuildYearStep.js` erstellen
-9. [ ] `ExteriorFeaturesStep.js` erstellen
-10. [ ] `InteriorFeaturesStep.js` erstellen
-11. [ ] `QualityStep.js` erstellen
-12. [ ] `UsageStep.js` erstellen
-13. [ ] `SalePurposeStep.js` erstellen
-14. [ ] `AddressStep.js` erstellen
+### Phase 2: Frontend-Steps (8 Steps)
+5. [ ] `SalePropertyTypeStep.js` erstellen (mit Haustyp integriert)
+6. [ ] `SaleSizeStep.js` erstellen (Größe + Baujahr + Modernisierung)
+7. [ ] `SaleFeaturesStep.js` erstellen (Außen + Innen kombiniert)
+8. [ ] `SaleQualityLocationStep.js` erstellen (Qualität + Lage)
+9. [ ] `AddressStep.js` erstellen (Google Maps Autocomplete)
+10. [ ] `SalePurposeStep.js` erstellen (Nutzung + Ziel kombiniert)
 
 ### Phase 3: Ergebnis & Ausgabe
-15. [ ] `SaleResultsDisplay.js` erstellen
-16. [ ] PDF-Template `pdf-sale-value.php` erstellen
-17. [ ] E-Mail-Template für Verkaufswert erstellen
+11. [ ] `SaleResultsDisplay.js` erstellen (3 Varianten)
+12. [ ] PDF-Template `pdf-sale-value.php` erstellen
+13. [ ] E-Mail-Template für Verkaufswert erstellen
 
 ### Phase 4: Integration
-18. [ ] Shortcode-Handler für `mode="sale_value"` erweitern
-19. [ ] Propstack-Integration anpassen
-20. [ ] Lead-Verwaltung für neue Felder erweitern
+14. [ ] Shortcode-Handler für `mode="sale_value"` erweitern
+15. [ ] Propstack-Integration anpassen
+16. [ ] Lead-Verwaltung für neue Felder erweitern
 
 ### Phase 5: Testing & Feinschliff
-21. [ ] Alle Steps testen
-22. [ ] Berechnung validieren
-23. [ ] PDF prüfen
-24. [ ] Responsive Design testen
+17. [ ] Alle Steps testen
+18. [ ] Berechnung validieren (Vergleich mit echten Werten)
+19. [ ] PDF prüfen
+20. [ ] Responsive Design testen
 
 ---
 
-## 9. Offene Fragen
+## 11. Offene Fragen (Geklärt)
 
-- [ ] Soll die Adresse (Straße) für Google Maps Validierung genutzt werden?
-- [ ] Sollen Vergleichswerte aus der Region angezeigt werden?
-- [ ] Wie detailliert soll die Preisaufschlüsselung im Ergebnis sein?
-- [ ] Brauchen wir unterschiedliche Gebäudepreise für Wohnung vs. Haus?
-- [ ] Soll es einen "Schnellrechner" ohne alle Steps geben?
+| Frage | Entscheidung |
+|-------|-------------|
+| Google Maps für Adresse? | ✅ Ja, wiederverwenden |
+| Vergleichswerte anzeigen? | ✅ Ja, Ø-Preis/m² der Region |
+| Preisaufschlüsselung? | ✅ Ja, aber nur bei Häusern (Sachwert) |
+| Unterschied Wohnung/Haus? | ✅ Ja, verschiedene Verfahren |
+| Schnellrechner? | ❌ Später, erst Vollversion |
 
 ---
 
-## 10. Dateistruktur (Neu)
+## 12. Dateistruktur (Neu)
 
 ```
 src/
 ├── components/
-│   ├── App.js                      (erweitern)
+│   ├── App.js                          (erweitern)
 │   ├── steps/
-│   │   ├── PropertyTypeStep.js     (bestehend)
-│   │   ├── SalePropertyTypeStep.js (NEU)
-│   │   ├── HouseTypeStep.js        (NEU)
-│   │   ├── SaleSizeStep.js         (NEU)
-│   │   ├── BuildYearStep.js        (NEU)
-│   │   ├── ExteriorFeaturesStep.js (NEU)
-│   │   ├── InteriorFeaturesStep.js (NEU)
-│   │   ├── QualityStep.js          (NEU)
-│   │   ├── UsageStep.js            (NEU)
-│   │   ├── SalePurposeStep.js      (NEU)
-│   │   ├── AddressStep.js          (NEU)
-│   │   └── ...
-│   └── SaleResultsDisplay.js       (NEU)
+│   │   ├── SalePropertyTypeStep.js     (NEU)
+│   │   ├── SaleSizeStep.js             (NEU)
+│   │   ├── SaleFeaturesStep.js         (NEU)
+│   │   ├── SaleQualityLocationStep.js  (NEU)
+│   │   ├── AddressStep.js              (NEU)
+│   │   ├── SalePurposeStep.js          (NEU)
+│   │   └── ...bestehende Steps
+│   └── SaleResultsDisplay.js           (NEU)
 │
 includes/
-├── class-calculator.php            (bestehend)
-├── class-sale-calculator.php       (NEU)
-├── class-pdf-generator.php         (erweitern)
+├── class-calculator.php                (bestehend)
+├── class-sale-calculator.php           (NEU)
+├── class-pdf-generator.php             (erweitern)
 └── templates/
-    ├── pdf.php                     (bestehend)
-    └── pdf-sale-value.php          (NEU)
+    ├── pdf.php                         (bestehend)
+    └── pdf-sale-value.php              (NEU)
 
 admin/
 └── views/
-    └── matrix.php                  (erweitern: neuer Tab)
+    └── matrix.php                      (erweitern: neuer Tab)
 ```
 
 ---
 
+## 13. Kritische Review-Punkte (Adressiert)
+
+| Kritik | Lösung |
+|--------|--------|
+| Wohnungen: Falsche Boden-/Gebäude-Trennung | Vergleichswertverfahren implementiert |
+| Alter × Modernisierung = ungenaue Werte | Fiktives Baujahr nach ImmoWertV |
+| Fehlender Marktanpassungsfaktor | In Städte-Matrix ergänzt |
+| 13 Steps = hohe Absprungrate | Auf 8 Steps reduziert |
+| Adress-Validierung | Google Maps Autocomplete bestätigt |
+
+---
+
 **Erstellt:** 2026-01-17
-**Version:** 1.0
-**Status:** Entwurf
+**Version:** 2.0 (nach kritischem Review)
+**Status:** Bereit zur Implementierung
