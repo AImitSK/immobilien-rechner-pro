@@ -345,6 +345,10 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.6.2
+- Fix: Freitext-Feld "Weitere Ausstattungsmerkmale" wird jetzt korrekt an Backend, PDF und Propstack übertragen
+- Neu: Ausstattungs-Features und Lagebewertung werden an Propstack übermittelt
+
 ### Version 1.6.1
 - Fix: Build-Dateien für korrekte Plugin-Distribution
 

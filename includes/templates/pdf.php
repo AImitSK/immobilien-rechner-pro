@@ -15,6 +15,7 @@
  * - $condition: Translated condition
  * - $location_rating: 1-5 rating
  * - $features: Array of translated feature names
+ * - $features_text: Additional features as free text
  * - $monthly_rent: Formatted rent estimate
  * - $rent_min, $rent_max: Formatted rent range
  * - $price_per_sqm: Price per square meter
@@ -384,13 +385,16 @@ if (!defined('ABSPATH')) {
                         <span class="rating-text">(<?php echo $location_rating; ?> von 5)</span>
                     </td>
                 </tr>
-                <?php if (!empty($features)) : ?>
+                <?php if (!empty($features) || !empty($features_text)) : ?>
                 <tr>
                     <td>Ausstattung</td>
                     <td>
                         <?php foreach ($features as $feature) : ?>
                             <span class="feature-tag"><?php echo esc_html($feature); ?></span>
                         <?php endforeach; ?>
+                        <?php if (!empty($features_text)) : ?>
+                            <div style="margin-top: 4px; font-size: 8pt; color: #6b7280;"><?php echo esc_html($features_text); ?></div>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endif; ?>

@@ -98,6 +98,7 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
                     location_rating: formData.location_rating || 3,
                     address: formData.address || '',
                     features: formData.features,
+                    features_text: formData.features_text || '',
                     year_built: formData.year_built ? parseInt(formData.year_built) : null,
                 },
             });

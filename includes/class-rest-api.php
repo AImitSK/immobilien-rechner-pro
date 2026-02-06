@@ -124,6 +124,12 @@ class IRP_Rest_API {
                 'items' => ['type' => 'string'],
                 'default' => [],
             ],
+            'features_text' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_textarea_field',
+                'default' => '',
+            ],
             'year_built' => [
                 'required' => false,
                 'type' => 'integer',
@@ -255,6 +261,12 @@ class IRP_Rest_API {
                 'required' => false,
                 'type' => 'array',
                 'default' => [],
+            ],
+            'features_text' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_textarea_field',
+                'default' => '',
             ],
             'calculation_result' => [
                 'required' => false,

@@ -110,6 +110,7 @@ class IRP_PDF_Generator {
             'rent_max' => self::format_currency(self::get_rent_max($result)),
             'price_per_sqm' => self::format_price_per_sqm($result),
             'features' => isset($calc['features']) ? self::translate_features($calc['features']) : [],
+            'features_text' => isset($calc['features_text']) ? $calc['features_text'] : '',
             'date' => date_i18n('d.m.Y'),
         ];
 

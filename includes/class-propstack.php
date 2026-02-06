@@ -372,6 +372,37 @@ class IRP_Propstack {
             $html .= '<p><strong>Zustand:</strong> ' . ($conditions[$condition] ?? $condition) . '</p>';
         }
 
+        // Location rating
+        $location_rating = $calc['location_rating'] ?? '';
+        if ($location_rating) {
+            $html .= '<p><strong>Lagebewertung:</strong> ' . esc_html($location_rating) . ' von 5</p>';
+        }
+
+        // Features
+        $features = $calc['features'] ?? [];
+        if (!empty($features)) {
+            $feature_labels = [
+                'balcony' => 'Balkon/Terrasse',
+                'garden' => 'Garten',
+                'elevator' => 'Aufzug',
+                'parking' => 'Stellplatz/Garage',
+                'cellar' => 'Keller',
+                'fitted_kitchen' => 'Einbauküche',
+                'floor_heating' => 'Fußbodenheizung',
+                'guest_wc' => 'Gäste-WC',
+            ];
+            $translated = array_map(function($f) use ($feature_labels) {
+                return $feature_labels[$f] ?? $f;
+            }, $features);
+            $html .= '<p><strong>Ausstattung:</strong> ' . esc_html(implode(', ', $translated)) . '</p>';
+        }
+
+        // Features text (free text field)
+        $features_text = $calc['features_text'] ?? '';
+        if (!empty($features_text)) {
+            $html .= '<p><strong>Weitere Ausstattung:</strong> ' . esc_html($features_text) . '</p>';
+        }
+
         // Results
         $html .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">';
         $html .= '<h4 style="color: #555;">Ergebnis</h4>';
@@ -605,6 +636,37 @@ class IRP_Propstack {
         $condition = $calc['condition'] ?? '';
         if ($condition) {
             $lines[] = 'Zustand: ' . ($conditions[$condition] ?? $condition);
+        }
+
+        // Location rating
+        $location_rating = $calc['location_rating'] ?? '';
+        if ($location_rating) {
+            $lines[] = 'Lagebewertung: ' . $location_rating . ' von 5';
+        }
+
+        // Features
+        $features = $calc['features'] ?? [];
+        if (!empty($features)) {
+            $feature_labels = [
+                'balcony' => 'Balkon/Terrasse',
+                'garden' => 'Garten',
+                'elevator' => 'Aufzug',
+                'parking' => 'Stellplatz/Garage',
+                'cellar' => 'Keller',
+                'fitted_kitchen' => 'Einbauküche',
+                'floor_heating' => 'Fußbodenheizung',
+                'guest_wc' => 'Gäste-WC',
+            ];
+            $translated = array_map(function($f) use ($feature_labels) {
+                return $feature_labels[$f] ?? $f;
+            }, $features);
+            $lines[] = 'Ausstattung: ' . implode(', ', $translated);
+        }
+
+        // Features text (free text field)
+        $features_text = $calc['features_text'] ?? '';
+        if (!empty($features_text)) {
+            $lines[] = 'Weitere Ausstattung: ' . $features_text;
         }
 
         // Result
