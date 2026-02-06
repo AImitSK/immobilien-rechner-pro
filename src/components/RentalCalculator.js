@@ -16,7 +16,7 @@ import ConditionStep from './steps/ConditionStep';
 import LocationRatingStep from './steps/LocationRatingStep';
 import FeaturesStep from './steps/FeaturesStep';
 
-export default function RentalCalculator({ initialData, onComplete, onBack, cityId, cityName }) {
+export default function RentalCalculator({ initialData, onComplete, onBack, cityId, cityName, showCommercial = true }) {
     // Determine which steps to show based on whether cityId is provided
     const STEPS = useMemo(() => {
         const baseSteps = [
@@ -197,6 +197,7 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
                         <CurrentStepComponent
                             data={formData}
                             onChange={updateFormData}
+                            showCommercial={showCommercial}
                         />
                     </motion.div>
                 </AnimatePresence>

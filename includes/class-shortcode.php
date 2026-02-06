@@ -31,6 +31,7 @@ class IRP_Shortcode {
             'city_id' => '', // If set, uses this city's values and skips location step
             'theme' => 'light',
             'show_branding' => 'true',
+            'show_commercial' => 'true', // If false, hides the commercial property type option
         ], $atts, 'immobilien_rechner');
 
         // Validate city_id if provided
@@ -56,6 +57,7 @@ class IRP_Shortcode {
             'data-city-name' => $city ? esc_attr($city['name']) : '',
             'data-theme' => esc_attr($atts['theme']),
             'data-show-branding' => esc_attr($atts['show_branding']),
+            'data-show-commercial' => esc_attr($atts['show_commercial']),
         ];
 
         $data_string = '';

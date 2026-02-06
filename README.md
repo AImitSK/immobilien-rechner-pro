@@ -79,6 +79,7 @@ Zeigt den kompletten Rechner mit Modus-Auswahl und Städte-Dropdown.
 | `city_id` | z.B. `"muenchen"`, `"berlin"` | Stadt festlegen (überspringt Standort-Auswahl) |
 | `theme` | `"light"`, `"dark"` | Farbschema |
 | `show_branding` | `"true"`, `"false"` | Firmenbranding anzeigen/ausblenden |
+| `show_commercial` | `"true"`, `"false"` | Gewerbe-Option bei Immobilienart anzeigen/ausblenden |
 
 ### Beispiele
 
@@ -100,6 +101,11 @@ Zeigt den kompletten Rechner mit Modus-Auswahl und Städte-Dropdown.
 **Kombination: Mietwert-Rechner für Berlin mit Dark-Theme:**
 ```
 [immobilien_rechner mode="rental" city_id="berlin" theme="dark"]
+```
+
+**Ohne Gewerbe-Option (nur Wohnung und Haus):**
+```
+[immobilien_rechner show_commercial="false"]
 ```
 
 ---
@@ -338,6 +344,14 @@ immobilien-rechner-pro/
 ---
 
 ## Changelog
+
+### Version 1.6.0
+- Neu: Shortcode-Parameter `show_commercial` zum Ein-/Ausblenden der Gewerbe-Option
+- Neu: Checkbox im Shortcode-Generator für Gewerbe-Option
+- Bei `show_commercial="false"` werden nur Wohnung und Haus als Immobilienarten angezeigt
+
+### Version 1.5.9
+- Propstack Aktivitäten
 
 ### Version 1.5.8
 - Fix: Telefonnummer wird jetzt auch bei bestehenden Kontakten aktualisiert

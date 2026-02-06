@@ -17,7 +17,7 @@ import LocationRatingStep from './steps/LocationRatingStep';
 import FeaturesStep from './steps/FeaturesStep';
 import FinancialStep from './steps/FinancialStep';
 
-export default function ComparisonCalculator({ initialData, onComplete, onBack, cityId, cityName }) {
+export default function ComparisonCalculator({ initialData, onComplete, onBack, cityId, cityName, showCommercial = true }) {
     // Determine which steps to show based on whether cityId is provided
     const STEPS = useMemo(() => {
         const baseSteps = [
@@ -201,6 +201,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack, 
                         <CurrentStepComponent
                             data={formData}
                             onChange={updateFormData}
+                            showCommercial={showCommercial}
                         />
                     </motion.div>
                 </AnimatePresence>

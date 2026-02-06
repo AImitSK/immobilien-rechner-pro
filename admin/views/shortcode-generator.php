@@ -111,6 +111,27 @@ if (!defined('ABSPATH')) {
                     </tr>
                 </table>
             </div>
+
+            <div class="irp-settings-section">
+                <h2><?php esc_html_e('Immobilienarten', 'immobilien-rechner-pro'); ?></h2>
+
+                <table class="form-table irp-compact-table">
+                    <tr>
+                        <th scope="row">
+                            <?php esc_html_e('Gewerbe-Option', 'immobilien-rechner-pro'); ?>
+                        </th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="irp_show_commercial" id="irp-show-commercial" value="true" checked>
+                                <?php esc_html_e('Gewerbe (Büro, Einzelhandel, Mischnutzung) anzeigen', 'immobilien-rechner-pro'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Wenn deaktiviert, werden nur Wohnung und Haus als Optionen angezeigt.', 'immobilien-rechner-pro'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
         <div class="irp-generator-output">
@@ -153,6 +174,10 @@ if (!defined('ABSPATH')) {
                         <li id="irp-info-branding">
                             <span class="dashicons dashicons-admin-customizer"></span>
                             <span><?php esc_html_e('Branding: Sichtbar', 'immobilien-rechner-pro'); ?></span>
+                        </li>
+                        <li id="irp-info-commercial">
+                            <span class="dashicons dashicons-building"></span>
+                            <span><?php esc_html_e('Gewerbe: Sichtbar', 'immobilien-rechner-pro'); ?></span>
                         </li>
                     </ul>
                 </div>

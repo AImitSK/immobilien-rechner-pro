@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cityName: container.dataset.cityName || '',
             theme: container.dataset.theme || 'light',
             showBranding: container.dataset.showBranding !== 'false',
+            showCommercial: container.dataset.showCommercial !== 'false',
         };
 
         root.render(<App config={config} />);

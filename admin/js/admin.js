@@ -266,13 +266,14 @@
             var $infoCity = $('#irp-info-city span').last();
             var $infoTheme = $('#irp-info-theme span').last();
             var $infoBranding = $('#irp-info-branding span').last();
+            var $infoCommercial = $('#irp-info-commercial span').last();
 
             // Step elements
             var $stepMode = $('#irp-step-mode');
             var $stepCity = $('#irp-step-city');
 
             // Update shortcode on any change
-            $('input[name="irp_mode"], #irp-city-select, #irp-theme, #irp-show-branding').on('change input', function() {
+            $('input[name="irp_mode"], #irp-city-select, #irp-theme, #irp-show-branding, #irp-show-commercial').on('change input', function() {
                 updateShortcode();
             });
 
@@ -282,6 +283,7 @@
                 var cityName = $('#irp-city-select option:selected').text();
                 var theme = $('#irp-theme').val();
                 var showBranding = $('#irp-show-branding').is(':checked');
+                var showCommercial = $('#irp-show-commercial').is(':checked');
 
                 // Build shortcode
                 var shortcode = '[immobilien_rechner';
@@ -299,6 +301,9 @@
                 if (!showBranding) {
                     params.push('show_branding="false"');
                 }
+                if (!showCommercial) {
+                    params.push('show_commercial="false"');
+                }
 
                 if (params.length > 0) {
                     shortcode += ' ' + params.join(' ');
@@ -308,13 +313,13 @@
                 $output.text(shortcode);
 
                 // Update info panel
-                updateInfoPanel(mode, cityId, cityName, theme, showBranding);
+                updateInfoPanel(mode, cityId, cityName, theme, showBranding, showCommercial);
 
                 // Update steps preview
                 updateStepsPreview(mode, cityId);
             }
 
-            function updateInfoPanel(mode, cityId, cityName, theme, showBranding) {
+            function updateInfoPanel(mode, cityId, cityName, theme, showBranding, showCommercial) {
                 // Mode info
                 var modeText = 'Benutzer wählt';
                 if (mode === 'rental') {
@@ -338,6 +343,10 @@
                 // Branding info
                 var brandingText = showBranding ? 'Sichtbar' : 'Ausgeblendet';
                 $infoBranding.text('Branding: ' + brandingText);
+
+                // Commercial info
+                var commercialText = showCommercial ? 'Sichtbar' : 'Ausgeblendet';
+                $infoCommercial.text('Gewerbe: ' + commercialText);
             }
 
             function updateStepsPreview(mode, cityId) {

@@ -26,7 +26,7 @@ const STEPS = {
 };
 
 export default function App({ config }) {
-    const { initialMode, theme, showBranding, cityId, cityName } = config;
+    const { initialMode, theme, showBranding, cityId, cityName, showCommercial } = config;
 
     // State
     const [currentStep, setCurrentStep] = useState(
@@ -208,6 +208,7 @@ export default function App({ config }) {
                                     onBack={!initialMode ? handleBack : null}
                                     cityId={cityId}
                                     cityName={cityName}
+                                    showCommercial={showCommercial}
                                 />
                             ) : (
                                 <ComparisonCalculator
@@ -216,6 +217,7 @@ export default function App({ config }) {
                                     onBack={!initialMode ? handleBack : null}
                                     cityId={cityId}
                                     cityName={cityName}
+                                    showCommercial={showCommercial}
                                 />
                             )}
                         </motion.div>

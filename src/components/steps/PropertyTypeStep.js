@@ -47,17 +47,22 @@ const PROPERTY_TYPES = [
     },
 ];
 
-export default function PropertyTypeStep({ data, onChange }) {
+export default function PropertyTypeStep({ data, onChange, showCommercial = true }) {
     const handleSelect = (typeId) => {
         onChange({ property_type: typeId });
     };
-    
+
+    // Filter property types based on showCommercial prop
+    const availableTypes = showCommercial
+        ? PROPERTY_TYPES
+        : PROPERTY_TYPES.filter((type) => type.id !== 'commercial');
+
     return (
         <div className="irp-property-type-step">
             <h3>{__('Welche Art von Immobilie haben Sie?', 'immobilien-rechner-pro')}</h3>
-            
+
             <div className="irp-type-grid">
-                {PROPERTY_TYPES.map((type) => (
+                {availableTypes.map((type) => (
                     <motion.button
                         key={type.id}
                         type="button"
