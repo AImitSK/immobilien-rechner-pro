@@ -348,7 +348,11 @@ immobilien-rechner-pro/
 ### Version 1.6.0
 - Neu: Shortcode-Parameter `show_commercial` zum Ein-/Ausblenden der Gewerbe-Option
 - Neu: Checkbox im Shortcode-Generator für Gewerbe-Option
-- Bei `show_commercial="false"` werden nur Wohnung und Haus als Immobilienarten angezeigt
+- Neu: Lage-Bewertung erfordert jetzt aktive Auswahl (kein Default mehr)
+- Neu: Freitext-Feld "Weitere Ausstattungsmerkmale" im Ausstattungs-Schritt
+- Neu: PDF-Layout überarbeitet mit Makler-Kontaktbereich im Footer
+- Geändert: PDF-Titel kleiner, Logo näher am oberen Rand
+- Geändert: "Immobilienexperten" → "Immobilienfachmann" im PDF-Disclaimer
 
 ### Version 1.5.9
 - Propstack Aktivitäten
