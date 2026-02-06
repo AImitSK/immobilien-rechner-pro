@@ -79,6 +79,7 @@ export default function App({ config }) {
                     condition: data.condition,
                     location_rating: data.location_rating || 3,
                     features: data.features || [],
+                    features_text: data.features_text || '',
                     calculation_result: calculationResults,
                 },
             });

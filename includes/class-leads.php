@@ -83,6 +83,7 @@ class IRP_Leads {
                 'condition' => $data['condition'] ?? '',
                 'location_rating' => $data['location_rating'] ?? 3,
                 'features' => $data['features'] ?? [],
+                'features_text' => $data['features_text'] ?? '',
                 'result' => $data['calculation_result'] ?? null,
             ]),
             'status' => 'partial',

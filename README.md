@@ -345,6 +345,9 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.6.3
+- Fix: features_text wird jetzt korrekt vom Frontend zum Backend übertragen (fehlte in App.js und class-leads.php)
+
 ### Version 1.6.2
 - Fix: Freitext-Feld "Weitere Ausstattungsmerkmale" wird jetzt korrekt an Backend, PDF und Propstack übertragen
 - Neu: Ausstattungs-Features und Lagebewertung werden an Propstack übermittelt
