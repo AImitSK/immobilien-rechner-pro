@@ -345,6 +345,9 @@ immobilien-rechner-pro/
 
 ## Changelog
 
+### Version 1.6.1
+- Fix: Build-Dateien für korrekte Plugin-Distribution
+
 ### Version 1.6.0
 - Neu: Shortcode-Parameter `show_commercial` zum Ein-/Ausblenden der Gewerbe-Option
 - Neu: Checkbox im Shortcode-Generator für Gewerbe-Option
