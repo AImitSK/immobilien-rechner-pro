@@ -1516,6 +1516,44 @@ select {
     }
 }
 
+// Validation message for location rating
+.irp-validation-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(234, 88, 12, 0.08);
+    border: 1px solid rgba(234, 88, 12, 0.2);
+    border-radius: var(--irp-radius);
+    color: var(--irp-warning);
+    font-size: 14px;
+    margin-bottom: 16px;
+
+    &::before {
+        content: "⚠";
+        font-size: 16px;
+    }
+}
+
+// Inactive slider state (no selection)
+.irp-rating-slider-container.irp-no-selection {
+    .irp-rating-slider {
+        opacity: 0.5;
+    }
+}
+
+.irp-rating-slider.irp-slider-inactive {
+    &::-webkit-slider-thumb {
+        background: var(--irp-border);
+        border-color: var(--irp-bg-secondary);
+    }
+
+    &::-moz-range-thumb {
+        background: var(--irp-border);
+        border-color: var(--irp-bg-secondary);
+    }
+}
+
 // Force input text color - maximum specificity override
 .irp-calculator {
     input,

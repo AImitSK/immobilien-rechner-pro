@@ -20,9 +20,10 @@ export default function LocationRatingStep({ data, onChange }) {
     const apiKey = settings.googleMapsApiKey || '';
     const showMap = settings.showMapInLocationStep && apiKey;
 
-    // Current rating (default to 3 = "Gute Lage")
-    const currentRating = data.location_rating || 3;
-    const currentRatingData = locationRatings[currentRating] || {};
+    // Current rating (null = not selected yet)
+    const currentRating = data.location_rating;
+    const hasSelection = currentRating !== null && currentRating >= 1 && currentRating <= 5;
+    const currentRatingData = hasSelection ? (locationRatings[currentRating] || {}) : {};
 
     // Initialize Google Maps
     useEffect(() => {
@@ -211,7 +212,14 @@ export default function LocationRatingStep({ data, onChange }) {
                     <span className="irp-required">*</span>
                 </label>
 
-                <div className="irp-rating-slider-container">
+                {/* Validation message when nothing selected */}
+                {!hasSelection && (
+                    <p className="irp-validation-message">
+                        {__('Bitte wählen Sie eine Lage-Bewertung aus.', 'immobilien-rechner-pro')}
+                    </p>
+                )}
+
+                <div className={`irp-rating-slider-container ${!hasSelection ? 'irp-no-selection' : ''}`}>
                     <span className="irp-rating-end-label irp-rating-low">
                         {__('Einfach', 'immobilien-rechner-pro')}
                     </span>
@@ -222,16 +230,16 @@ export default function LocationRatingStep({ data, onChange }) {
                             min="1"
                             max="5"
                             step="1"
-                            value={currentRating}
+                            value={hasSelection ? currentRating : 3}
                             onChange={(e) => handleRatingChange(parseInt(e.target.value))}
-                            className="irp-rating-slider"
+                            className={`irp-rating-slider ${!hasSelection ? 'irp-slider-inactive' : ''}`}
                         />
                         <div className="irp-rating-marks">
                             {[1, 2, 3, 4, 5].map((num) => (
                                 <button
                                     key={num}
                                     type="button"
-                                    className={`irp-rating-mark ${currentRating === num ? 'is-active' : ''}`}
+                                    className={`irp-rating-mark ${hasSelection && currentRating === num ? 'is-active' : ''}`}
                                     onClick={() => handleRatingChange(num)}
                                 >
                                     {num}
@@ -246,26 +254,28 @@ export default function LocationRatingStep({ data, onChange }) {
                 </div>
             </div>
 
-            {/* Rating Description Box */}
-            <div className="irp-rating-description-box">
-                <div className="irp-rating-header">
-                    <span className="irp-rating-stars">{renderStars(currentRating)}</span>
-                    <span className="irp-rating-name">{currentRatingData.name || ''}</span>
-                </div>
+            {/* Rating Description Box - only show when selection made */}
+            {hasSelection && (
+                <div className="irp-rating-description-box">
+                    <div className="irp-rating-header">
+                        <span className="irp-rating-stars">{renderStars(currentRating)}</span>
+                        <span className="irp-rating-name">{currentRatingData.name || ''}</span>
+                    </div>
 
-                {descriptionLines.length > 0 && (
-                    <ul className="irp-rating-features">
-                        {descriptionLines.map((line, index) => (
-                            <li key={index}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                                {line}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+                    {descriptionLines.length > 0 && (
+                        <ul className="irp-rating-features">
+                            {descriptionLines.map((line, index) => (
+                                <li key={index}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    {line}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

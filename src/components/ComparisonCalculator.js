@@ -48,7 +48,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack, 
         city_id: cityId || '',
         city_name: cityName || '',
         condition: '',
-        location_rating: 3, // Default: "Gute Lage"
+        location_rating: null, // No default - user must select
         address: '',
         features: [],
         year_built: '',
@@ -142,7 +142,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack, 
             case 'condition':
                 return !!formData.condition;
             case 'location_rating':
-                return formData.location_rating >= 1 && formData.location_rating <= 5;
+                return formData.location_rating !== null && formData.location_rating >= 1 && formData.location_rating <= 5;
             case 'features':
                 return true;
             case 'financial':
