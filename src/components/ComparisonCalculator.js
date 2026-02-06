@@ -51,6 +51,7 @@ export default function ComparisonCalculator({ initialData, onComplete, onBack, 
         location_rating: null, // No default - user must select
         address: '',
         features: [],
+        features_text: '',
         year_built: '',
         property_value: '',
         remaining_mortgage: '',

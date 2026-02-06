@@ -33,7 +33,12 @@ export default function FeaturesStep({ data, onChange }) {
         onChange({ features: newFeatures });
     };
 
+    const handleTextChange = (e) => {
+        onChange({ features_text: e.target.value });
+    };
+
     const selectedFeatures = data.features || [];
+    const featuresText = data.features_text || '';
 
     return (
         <div className="irp-features-step">
@@ -71,6 +76,22 @@ export default function FeaturesStep({ data, onChange }) {
                         </motion.button>
                     );
                 })}
+            </div>
+
+            <div className="irp-features-text-group">
+                <label htmlFor="irp-features-text">
+                    {__('Weitere Ausstattungsmerkmale', 'immobilien-rechner-pro')}
+                    <span className="irp-optional"> ({__('optional', 'immobilien-rechner-pro')})</span>
+                </label>
+                <textarea
+                    id="irp-features-text"
+                    name="features_text"
+                    value={featuresText}
+                    onChange={handleTextChange}
+                    placeholder={__('z.B. Smart Home, Sauna, Kamin, Klimaanlage...', 'immobilien-rechner-pro')}
+                    rows="3"
+                    className="irp-features-textarea"
+                />
             </div>
 
             <div className="irp-features-summary">

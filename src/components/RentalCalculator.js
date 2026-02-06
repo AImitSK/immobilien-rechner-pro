@@ -49,6 +49,7 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
         location_rating: null, // No default - user must select
         address: '',
         features: [],
+        features_text: '',
         year_built: '',
         ...initialData,
     });

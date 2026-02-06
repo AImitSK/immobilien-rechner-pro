@@ -575,6 +575,51 @@ select {
     height: 14px;
 }
 
+// Features Text Area
+.irp-features-text-group {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--irp-border);
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .irp-optional {
+        font-weight: 400;
+        color: var(--irp-text-light);
+        font-size: 13px;
+    }
+}
+
+.irp-features-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    border: 1px solid var(--irp-border);
+    border-radius: var(--irp-radius);
+    background: var(--irp-bg);
+    color: var(--irp-text);
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color var(--irp-transition), box-shadow var(--irp-transition);
+
+    &:focus {
+        outline: none;
+        border-color: var(--irp-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    &::placeholder {
+        color: var(--irp-text-light);
+        opacity: 0.7;
+    }
+}
+
 .irp-features-summary {
     margin-top: 16px;
     font-size: 14px;
