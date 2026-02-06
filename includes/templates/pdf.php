@@ -50,26 +50,26 @@ if (!defined('ABSPATH')) {
         }
 
         .page {
-            padding: 25px 40px 70px 40px;
+            padding: 15px 40px 140px 40px;
         }
 
         /* Header with Logo */
         .header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .logo {
             max-width: <?php echo (int) $logo_width; ?>px;
             max-height: 60px;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .document-title {
-            font-size: 22pt;
+            font-size: 16pt;
             font-weight: bold;
             color: <?php echo esc_attr($primary_color); ?>;
-            margin: 8px 0 2px;
+            margin: 5px 0 2px;
         }
 
         .document-subtitle {
@@ -80,9 +80,9 @@ if (!defined('ABSPATH')) {
         /* Lead greeting */
         .greeting {
             font-size: 9pt;
-            margin: 15px 0;
+            margin: 10px 0;
             color: #4b5563;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         /* Main result box - COMPACT */
@@ -90,9 +90,9 @@ if (!defined('ABSPATH')) {
             background: #f8fafc;
             border: 2px solid <?php echo esc_attr($primary_color); ?>;
             border-radius: 8px;
-            padding: 15px 20px;
+            padding: 12px 20px;
             text-align: center;
-            margin: 12px 0;
+            margin: 10px 0;
         }
 
         .result-label {
@@ -124,15 +124,15 @@ if (!defined('ABSPATH')) {
 
         /* Property details */
         .details-section {
-            margin: 15px 0 12px;
+            margin: 10px 0 8px;
         }
 
         .section-title {
-            font-size: 11pt;
+            font-size: 10pt;
             font-weight: bold;
             color: <?php echo esc_attr($primary_color); ?>;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
             border-bottom: 2px solid #e5e7eb;
         }
 
@@ -150,7 +150,7 @@ if (!defined('ABSPATH')) {
         }
 
         .details-table td {
-            padding: 6px 0;
+            padding: 4px 0;
             vertical-align: top;
             font-size: 9pt;
         }
@@ -201,17 +201,17 @@ if (!defined('ABSPATH')) {
             background: #fef9e7;
             border-left: 3px solid #f59e0b;
             border-radius: 0 6px 6px 0;
-            padding: 12px 15px;
-            margin: 15px 0 0;
+            padding: 8px 12px;
+            margin: 10px 0 0;
             font-size: 8pt;
             color: #78350f;
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         .disclaimer strong {
-            display: block;
-            margin-bottom: 3px;
-            font-size: 9pt;
+            display: inline;
+            margin-right: 5px;
+            font-size: 8pt;
         }
 
         /* Footer */
@@ -222,25 +222,102 @@ if (!defined('ABSPATH')) {
             right: 0;
             background: #f8fafc;
             border-top: 1px solid #e5e7eb;
-            padding: 10px 40px;
-            text-align: center;
+            padding: 10px 40px 8px;
             font-size: 8pt;
             color: #6b7280;
             line-height: 1.4;
         }
 
+        /* Agent Cards */
+        .agent-cards {
+            display: table;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .agent-card {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding: 0 10px;
+        }
+
+        .agent-card:first-child {
+            padding-left: 0;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .agent-card:last-child {
+            padding-right: 0;
+        }
+
+        .agent-inner {
+            display: table;
+            width: 100%;
+        }
+
+        .agent-photo {
+            display: table-cell;
+            width: 50px;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+
+        .agent-photo img {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            object-fit: cover;
+        }
+
+        .agent-info {
+            display: table-cell;
+            vertical-align: top;
+        }
+
+        .agent-name {
+            font-weight: bold;
+            font-size: 9pt;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+
+        .agent-role {
+            font-size: 7pt;
+            color: #6b7280;
+            margin-bottom: 3px;
+        }
+
+        .agent-contact {
+            font-size: 7pt;
+            color: #6b7280;
+        }
+
+        .agent-contact a {
+            color: <?php echo esc_attr($primary_color); ?>;
+            text-decoration: none;
+        }
+
+        /* Company Footer */
+        .footer-company-section {
+            text-align: center;
+            padding-top: 8px;
+            border-top: 1px solid #e5e7eb;
+        }
+
         .footer-company {
             font-weight: bold;
             color: #374151;
-            font-size: 9pt;
+            font-size: 8pt;
         }
 
         .footer-contact {
-            margin-top: 3px;
+            margin-top: 2px;
+            font-size: 7pt;
         }
 
         .footer-date {
-            margin-top: 4px;
+            margin-top: 3px;
             color: #9ca3af;
             font-size: 7pt;
         }
@@ -329,32 +406,80 @@ if (!defined('ABSPATH')) {
 
     <!-- Footer (outside .page for fixed positioning) -->
     <div class="footer">
-        <div class="footer-company">
-            <?php echo esc_html($company_name); ?>
-            <?php if (!empty($company_name_2)) : ?>
-                · <?php echo esc_html($company_name_2); ?>
-            <?php endif; ?>
-            <?php if (!empty($company_name_3)) : ?>
-                · <?php echo esc_html($company_name_3); ?>
-            <?php endif; ?>
+        <!-- Agent Cards -->
+        <?php
+        // Load agent images as base64
+        $agent1_img = IRP_PLUGIN_DIR . 'assets/images/Brand_Nuener_Kontakt_200x200.jpg';
+        $agent2_img = IRP_PLUGIN_DIR . 'assets/images/Brand_Schormann_Kontakt_200x200.jpg';
+        $agent1_base64 = file_exists($agent1_img) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($agent1_img)) : '';
+        $agent2_base64 = file_exists($agent2_img) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($agent2_img)) : '';
+        ?>
+        <div class="agent-cards">
+            <div class="agent-card">
+                <div class="agent-inner">
+                    <?php if ($agent1_base64) : ?>
+                    <div class="agent-photo">
+                        <img src="<?php echo $agent1_base64; ?>" alt="Matthes Nuener">
+                    </div>
+                    <?php endif; ?>
+                    <div class="agent-info">
+                        <div class="agent-name">Matthes Nuener</div>
+                        <div class="agent-role">Vermittelt Ihre Immobilie in Löhne und Vlotho</div>
+                        <div class="agent-contact">
+                            <a href="mailto:m.nuener@brand-partner.de">m.nuener@brand-partner.de</a><br>
+                            Tel.: 05731 177555
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="agent-card">
+                <div class="agent-inner">
+                    <?php if ($agent2_base64) : ?>
+                    <div class="agent-photo">
+                        <img src="<?php echo $agent2_base64; ?>" alt="Uwe Schormann">
+                    </div>
+                    <?php endif; ?>
+                    <div class="agent-info">
+                        <div class="agent-name">Uwe Schormann</div>
+                        <div class="agent-role">Vermittelt Ihre Immobilie in Bad Oeynhausen</div>
+                        <div class="agent-contact">
+                            <a href="mailto:u.schormann@brand-partner.de">u.schormann@brand-partner.de</a><br>
+                            Tel.: 05731 177560
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="footer-contact">
-            <?php
-            $contact_parts = [];
-            if (!empty($company_address)) {
-                $contact_parts[] = $company_address;
-            }
-            if (!empty($company_phone)) {
-                $contact_parts[] = 'Tel.: ' . $company_phone;
-            }
-            if (!empty($company_email)) {
-                $contact_parts[] = $company_email;
-            }
-            echo esc_html(implode(' · ', $contact_parts));
-            ?>
-        </div>
-        <div class="footer-date">
-            Erstellt am <?php echo esc_html($date); ?>
+
+        <!-- Company Info -->
+        <div class="footer-company-section">
+            <div class="footer-company">
+                <?php echo esc_html($company_name); ?>
+                <?php if (!empty($company_name_2)) : ?>
+                    · <?php echo esc_html($company_name_2); ?>
+                <?php endif; ?>
+                <?php if (!empty($company_name_3)) : ?>
+                    · <?php echo esc_html($company_name_3); ?>
+                <?php endif; ?>
+            </div>
+            <div class="footer-contact">
+                <?php
+                $contact_parts = [];
+                if (!empty($company_address)) {
+                    $contact_parts[] = $company_address;
+                }
+                if (!empty($company_phone)) {
+                    $contact_parts[] = 'Tel.: ' . $company_phone;
+                }
+                if (!empty($company_email)) {
+                    $contact_parts[] = $company_email;
+                }
+                echo esc_html(implode(' · ', $contact_parts));
+                ?>
+            </div>
+            <div class="footer-date">
+                Erstellt am <?php echo esc_html($date); ?>
+            </div>
         </div>
     </div>
 </body>

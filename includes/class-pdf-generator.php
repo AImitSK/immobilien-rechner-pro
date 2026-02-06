@@ -115,7 +115,7 @@ class IRP_PDF_Generator {
 
         // Build disclaimer with company name
         $vars['disclaimer'] = sprintf(
-            'Diese Einschätzung beruht auf Ihren Angaben und sollte gemeinsam mit einem Immobilienexperten von %s überprüft werden.',
+            'Diese Einschätzung beruht auf Ihren Angaben und sollte gemeinsam mit einem Immobilienfachmann von %s überprüft werden.',
             !empty($vars['company_name']) ? $vars['company_name'] : 'uns'
         );
 
