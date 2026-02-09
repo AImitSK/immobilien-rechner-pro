@@ -76,6 +76,7 @@ export default function App({ config }) {
                     city_id: data.city_id || '',
                     city_name: data.city_name || '',
                     address: data.address || '',
+                    year_built: data.year_built ? parseInt(data.year_built) : null,
                     condition: data.condition,
                     location_rating: data.location_rating || 3,
                     features: data.features || [],

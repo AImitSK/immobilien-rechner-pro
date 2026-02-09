@@ -8,12 +8,72 @@ if (!defined('ABSPATH')) {
 }
 
 class IRP_Leads {
-    
+
     private string $table_name;
-    
+
+    /**
+     * Feature translations (English ID => German label)
+     */
+    private array $feature_labels = [
+        'balcony' => 'Balkon',
+        'terrace' => 'Terrasse',
+        'garden' => 'Garten',
+        'elevator' => 'Aufzug',
+        'parking' => 'Stellplatz',
+        'garage' => 'Garage',
+        'cellar' => 'Keller',
+        'fitted_kitchen' => 'Einbauküche',
+        'floor_heating' => 'Fußbodenheizung',
+        'guest_toilet' => 'Gäste-WC',
+        'barrier_free' => 'Barrierefrei',
+    ];
+
+    /**
+     * Property type translations (English ID => German label)
+     */
+    private array $property_type_labels = [
+        'apartment' => 'Wohnung',
+        'house' => 'Haus',
+        'commercial' => 'Gewerbe',
+    ];
+
+    /**
+     * Condition translations (English ID => German label)
+     */
+    private array $condition_labels = [
+        'new' => 'Neubau/Erstbezug',
+        'renovated' => 'Renoviert/Saniert',
+        'well_maintained' => 'Gepflegt',
+        'good' => 'Gepflegt',
+        'needs_renovation' => 'Renovierungsbedürftig',
+    ];
+
     public function __construct() {
         global $wpdb;
         $this->table_name = $wpdb->prefix . 'irp_leads';
+    }
+
+    /**
+     * Translate feature IDs to German labels
+     */
+    private function translate_features(array $features): array {
+        return array_map(function($feature) {
+            return $this->feature_labels[$feature] ?? $feature;
+        }, $features);
+    }
+
+    /**
+     * Translate property type to German
+     */
+    private function translate_property_type(string $type): string {
+        return $this->property_type_labels[$type] ?? $type;
+    }
+
+    /**
+     * Translate condition to German
+     */
+    private function translate_condition(string $condition): string {
+        return $this->condition_labels[$condition] ?? $condition;
     }
     
     /**
@@ -24,12 +84,24 @@ class IRP_Leads {
      */
     public function create(array $data) {
         global $wpdb;
-        
+
         // Validate email
         if (!is_email($data['email'])) {
             return new \WP_Error('invalid_email', __('Bitte geben Sie eine gültige E-Mail-Adresse an.', 'immobilien-rechner-pro'));
         }
-        
+
+        // Translate calculation_data values to German
+        $calc_data = $data['calculation_data'] ?? [];
+        if (!empty($calc_data['property_type'])) {
+            $calc_data['property_type'] = $this->translate_property_type($calc_data['property_type']);
+        }
+        if (!empty($calc_data['condition'])) {
+            $calc_data['condition'] = $this->translate_condition($calc_data['condition']);
+        }
+        if (!empty($calc_data['features']) && is_array($calc_data['features'])) {
+            $calc_data['features'] = $this->translate_features($calc_data['features']);
+        }
+
         $insert_data = [
             'name' => sanitize_text_field($data['name'] ?? ''),
             'email' => sanitize_email($data['email']),
@@ -39,7 +111,7 @@ class IRP_Leads {
             'property_size' => (float) ($data['calculation_data']['size'] ?? 0),
             'property_location' => sanitize_text_field($data['calculation_data']['location'] ?? ''),
             'zip_code' => sanitize_text_field($data['calculation_data']['zip_code'] ?? ''),
-            'calculation_data' => wp_json_encode($data['calculation_data'] ?? []),
+            'calculation_data' => wp_json_encode($calc_data),
             'consent' => (int) $data['consent'],
             'source' => sanitize_text_field($data['source'] ?? 'calculator'),
         ];
@@ -68,21 +140,32 @@ class IRP_Leads {
 
         error_log('[IRP Leads] create_partial called');
 
+        // Translate values to German for storage
+        $property_type = $data['property_type'] ?? '';
+        $property_type_translated = $this->translate_property_type($property_type);
+
+        $condition = $data['condition'] ?? '';
+        $condition_translated = $this->translate_condition($condition);
+
+        $features = $data['features'] ?? [];
+        $features_translated = $this->translate_features($features);
+
         $insert_data = [
             'email' => '', // Will be filled when completing
             'mode' => sanitize_text_field($data['mode']),
-            'property_type' => sanitize_text_field($data['property_type'] ?? ''),
+            'property_type' => sanitize_text_field($property_type),
             'property_size' => (float) ($data['property_size'] ?? 0),
             'property_location' => sanitize_text_field($data['city_name'] ?? ''),
             'calculation_data' => wp_json_encode([
-                'property_type' => $data['property_type'] ?? '',
+                'property_type' => $property_type_translated,
                 'size' => $data['property_size'] ?? 0,
                 'city_id' => $data['city_id'] ?? '',
                 'city_name' => $data['city_name'] ?? '',
                 'address' => $data['address'] ?? '',
-                'condition' => $data['condition'] ?? '',
+                'year_built' => $data['year_built'] ?? null,
+                'condition' => $condition_translated,
                 'location_rating' => $data['location_rating'] ?? 3,
-                'features' => $data['features'] ?? [],
+                'features' => $features_translated,
                 'features_text' => $data['features_text'] ?? '',
                 'result' => $data['calculation_result'] ?? null,
             ]),

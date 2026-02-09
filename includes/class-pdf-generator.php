@@ -276,9 +276,10 @@ class IRP_PDF_Generator {
      */
     private static function translate_condition($condition) {
         $conditions = [
-            'new' => 'Neubau',
-            'renovated' => 'Renoviert',
-            'good' => 'Gut',
+            'new' => 'Neubau/Erstbezug',
+            'renovated' => 'Renoviert/Saniert',
+            'well_maintained' => 'Gepflegt',
+            'good' => 'Gepflegt',
             'needs_renovation' => 'Renovierungsbedürftig',
         ];
         return isset($conditions[$condition]) ? $conditions[$condition] : $condition;

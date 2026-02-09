@@ -247,6 +247,17 @@ class IRP_Rest_API {
                 'type' => 'string',
                 'sanitize_callback' => 'sanitize_text_field',
             ],
+            'address' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'year_built' => [
+                'required' => false,
+                'type' => 'integer',
+                'minimum' => 1800,
+                'maximum' => 2100,
+            ],
             'condition' => [
                 'required' => false,
                 'type' => 'string',

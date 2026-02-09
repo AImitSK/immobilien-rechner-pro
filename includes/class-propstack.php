@@ -360,11 +360,24 @@ class IRP_Propstack {
             $html .= '<p><strong>Stadt:</strong> ' . esc_html($city) . '</p>';
         }
 
+        // Address
+        $address = $calc['address'] ?? '';
+        if ($address) {
+            $html .= '<p><strong>Adresse:</strong> ' . esc_html($address) . '</p>';
+        }
+
+        // Year built
+        $year_built = $calc['year_built'] ?? '';
+        if ($year_built) {
+            $html .= '<p><strong>Baujahr:</strong> ' . esc_html($year_built) . '</p>';
+        }
+
         // Condition
         $conditions = [
-            'new' => 'Neubau',
-            'renovated' => 'Renoviert',
-            'good' => 'Gut',
+            'new' => 'Neubau/Erstbezug',
+            'renovated' => 'Renoviert/Saniert',
+            'well_maintained' => 'Gepflegt',
+            'good' => 'Gepflegt',
             'needs_renovation' => 'Renovierungsbedürftig',
         ];
         $condition = $calc['condition'] ?? '';
@@ -382,14 +395,18 @@ class IRP_Propstack {
         $features = $calc['features'] ?? [];
         if (!empty($features)) {
             $feature_labels = [
-                'balcony' => 'Balkon/Terrasse',
+                'balcony' => 'Balkon',
+                'terrace' => 'Terrasse',
                 'garden' => 'Garten',
                 'elevator' => 'Aufzug',
-                'parking' => 'Stellplatz/Garage',
+                'parking' => 'Stellplatz',
+                'garage' => 'Garage',
                 'cellar' => 'Keller',
                 'fitted_kitchen' => 'Einbauküche',
                 'floor_heating' => 'Fußbodenheizung',
                 'guest_wc' => 'Gäste-WC',
+                'guest_toilet' => 'Gäste-WC',
+                'barrier_free' => 'Barrierefrei',
             ];
             $translated = array_map(function($f) use ($feature_labels) {
                 return $feature_labels[$f] ?? $f;
@@ -626,11 +643,24 @@ class IRP_Propstack {
             $lines[] = 'Stadt: ' . $city;
         }
 
+        // Address
+        $address = $calc['address'] ?? '';
+        if ($address) {
+            $lines[] = 'Adresse: ' . $address;
+        }
+
+        // Year built
+        $year_built = $calc['year_built'] ?? '';
+        if ($year_built) {
+            $lines[] = 'Baujahr: ' . $year_built;
+        }
+
         // Condition
         $conditions = [
-            'new' => 'Neubau',
-            'renovated' => 'Renoviert',
-            'good' => 'Gut',
+            'new' => 'Neubau/Erstbezug',
+            'renovated' => 'Renoviert/Saniert',
+            'well_maintained' => 'Gepflegt',
+            'good' => 'Gepflegt',
             'needs_renovation' => 'Renovierungsbedürftig',
         ];
         $condition = $calc['condition'] ?? '';
@@ -648,14 +678,18 @@ class IRP_Propstack {
         $features = $calc['features'] ?? [];
         if (!empty($features)) {
             $feature_labels = [
-                'balcony' => 'Balkon/Terrasse',
+                'balcony' => 'Balkon',
+                'terrace' => 'Terrasse',
                 'garden' => 'Garten',
                 'elevator' => 'Aufzug',
-                'parking' => 'Stellplatz/Garage',
+                'parking' => 'Stellplatz',
+                'garage' => 'Garage',
                 'cellar' => 'Keller',
                 'fitted_kitchen' => 'Einbauküche',
                 'floor_heating' => 'Fußbodenheizung',
                 'guest_wc' => 'Gäste-WC',
+                'guest_toilet' => 'Gäste-WC',
+                'barrier_free' => 'Barrierefrei',
             ];
             $translated = array_map(function($f) use ($feature_labels) {
                 return $feature_labels[$f] ?? $f;
