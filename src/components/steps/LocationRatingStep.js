@@ -175,11 +175,11 @@ export default function LocationRatingStep({ data, onChange }) {
                 {__('Die Lage hat einen erheblichen Einfluss auf den Mietwert.', 'immobilien-rechner-pro')}
             </p>
 
-            {/* Address Input (optional) */}
+            {/* Address Input (required) */}
             <div className="irp-form-group">
                 <label htmlFor="irp-address">
                     {__('Adresse der Immobilie', 'immobilien-rechner-pro')}
-                    <span className="irp-optional"> ({__('optional', 'immobilien-rechner-pro')})</span>
+                    <span className="irp-required">*</span>
                 </label>
                 <input
                     ref={showMap ? autocompleteRef : null}
@@ -196,6 +196,12 @@ export default function LocationRatingStep({ data, onChange }) {
                     }
                     autoComplete="off"
                 />
+                {/* Validation message when no valid address selected */}
+                {!(data.address && data.address.trim().length > 0 && data.address_lat && data.address_lng) && (
+                    <p className="irp-validation-message">
+                        {__('Bitte wählen Sie eine Adresse aus den Vorschlägen aus.', 'immobilien-rechner-pro')}
+                    </p>
+                )}
             </div>
 
             {/* Google Map */}

@@ -130,7 +130,9 @@ export default function RentalCalculator({ initialData, onComplete, onBack, city
             case 'condition':
                 return !!formData.condition;
             case 'location_rating':
-                return formData.location_rating !== null && formData.location_rating >= 1 && formData.location_rating <= 5;
+                // Adresse muss über Google Autocomplete ausgewählt sein (lat/lng gesetzt)
+                const hasValidAddress = formData.address && formData.address.trim().length > 0 && formData.address_lat && formData.address_lng;
+                return formData.location_rating !== null && formData.location_rating >= 1 && formData.location_rating <= 5 && hasValidAddress;
             case 'features':
                 return true; // Features are optional
             default:
